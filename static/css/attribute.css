@@ -1,0 +1,60 @@
+body {
+    font-family: Helvetica, Arial, Sans-Serif;
+    background: #ddd;
+}
+
+
+.attribute {
+    padding: 5px;
+    background: white;
+    border: 1px solid #bbb;
+    margin: 3px;
+}
+
+.attribute.error {
+    color: red;
+}
+
+.name {
+    text-align: right;
+}
+
+.attribute.write .name {
+    text-decoration: underline;
+}
+
+
+.value.number {
+    width: 100px;
+    text-align: right;
+}
+
+.value.state {
+    text-align: center;
+}
+
+.ATTR_VALID {
+    background-color: #0f0;
+}
+
+.ATTR_INVALID {
+    background-color: red;
+}
+
+.UNKNOWN {
+    background-color: #aaa;
+}
+
+input {
+    text-align: right;
+}
+
+input.applied:focus {
+    border: 2px solid black;
+    /* background: #afa; */
+}
+
+input.unapplied:focus {
+    border: 2px dashed black;
+    /* background: #faa; */
+}
