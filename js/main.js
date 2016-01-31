@@ -41,7 +41,7 @@ let store = createStoreWithMiddleware(rootReducer);
 let treeContainer = document.getElementById("tree");
 render(
     <Provider store={store}>
-        <Tree pattern="sys"/>
+        <Tree pattern="*"/>
     </Provider>,
     treeContainer
 );

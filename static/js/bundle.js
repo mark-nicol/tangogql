@@ -121,7 +121,7 @@
 	render(React.createElement(
 	    Provider,
 	    { store: store },
-	    React.createElement(Tree, { pattern: "sys" })
+	    React.createElement(Tree, { pattern: "*" })
 	), treeContainer);
 	
 	// attribute listener view
