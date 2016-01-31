@@ -74,7 +74,6 @@ class TaurusWebAttribute(object):
         self.write_message({"type": action, "data": {self.name: value}})
 
     def write_message(self, message):
-        print(message)
         self.callback(message)
 
     def clear(self):
