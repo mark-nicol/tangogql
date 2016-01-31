@@ -1,0 +1,30 @@
+{
+    "version": "0.1.0",
+    "description": "A demo app.",
+    "keywords": [
+        "react",
+        "react-component"
+    ],
+    "dependencies": {
+        "react": "^0.14",
+        "react-dom": "*",
+        "redux": "*",
+        "react-redux": "*",
+        "redux-thunk": "*",
+        "redux-logger": "*",
+        "redux-devtools": "*",
+        "immutable": "*",
+        "sprintf-js": "*",
+        "lokka": "*",
+        "lokka-transport-http": "*",
+        "normalizr": "*"        
+    },
+    "devDependencies": {
+        "babel-core": "^4.4.5",
+        "babel-loader": "^4.0.0",
+        "webpack": "^1.5.3"
+    },
+    "scripts": {
+        "start": "webpack -p"
+    }
+}
