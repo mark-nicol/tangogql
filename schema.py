@@ -7,15 +7,17 @@ import fnmatch
 
 import PyTango
 import graphene
+from graphene import (String, Int, Float, Boolean, List, Field,
+                      Interface, Mutation, ObjectType)
 from tangodb import CachedDatabase, get_device_proxy
 
 
 db = CachedDatabase(ttl=10)
 
 
-class TangoSomething(graphene.Interface):
+class TangoSomething(Interface):
 
-    nodetype = graphene.String()
+    nodetype = String()
 
     @graphene.resolve_only_args
     def resolve_nodetype(self):
@@ -24,9 +26,9 @@ class TangoSomething(graphene.Interface):
 
 class DeviceProperty(TangoSomething):
 
-    name = graphene.String()
-    device = graphene.String()
-    value = graphene.List(graphene.String())
+    name = String()
+    device = String()
+    value = List(String())
 
     def resolve_value(self, args, info):
         device = self.device
@@ -36,15 +38,15 @@ class DeviceProperty(TangoSomething):
             return [line for line in value[name]]
 
 
-class PutDeviceProperty(graphene.Mutation):
+class PutDeviceProperty(Mutation):
 
-    ok = graphene.Boolean()
+    ok = Boolean()
 
     class Input:
-        device = graphene.String()
-        name = graphene.String()
-        value = graphene.List(graphene.String())
-        # async = graphene.Boolean()
+        device = String()
+        name = String()
+        value = List(String())
+        # async = Boolean()
 
     @classmethod
     def mutate(cls, instance, args, info):
@@ -61,13 +63,13 @@ class PutDeviceProperty(graphene.Mutation):
         return PutDeviceProperty(ok=True)
 
 
-class DeleteDeviceProperty(graphene.Mutation):
+class DeleteDeviceProperty(Mutation):
 
-    ok = graphene.Boolean()
+    ok = Boolean()
 
     class Input:
-        device = graphene.String()
-        name = graphene.String()
+        device = String()
+        name = String()
 
     @classmethod
     def mutate(cls, instance, args, info):
@@ -82,31 +84,32 @@ class DeleteDeviceProperty(graphene.Mutation):
 
 class DeviceAttribute(TangoSomething):
 
-    name = graphene.String()
-    device = graphene.String()
-    data_type = graphene.String()
-    data_format = graphene.String()
-    writable = graphene.String()
-    label = graphene.String()
-    unit = graphene.String()
+    name = String()
+    device = String()
+    data_type = String()
+    data_format = String()
+    writable = String()
+    label = String()
+    unit = String()
 
 
 class DeviceInfo(TangoSomething):
 
-    name = graphene.String()
-    device_class = graphene.String()
-    server = graphene.String()
-    # last_exported = graphene.Float()
-    # last_unexported = graphene.Float()
-    exported = graphene.Boolean()
+    name = String()
+    device_class = String()
+    server = String()
+    pid = Int()
+    started_date = Float()
+    stopped_date = Float()
+    exported = Boolean()
 
 
 class Device(TangoSomething):
 
-    name = graphene.String()
-    info = graphene.Field(DeviceInfo)
-    properties = graphene.List(DeviceProperty, pattern=graphene.String())
-    attributes = graphene.List(DeviceAttribute, pattern=graphene.String())
+    name = String()
+    info = Field(DeviceInfo)
+    properties = List(DeviceProperty, pattern=String())
+    attributes = List(DeviceAttribute, pattern=String())
 
     @graphene.resolve_only_args
     def resolve_properties(self, pattern="*"):
@@ -127,22 +130,23 @@ class Device(TangoSomething):
 
     @graphene.resolve_only_args
     def resolve_info(self):
-        proxy = get_device_proxy(self.name)
-        device_info = proxy.info()
-        import_info = proxy.import_info()
+        info = db.get_device_info(self.name)
         return DeviceInfo(name=self.name,
-                          device_class=device_info.dev_class,
-                          server=device_info.server_id,
-                          exported=import_info.exported)
+                          device_class=info.class_name,
+                          server=info.ds_full_name,
+                          exported=info.exported,
+                          pid=info.pid,
+                          started_date=info.started_date,
+                          stopped_date=info.stopped_date)
 
 
 class Member(TangoSomething):
 
-    domain = graphene.String()
-    family = graphene.String()
-    name = graphene.String()
+    domain = String()
+    family = String()
+    name = String()
 
-    properties = graphene.List(DeviceProperty, pattern=graphene.String())
+    properties = List(DeviceProperty, pattern=String())
 
     @graphene.resolve_only_args
     def resolve_properties(self, pattern="*"):
@@ -153,9 +157,9 @@ class Member(TangoSomething):
 
 class Family(TangoSomething):
 
-    name = graphene.String()
-    domain = graphene.String()
-    members = graphene.List(Member, pattern=graphene.String())
+    name = String()
+    domain = String()
+    members = List(Member, pattern=String())
 
     @graphene.resolve_only_args
     def resolve_members(self, pattern="*"):
@@ -169,8 +173,8 @@ class Family(TangoSomething):
 
 class Domain(TangoSomething):
 
-    name = graphene.String()
-    families = graphene.List(Family, pattern=graphene.String())
+    name = String()
+    families = List(Family, pattern=String())
 
     @graphene.resolve_only_args
     def resolve_families(self, pattern="*"):
@@ -178,15 +182,12 @@ class Domain(TangoSomething):
         return [Family(name=f, domain=self.name) for f in families]
 
 
-class Query(graphene.ObjectType):
+class Query(ObjectType):
 
-    devices = graphene.List(Device, pattern=graphene.String())
-    domains = graphene.List(Domain, pattern=graphene.String())
-    families = graphene.List(Family, domain=graphene.String(),
-                             pattern=graphene.String())
-    members = graphene.List(Member, domain=graphene.String(),
-                            family=graphene.String(),
-                            pattern=graphene.String())
+    devices = List(Device, pattern=String())
+    domains = List(Domain, pattern=String())
+    families = List(Family, domain=String(), pattern=String())
+    members = List(Member, domain=String(), family=String(), pattern=String())
 
     @graphene.resolve_only_args
     def resolve_devices(self, pattern="*"):
@@ -209,9 +210,9 @@ class Query(graphene.ObjectType):
         return [Member(domain=domain, family=family, name=m) for m in members]
 
 
-class DatabaseMutations(graphene.ObjectType):
-    put_device_property = graphene.Field(PutDeviceProperty)
-    delete_device_property = graphene.Field(DeleteDeviceProperty)
+class DatabaseMutations(ObjectType):
+    put_device_property = Field(PutDeviceProperty)
+    delete_device_property = Field(DeleteDeviceProperty)
 
 
 tangoschema = graphene.Schema(query=Query, mutation=DatabaseMutations)
