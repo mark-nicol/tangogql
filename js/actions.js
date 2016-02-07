@@ -137,6 +137,7 @@ export function fetchMember(domain, family, pattern) {
                domain
                family
                name
+               exported
             }
         }
     }`;

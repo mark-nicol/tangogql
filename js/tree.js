@@ -18,6 +18,13 @@ class TreeNode extends Component {
         if (this.props.children.length == 0)
             this.fetchChildren();
     }
+
+    fetchChildren() {
+    }
+
+    getClass () {
+        return "";
+    }
     
     render () {
         var children;
@@ -25,7 +32,8 @@ class TreeNode extends Component {
             children = this.getChildren();
         return (
             <li>
-                <div onClick={this.onClick.bind(this)}>{this.props.name}</div>
+                <div className={"node " + this.getClass()}
+                     onClick={this.onClick.bind(this)}>{this.props.name}</div>
                 <ul>
                     { children }
                 </ul>
@@ -41,6 +49,10 @@ class DomainTreeNode extends TreeNode {
     
     fetchChildren() {
         this.props.dispatch(fetchFamily(this.props.name, "*"));
+    }
+
+    getClass() {
+        return "domain"
     }
     
     getChildren() {
@@ -63,11 +75,16 @@ class FamilyTreeNode extends TreeNode {
         this.props.dispatch(fetchMember(this.props.domain,
                                         this.props.name, "*"));
     }
+
+    getClass() {
+        return "family"
+    }
     
     getChildren() {
         return this.props.children.map(path => {
             const member = this.props.store.members[path];
-            return <MemberTreeNode {...this.props} key={path} name={member.name} path={path}/>
+            return <MemberTreeNode {...this.props} key={path}
+                       name={member.name} path={path} exported={member.exported}/>
         });
     }
 }
@@ -80,10 +97,10 @@ class MemberTreeNode extends TreeNode {
         return `${this.props.domain}/${this.props.family}/${this.props.name}`;
     }
     
-    fetchChildren() {
-        
+    getClass() {
+        return "member " + (this.props.exported? "exported" : "unexported");
     }
-
+    
     getChildren() {
         var children = [];
         return [<AttributesTreeNode {...this.props}
@@ -97,7 +114,6 @@ class MemberTreeNode extends TreeNode {
 class AttributesTreeNode extends TreeNode {
 
     fetchChildren() {
-        console.log("AttribuitesTreeNode.fetchDChildren");
         this.props.dispatch(fetchAttribute(this.props.device));
     }
 

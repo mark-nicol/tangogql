@@ -12,14 +12,15 @@ class AttributeListener extends Component {
     }
     
     render () {
-        return (<div className="attribute" onClick={this.onClick.bind(this)}>
-                {this.props.label}:
-                <span className={this.props.quality}>
+        return (
+                <div className="attribute" onClick={this.onClick.bind(this)}>
+                <span className="label">{this.props.label}</span>:
+                <span className={"value " + this.props.quality}>
                 {this.props.format?
                  sprintf(this.props.format, this.props.value):
                  this.props.value}
                 </span>
-                {this.props.unit}
+                <span className="unit">{this.props.unit}</span>
                 </div>);
     }
 }

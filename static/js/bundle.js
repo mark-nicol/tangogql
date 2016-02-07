@@ -134,12 +134,14 @@
 	
 	/* hacking a websocket in "on top" of the redux store... */
 	
-	var ws = new WebSocket("ws://" + window.location.host + "/socket");
+	var ws = new WebSocket("ws://" + window.location.host + "/socket", "json");
 	
 	ws.addEventListener("message", function (msg) {
 	    console.log(msg.data);
-	    var event = JSON.parse(msg.data);
-	    store.dispatch(event);
+	    var data = JSON.parse(msg.data);
+	    data.events.forEach(function (e) {
+	        return store.dispatch(e);
+	    });
 	});
 	
 	ws.addEventListener("open", function () {
@@ -28361,7 +28363,7 @@
 	
 	    return function (dispatch) {
 	        //dispatch(requestDevices("blabla"))
-	        var q = "{\n        families(domain: \"" + domain + "\", pattern: \"" + family + "\") {\n            domain\n            name\n            members(pattern: \"" + pattern + "\") { \n               domain\n               family\n               name\n            }\n        }\n    }";
+	        var q = "{\n        families(domain: \"" + domain + "\", pattern: \"" + family + "\") {\n            domain\n            name\n            members(pattern: \"" + pattern + "\") { \n               domain\n               family\n               name\n               exported\n            }\n        }\n    }";
 	
 	        client.query(q).then(function (result) {
 	            dataDispatcher(dispatch, result);
@@ -28436,14 +28438,22 @@
 	                return React.createElement(
 	                    "div",
 	                    { className: "attribute", onClick: this.onClick.bind(this) },
-	                    this.props.label,
+	                    React.createElement(
+	                        "span",
+	                        { className: "label" },
+	                        this.props.label
+	                    ),
 	                    ":",
 	                    React.createElement(
 	                        "span",
-	                        { className: this.props.quality },
+	                        { className: "value " + this.props.quality },
 	                        this.props.format ? sprintf(this.props.format, this.props.value) : this.props.value
 	                    ),
-	                    this.props.unit
+	                    React.createElement(
+	                        "span",
+	                        { className: "unit" },
+	                        this.props.unit
+	                    )
 	                );
 	            }
 	        }
@@ -28785,6 +28795,14 @@
 	                if (this.props.children.length == 0) this.fetchChildren();
 	            }
 	        },
+	        fetchChildren: {
+	            value: function fetchChildren() {}
+	        },
+	        getClass: {
+	            value: function getClass() {
+	                return "";
+	            }
+	        },
 	        render: {
 	            value: function render() {
 	                var children;
@@ -28794,7 +28812,8 @@
 	                    null,
 	                    React.createElement(
 	                        "div",
-	                        { onClick: this.onClick.bind(this) },
+	                        { className: "node " + this.getClass(),
+	                            onClick: this.onClick.bind(this) },
 	                        this.props.name
 	                    ),
 	                    React.createElement(
@@ -28825,6 +28844,11 @@
 	        fetchChildren: {
 	            value: function fetchChildren() {
 	                this.props.dispatch(fetchFamily(this.props.name, "*"));
+	            }
+	        },
+	        getClass: {
+	            value: function getClass() {
+	                return "domain";
 	            }
 	        },
 	        getChildren: {
@@ -28862,13 +28886,19 @@
 	                this.props.dispatch(fetchMember(this.props.domain, this.props.name, "*"));
 	            }
 	        },
+	        getClass: {
+	            value: function getClass() {
+	                return "family";
+	            }
+	        },
 	        getChildren: {
 	            value: function getChildren() {
 	                var _this = this;
 	
 	                return this.props.children.map(function (path) {
 	                    var member = _this.props.store.members[path];
-	                    return React.createElement(MemberTreeNode, _extends({}, _this.props, { key: path, name: member.name, path: path }));
+	                    return React.createElement(MemberTreeNode, _extends({}, _this.props, { key: path,
+	                        name: member.name, path: path, exported: member.exported }));
 	                });
 	            }
 	        }
@@ -28894,8 +28924,10 @@
 	                return "" + this.props.domain + "/" + this.props.family + "/" + this.props.name;
 	            }
 	        },
-	        fetchChildren: {
-	            value: function fetchChildren() {}
+	        getClass: {
+	            value: function getClass() {
+	                return "member " + (this.props.exported ? "exported" : "unexported");
+	            }
 	        },
 	        getChildren: {
 	            value: function getChildren() {
@@ -28925,7 +28957,6 @@
 	    _createClass(AttributesTreeNode, {
 	        fetchChildren: {
 	            value: function fetchChildren() {
-	                console.log("AttribuitesTreeNode.fetchDChildren");
 	                this.props.dispatch(fetchAttribute(this.props.device));
 	            }
 	        },

@@ -58,13 +58,13 @@ render(
 
 /* hacking a websocket in "on top" of the redux store... */
 
-var ws = new WebSocket("ws://" + window.location.host + "/socket");
+var ws = new WebSocket("ws://" + window.location.host + "/socket", "json");
 
 
 ws.addEventListener("message", msg => {
     console.log(msg.data)
-    var event = JSON.parse(msg.data);
-    store.dispatch(event);
+    var data = JSON.parse(msg.data);
+    data.events.forEach(e => store.dispatch(e));
 });
 
 

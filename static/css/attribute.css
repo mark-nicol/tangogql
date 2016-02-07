@@ -23,6 +23,9 @@ body {
     text-decoration: underline;
 }
 
+.value {
+    font-size: 20px;
+}
 
 .value.number {
     width: 100px;
@@ -33,16 +36,16 @@ body {
     text-align: center;
 }
 
-.ATTR_VALID {
-    background-color: #0f0;
+.value.ATTR_VALID {
+    border-bottom: 3px solid #0f0;
 }
 
-.ATTR_INVALID {
-    background-color: red;
+.value.ATTR_INVALID {
+    border-bottom: 3px solid red;    
 }
 
-.UNKNOWN {
-    background-color: #aaa;
+.value.UNKNOWN {
+    border-bottom: 3px solid #grey;    
 }
 
 input {
