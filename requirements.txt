@@ -1,4 +1,4 @@
 PyTango
-taurus
 aiohttp
 graphene
+bson

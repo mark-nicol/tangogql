@@ -10,7 +10,7 @@ This is all very experimental, inefficient and broken in many ways, especially t
 
 BUILDING/RUNNING
 
-The server is written in Python and currently requires >=3.5 (although it should be easy to support slightly older python 3 versions.) For this reason it will not work with released versions of Taurus that are not python 3 compatible. aiohttp is used for the web server part. "requirements.txt" should contain the necessary libraries.
+The server is written in Python and currently requires >=3.5 (although it should be easy to support slightly older python 3 versions.) It requres the "asyncio-support" branch of PyTango (from vinmic). "aiohttp" is used for the web server part. "requirements.txt" should list the necessary libraries.
 
   $ python3.5 aioserver.py
 
@@ -36,3 +36,11 @@ An example query (some more examples in schema.py):
         }
     }
 }
+
+TODO/IDEAS
+
+- Serialization. Some experiments with BSON are included; perhaps look into msgpack, protobuf..? Performance testing.
+- Figure out event subscription with asyncio.
+- Only supports "push" right now, read/write attributes across websockets would make sense.
+- An actually useful interface, something like a "dashboard" that can be configured to display various attributes?
+- Make the database client async
