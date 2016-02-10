@@ -8,6 +8,8 @@ from aiohttp import web
 import bson
 from PyTango import DeviceProxy, set_green_mode, GreenMode, ExtractAs
 from PyTango import DeviceAttributeConfig, DeviceAttribute
+from PyTango import EventType, DevFailed
+import PyTango
 
 from schema import tangoschema
 
@@ -61,17 +63,30 @@ class Listener():
         self.period = period
         self.rate_limit = rate_limit
 
-    async def _reader(self, name):
+    async def _subscribe(self, name):
+        device, attr = name.rsplit("/", 1)
+        proxy = DeviceProxy(device)
+        try:
+            await proxy.subscribe_event(attr, EventType.CHANGE_EVENT,
+                                        self,  # PyTango.utils.EventCallBack(),
+                                        extract_as=ExtractAs.Bytes)
+            print("successfully subscribed to %s/%s" % (device, attr))
+        except DevFailed:
+            print("could not subscribe to %s/%s; polling" % (device, attr))
+            reader = self._reader(proxy, attr)
+            loop = asyncio.get_event_loop()
+            loop.create_task(reader)
+
+    async def _reader(self, proxy, attr):
         """Coroutine that periodically reads an attribute and puts the
         result on the queues of all listening sockets, as long as there
         are any. One reader per attribute."""
         # this is a bit over complicated; shouldn't have to care about
         # sockets at all? Also, inefficient to read one attribute at a time.
-        device, attr = name.rsplit("/", 1)
-        proxy = DeviceProxy(device)
+        fullname = "%s/%s" % (proxy.dev_name(), attr)
         while True:
             await asyncio.sleep(self.period)  # TODO: take read time into account
-            sockets = self._sockets.get(name)
+            sockets = self._sockets.get(fullname)
             if not sockets:
                 # nobody listening to this attribute; we're done here
                 break
@@ -83,13 +98,13 @@ class Listener():
                 continue
             for socket in sockets:
                 try:
-                    self._queues[socket].put_nowait((name, result))
+                    self._queues[socket].put_nowait((fullname, result))
                 except asyncio.QueueFull:
                     pass
                 except KeyError:
                     pass
                 del socket  # let go of the reference
-        print("listener %s exited" % name)
+        print("listener %s exited" % fullname)
 
     async def _sender(self, queue, socket):
         """A coroutine that monitors a queue, collecting events into buckets
@@ -122,7 +137,17 @@ class Listener():
                 break
         print("Sender for %r exited" % socket)
 
-    def subscribe_attribute(self, attr, socket):
+    def push_event(self, event):
+        "Receives all events and puts them on the appropriate queues"
+        if event.attr_value:
+            device = event.device.dev_name()
+            attr = event.attr_value.name
+            name = "%s/%s" % (device, attr)
+            sockets = self._sockets[name]
+            for socket in sockets:
+                self._queues[socket].put_nowait((name, event.attr_value))
+
+    async def subscribe_attribute(self, attr, socket):
         "Start listening to the given attribute with the given socket"
         if socket not in self._queues:
             queue = self._queues[socket] = asyncio.Queue(maxsize=100)
@@ -133,16 +158,14 @@ class Listener():
             self._sockets[attr].add(socket)
         else:
             self._sockets[attr] = WeakSet([socket])
-            self.add_reader(attr)
+            await self.add_reader(attr)
 
     def unsubscribe_attribute(self, attr, socket):
         "Stop listening to an attribute from a socket"
         self._sockets.get(attr, {}).remove(socket)
 
-    def add_reader(self, fullname):
-        reader = self._reader(fullname)
-        loop = asyncio.get_event_loop()
-        loop.create_task(reader)
+    async def add_reader(self, fullname):
+        await self._subscribe(fullname)
 
     async def handle_websocket(self, request):
 
@@ -164,7 +187,7 @@ class Listener():
                     action = json.loads(msg.data)
                     if action["type"] == 'SUBSCRIBE':
                         for attr in action["models"]:
-                            self.subscribe_attribute(attr, ws)
+                            await self.subscribe_attribute(attr, ws)
                             print("add listener for '%s'" % attr)
                     elif action["type"] == "UNSUBSCRIBE":
                         for attr in action["models"]:
