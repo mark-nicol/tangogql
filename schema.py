@@ -9,11 +9,12 @@ from collections import defaultdict
 import PyTango
 import graphene
 from graphene import (Boolean, Field, Float, Int, Interface, List, Mutation,
-    ObjectType, String)
-from tangodb import CachedDatabase, get_device_proxy
+                      ObjectType, String)
+from tangodb import CachedDatabase, DeviceProxyCache
 
 
 db = CachedDatabase(ttl=10)
+proxies = DeviceProxyCache()
 
 
 class TangoSomething(Interface):
@@ -114,7 +115,7 @@ class Device(TangoSomething):
 
     @graphene.resolve_only_args
     def resolve_attributes(self, pattern="*"):
-        proxy = get_device_proxy(self.name)
+        proxy = proxies.get(self.name)
         attr_infos = proxy.attribute_list_query()
         rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
         return [DeviceAttribute(name=a.name, device=self.name,

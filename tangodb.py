@@ -46,23 +46,25 @@ class CachedDatabase(object):
         return self._methods[method]
 
 
-# Keep a cache of device proxies
-# TODO: does this actually work? Are the proxies really cleaned up
-# after they are deleted?
-MAX_PROXIES = 100
-_device_proxies = OrderedDict()
+class DeviceProxyCache(object):
+    "Keep a limited cache of device proxies that are reused"
+    # TODO: does this actually work? Are the proxies really cleaned up
+    # by PyTango after they are deleted?
 
+    def __init__(self, max_proxies=100):
+        self.max_proxies = max_proxies
+        self._device_proxies = OrderedDict()
 
-def get_device_proxy(devname):
-    """Keep a cache of the MAX_PROXIES last used proxies, and reuse
-    proxies pointing to the same device"""
-    if devname in _device_proxies:
-        return _device_proxies[devname]
-    proxy = PyTango.DeviceProxy(devname)
-    if len(_device_proxies) == MAX_PROXIES:
-        oldest = _device_proxies.keys()[0]
-        del _device_proxies[oldest]
-    _device_proxies[devname] = proxy
-    return proxy
-
-
+    def get(self, devname):
+        if devname in self._device_proxies:
+            # Proxy to this device already exists
+            proxy = self._device_proxies.pop(devname)
+            self._device_proxies[devname] = proxy  # putting it first
+            return proxy
+        # Unknown device; let's create a new proxy
+        proxy = PyTango.DeviceProxy(devname)
+        if len(self._device_proxies) == self.max_proxies:
+            oldest = self._device_proxies.keys()[0]
+            del self._device_proxies[oldest]
+        self._device_proxies[devname] = proxy
+        return proxy
