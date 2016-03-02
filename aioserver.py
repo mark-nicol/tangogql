@@ -1,4 +1,5 @@
 import json
+import logging
 import time
 from weakref import WeakSet, WeakValueDictionary
 
@@ -58,6 +59,8 @@ class Listener():
     _readers = {}
     _sockets = {}
     _queues = WeakValueDictionary()
+    _subscriptions = {}
+    _proxies = {}
 
     def __init__(self, period=0.1, rate_limit=0.2):
         self.period = period
@@ -65,14 +68,19 @@ class Listener():
 
     async def _subscribe(self, name):
         device, attr = name.rsplit("/", 1)
-        proxy = DeviceProxy(device)
+        if device in self._proxies:
+            proxy = self._proxies[device]
+        else:
+            proxy = DeviceProxy(device)
+            self._proxies[device] = proxy
         try:
-            await proxy.subscribe_event(attr, EventType.CHANGE_EVENT,
-                                        self,  # PyTango.utils.EventCallBack(),
-                                        extract_as=ExtractAs.Bytes)
-            print("successfully subscribed to %s/%s" % (device, attr))
+            sub = await proxy.subscribe_event(attr, EventType.CHANGE_EVENT,
+                                              self,
+                                              extract_as=ExtractAs.Bytes)
+            self._subscriptions[name] = sub
+            logging.debug("successfully subscribed to %s/%s", device, attr)
         except DevFailed:
-            print("could not subscribe to %s/%s; polling" % (device, attr))
+            logging.info("could not subscribe to %s/%s; polling", device, attr)
             reader = self._reader(proxy, attr)
             loop = asyncio.get_event_loop()
             loop.create_task(reader)
@@ -94,7 +102,7 @@ class Listener():
                 result = await proxy.read_attribute(
                     attr, extract_as=ExtractAs.Bytes)
             except Exception as e:
-                print(e)
+                logging.warn(e)
                 continue
             for socket in sockets:
                 try:
@@ -104,7 +112,7 @@ class Listener():
                 except KeyError:
                     pass
                 del socket  # let go of the reference
-        print("listener %s exited" % fullname)
+        logging.info("listener %s exited", fullname)
 
     async def _sender(self, queue, socket):
         """A coroutine that monitors a queue, collecting events into buckets
@@ -133,9 +141,9 @@ class Listener():
             except RuntimeError as e:
                 # guess the client must be gone. Maybe there's a neater
                 # way to detect this.
-                print(e)
+                logging.warn(e)
                 break
-        print("Sender for %r exited" % socket)
+        logging.info("Sender for %r exited" % socket)
 
     def push_event(self, event):
         "Receives all events and puts them on the appropriate queues"
@@ -160,9 +168,19 @@ class Listener():
             self._sockets[attr] = WeakSet([socket])
             await self.add_reader(attr)
 
-    def unsubscribe_attribute(self, attr, socket):
+    def unsubscribe_attribute(self, name, socket):
         "Stop listening to an attribute from a socket"
-        self._sockets.get(attr, {}).remove(socket)
+        sockets = self._sockets.get(name, {})
+        sockets.remove(socket)
+        if not sockets:
+            self._sockets.pop(name)
+            if name in self._subscriptions:
+                sub = self._subscriptions.pop(name)
+                dev, attr = name.rsplit("/", 1)
+                proxy = self._proxies[device]
+                proxy.unsubscribe_event(sub)
+
+            # TODO: cleanup unused proxies
 
     async def add_reader(self, fullname):
         await self._subscribe(fullname)
@@ -174,7 +192,9 @@ class Listener():
         ws = web.WebSocketResponse(protocols=("json", "bson"))
         await ws.prepare(request)
 
-        print("Listener has connected; protocol %s" % ws.protocol)
+        logging.info("Listener has connected; protocol %s" % ws.protocol)
+
+        subscribed_attrs = set()
 
         # wait for messages over the socket
         # A message must be JSON, in the format:
@@ -188,18 +208,20 @@ class Listener():
                     if action["type"] == 'SUBSCRIBE':
                         for attr in action["models"]:
                             await self.subscribe_attribute(attr, ws)
-                            print("add listener for '%s'" % attr)
+                            subscribed_attrs.add(attr)
+                            logging.debug("add listener for '%s'", attr)
                     elif action["type"] == "UNSUBSCRIBE":
                         for attr in action["models"]:
-                            print("remove listener for '%s'" % attr)
+                            logging.debug("remove listener for '%s'", attr)
+                            subscribed_attrs.remove(attr)
                             self.unsubscribe_attribute(attr, ws)
                 elif msg.tp == aiohttp.MsgType.error:
-                    print('websocket closed with exception %s' %
-                          ws.exception())
-            except RuntimeError as re:
-                print("websocket died: %s" % re)
+                    logging.warn('websocket closed with exception %s',
+                                 ws.exception())
+            except RuntimeError as e:
+                logging.warn("websocket died: %s", e)
 
-        print('websocket connection closed')
+        logging.info('websocket connection %s closed' % ws)
 
         return ws
 
