@@ -1,12 +1,15 @@
 html, body {
     height: 100%;
     margin: 0;
-    padding: 0;    
+    padding: 0;
+    overflow-y: hidden;  /* hack to get rid of ugly padding */
 }
 
 #main {
     height: 100%;
     display: inline-block;
     vertical-align: top;
+    padding: 0;
+    margin: 0;    
 }
 
