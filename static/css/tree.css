@@ -1,0 +1,20 @@
+#tree {
+    max-height: 100%;
+    background: white;
+    display: inline-block;
+    overflow-y: scroll;
+    min-width: 15%;
+    padding: 0 5px;
+    margin: 0;
+}
+
+
+ul {
+    margin-left: 10px;
+    padding-left: 10px;
+}
+
+
+div.member.unexported {
+    color: grey;    
+}
