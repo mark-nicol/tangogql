@@ -1,3 +1,4 @@
+import numpy as np
 from taurus import Attribute, Manager
 from taurus.core.taurusbasetypes import TaurusEventType
 import PyTango
@@ -15,6 +16,8 @@ def error_str(err):
 def format_value(value, attr_type):
     if attr_type is PyTango.ArgType.DevState:
         return str(value)
+    if isinstance(value, np.ndarray):
+        return value.tobytes()  # TODO: is this a copy..?
     return value
 
 
@@ -46,18 +49,11 @@ class TaurusWebAttribute(object):
         self._last_time = 0
         self.last_value_event = None
         self.last_config_event = None
+        self.attribute = Attribute(self.name)
         self.attribute.addListener(self)
-
-    @property
-    def attribute(self):
-        return Attribute(self.name)
 
     def eventReceived(self, evt_src, evt_type, evt_value):
 
-        """Transforms the event into a JSON encoded string and sends this
-        string into the web socket."""
-
-        action = "CHANGE"
         if evt_type == TaurusEventType.Error:
             action = "ERROR"
             value = error_str(evt_value)
@@ -68,18 +64,11 @@ class TaurusWebAttribute(object):
                 self.last_config_event = value
             else:
                 self._last_time = evt_value.time.tv_sec
+                action = "CHANGE"
                 value = format_value_event(evt_value)
                 self.last_value_event = value
 
-        self.write_message({"type": action, "data": {self.name: value}})
-
-    def write_message(self, message):
-        self.callback(message)
+        self.callback(self.name, {"type": action, "data": {self.name: value}})
 
     def clear(self):
         self.attribute.removeListener(self)
-
-    def __del__(self):
-        print("GC", self.name)
-
-
