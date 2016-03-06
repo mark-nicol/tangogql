@@ -1,15 +1,22 @@
-html, body {
+#container {
     height: 100%;
-    margin: 0;
-    padding: 0;
-    overflow-y: hidden;  /* hack to get rid of ugly padding */
+}
+
+#inner {
+    height: 100%;
 }
 
 #main {
-    height: 100%;
-    display: inline-block;
-    vertical-align: top;
     padding: 0;
-    margin: 0;    
+    margin: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
+#tree {
+    background: white;
+    overflow-y: scroll;
+    padding: 0 5px;
+    margin: 0;
+    max-height: 100%;
+}

@@ -1,0 +1,19 @@
+.card {
+    height: 100%;
+}
+
+.card .handle {
+    display: table-row;
+    height: 10px;
+    background: #bbb;
+}
+
+.card .content {
+    overflow-x: hidden;
+    overflow-y: auto;
+    max-height: 100%;
+}
+    
+.card.over {
+    outline: 3px solid black;
+}

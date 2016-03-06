@@ -16,7 +16,10 @@
         "sprintf-js": "*",
         "lokka": "*",
         "lokka-transport-http": "*",
-        "normalizr": "*"        
+        "normalizr": "*",
+        "react-grid-layout": "*",
+        "react-dnd": "*",
+        "react-dnd-html5-backend": "*"
     },
     "devDependencies": {
         "babel-core": "^4.4.5",

@@ -1,5 +1,8 @@
+/* redux store */
+
 import {RECEIVE, CHANGE, CONFIG, ADD_ATTRIBUTE_LISTENER,
-        REMOVE_ATTRIBUTE_LISTENER} from "./actions";
+        REMOVE_ATTRIBUTE_LISTENER,
+        SET_DASHBOARD_LAYOUT, SET_DASHBOARD_CONTENT} from "./actions";
 
 
 function deviceStore (state, action) {
@@ -99,6 +102,7 @@ function attributeStore (state, action) {
     }
 }
 
+
 function listenerStore (state, action) {
     switch (action.type) {
     case ADD_ATTRIBUTE_LISTENER:
@@ -116,6 +120,25 @@ function listenerStore (state, action) {
 }
 
 
+function dashboardLayoutStore (state, action) {
+    switch (action.type) {
+    case SET_DASHBOARD_LAYOUT:
+        return action.layout;
+    }
+    return state;
+}
+
+
+
+function dashboardContentStore (state, action) {
+    switch (action.type) {
+    case SET_DASHBOARD_CONTENT:
+        return Object.assign({}, state, action.content);
+    }
+    return state;
+}
+
+
 // Combining the stores 
 
 let initialState = {
@@ -128,7 +151,12 @@ let initialState = {
     attribute_values: {},
     attribute_configs: {},    
     members: {},
-    listeners: {}
+    listeners: {},
+    dashboardLayout: [
+        {i: "1", x: 0, y: 0, w: 3, h: 2},
+        {i: "2", x: 3, y: 0, w: 2, h: 1},
+    ],
+    dashboardContent: {}
 }
 
 
@@ -143,9 +171,12 @@ export default function data (state=initialState, action) {
           attribute_values = attributeValueStore(state.attribute_values, action),
           attribute_configs = attributeConfigStore(state.attribute_configs, action),          
           properties = propertyStore(state.properties, action),
-          listeners = listenerStore(state.listeners, action);
+          listeners = listenerStore(state.listeners, action),
+          dashboardLayout = dashboardLayoutStore(state.dashboardLayout, action),
+          dashboardContent = dashboardContentStore(state.dashboardContent, action);
     
     return {devices, domains, families, members, properties, attributes,
-            attribute_values, attribute_configs, listeners};
+            attribute_values, attribute_configs, listeners,
+            dashboardLayout, dashboardContent};
 }
 

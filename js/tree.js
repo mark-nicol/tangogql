@@ -1,9 +1,35 @@
 import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
+import {DragSource} from 'react-dnd';
 
 import { fetchDomain, fetchFamily, fetchMember, fetchAttribute,
          addAttributeListener } from './actions'
 
+
+const attributeSource = {
+    beginDrag(props) {
+        console.log("beginDrag", props)        
+        return {
+            device: props.device,
+            attribute: props.name
+        };
+    }
+};
+
+
+function collect(connect, monitor) {
+    return {
+        connectDragSource: connect.dragSource(),
+        isDragging: monitor.isDragging()
+    };
+}
+
+
+const propTypes = {
+    // Injected by React DnD:
+    isDragging: PropTypes.bool.isRequired,
+    connectDragSource: PropTypes.func.isRequired
+};
 
 
 class TreeNode extends Component {
@@ -132,7 +158,7 @@ class AttributesTreeNode extends TreeNode {
 }
 
 
-class Attribute extends Component {
+class _Attribute extends Component {
 
     onClick () {
         this.props.dispatch(addAttributeListener(this.props.device,
@@ -140,9 +166,14 @@ class Attribute extends Component {
     }
     
     render () {
-        return <div onClick={this.onClick.bind(this)}>{this.props.name}</div>;
+        const { isDragging, connectDragSource, text } = this.props;
+        return connectDragSource(
+                <div onClick={this.onClick.bind(this)}>{this.props.name}</div>
+        );
     }
 }
+
+const Attribute = DragSource("ATTRIBUTE", attributeSource, collect)(_Attribute);
 
 
 class Tree extends Component {
@@ -155,7 +186,7 @@ class Tree extends Component {
         var nodes = Object.keys(this.props.store.domains).map(
             name => {
                 const domain = this.props.store.domains[name];
-                return <DomainTreeNode {...this.props}
+                return <DomainTreeNode {...this.props} className="tree"
                            key={domain.name} name={domain.name}
                            children={domain.families || []}/>
             }

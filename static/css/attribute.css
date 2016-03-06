@@ -3,12 +3,31 @@ body {
     background: #ddd;
 }
 
+.attribute-list {
+    display: table;
+    width: 100%;
+}
 
 .attribute {
-    padding: 5px;
-    background: white;
-    border: 1px solid #bbb;
-    margin: 3px;
+    display: table-row;
+}
+
+.attribute:nth-child(even) {
+    background: #eee;
+}
+
+.attribute span {
+    display: table-cell;
+    padding: 0 5px;
+}
+
+.attribute .label {
+    text-align: right;
+}
+
+.attribute .value {
+    width: 100%;
+    text-align: right;
 }
 
 .attribute.error {

@@ -1,3 +1,5 @@
+/* redux actions */
+
 import Lokka from "lokka";
 import Transport from "lokka-transport-http"
 import { normalize, Schema, arrayOf } from 'normalizr';
@@ -8,6 +10,8 @@ export const ADD_ATTRIBUTE_LISTENER = "ADD_ATTRIBUTE_LISTENER";
 export const REMOVE_ATTRIBUTE_LISTENER = "REMOVE_ATTRIBUTE_LISTENER";
 export const CHANGE = "CHANGE";
 export const CONFIG = "CONFIG";
+export const SET_DASHBOARD_LAYOUT = "SET_DASHBOARD_LAYOUT"
+export const SET_DASHBOARD_CONTENT = "SET_DASHBOARD_CONTENT"
 
 
 export function receiveData(data) {
@@ -30,6 +34,23 @@ export function addAttributeListener(device, attribute) {
 export function removeAttributeListener(model) {
     return { type: REMOVE_ATTRIBUTE_LISTENER,
              data: {model: model} } 
+}
+
+export function setDashboardLayout(layout) {
+    return {type: SET_DASHBOARD_LAYOUT, layout}
+}
+
+export function setDashboardContent(content) {
+    return (dispatch) => {
+        dispatch({type: SET_DASHBOARD_CONTENT, content});
+        console.log("setDashboardcontent", content);
+        Object.keys(content).forEach(key => {
+            let items = content[key];
+            items.forEach(item => {
+                dispatch(addAttributeListener(item.device, item.attribute));
+            });
+        });
+    };
 }
 
 
