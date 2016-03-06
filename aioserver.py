@@ -111,7 +111,7 @@ if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     handler = app.make_handler(debug=True)
     f = loop.create_server(handler, '127.0.0.1', 5003)
-    logger.info("Connect to")
+    logging.info("Point your browser to http://localhost:5003/index.html")
     srv = loop.run_until_complete(f)
     try:
         loop.run_forever()
