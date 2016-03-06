@@ -17,3 +17,32 @@
 .card.over {
     outline: 3px solid black;
 }
+
+
+button.add-card {
+    border: 2px solid black;
+    width: 30px;
+    height: 30px;
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+button.remove-card {
+    border: 0;
+    background: white;
+    display: none;
+    width: 16px;
+    height: 16px;
+    position: absolute;
+    padding: 0;
+    margin: 0;
+    top: 0;
+    right: 0;
+    opacity: 0.5;
+}    
+
+
+.card:hover button {
+    display: block;
+}

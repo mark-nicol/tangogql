@@ -16,9 +16,11 @@ class AttributeListener extends Component {
                 <div className="attribute" onClick={this.onClick.bind(this)}>
                 <span className="label">{this.props.label}</span>
                 <span className={"value " + this.props.quality}>
+                <div>
                 {this.props.format?
                  sprintf(this.props.format, this.props.value) :
                  this.props.value}
+                </div>
                 </span>
                 <span className="unit">{this.props.unit}</span>
                 </div>);
@@ -26,10 +28,9 @@ class AttributeListener extends Component {
 }
 
 
-class AttributeListenerList extends Component {
+class AttributeList extends Component {
     render () {
         let attrs = this.props.listeners.map((item, i) => {
-            console.log("attr", item);
             let model = `${item.device}/${item.attribute}`;
             let attr = this.props.attributes[model]
             let value = this.props.values[model]
@@ -56,4 +57,4 @@ function select (state) {
     }
 }
 
-export default connect(select)(AttributeListenerList);
+export default connect(select)(AttributeList);

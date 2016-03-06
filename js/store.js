@@ -2,7 +2,8 @@
 
 import {RECEIVE, CHANGE, CONFIG, ADD_ATTRIBUTE_LISTENER,
         REMOVE_ATTRIBUTE_LISTENER,
-        SET_DASHBOARD_LAYOUT, SET_DASHBOARD_CONTENT} from "./actions";
+        SET_DASHBOARD_LAYOUT, ADD_DASHBOARD_CARD, REMOVE_DASHBOARD_CARD,
+        SET_DASHBOARD_CONTENT} from "./actions";
 
 
 function deviceStore (state, action) {
@@ -124,16 +125,32 @@ function dashboardLayoutStore (state, action) {
     switch (action.type) {
     case SET_DASHBOARD_LAYOUT:
         return action.layout;
+    case ADD_DASHBOARD_CARD:
+        let i;
+        if (state.length > 0) {
+            let tmpState = [...state];
+            tmpState.sort((c1, c2) => parseInt(c1.i) > parseInt(c2.i));
+            let lastCard = tmpState[tmpState.length-1];
+            i = parseInt(lastCard.i) + 1;
+        } else {
+            i = 0;
+        }
+        let newCard = {i: i.toString(), x: 0, y: 100, w: 3, h: 2};
+        return [...state, newCard];
+    case REMOVE_DASHBOARD_CARD:
+        let index = state.indexOf(state.find(card => card.i == action.index))
+        return [...state.slice(0, index), ...state.slice(index+1)];
     }
     return state;
 }
-
 
 
 function dashboardContentStore (state, action) {
     switch (action.type) {
     case SET_DASHBOARD_CONTENT:
         return Object.assign({}, state, action.content);
+    case REMOVE_DASHBOARD_CARD:
+        
     }
     return state;
 }
@@ -153,8 +170,7 @@ let initialState = {
     members: {},
     listeners: {},
     dashboardLayout: [
-        {i: "1", x: 0, y: 0, w: 3, h: 2},
-        {i: "2", x: 3, y: 0, w: 2, h: 1},
+        {i: "0", x: 0, y: 0, w: 4, h: 4},
     ],
     dashboardContent: {}
 }

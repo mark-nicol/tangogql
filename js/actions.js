@@ -12,7 +12,8 @@ export const CHANGE = "CHANGE";
 export const CONFIG = "CONFIG";
 export const SET_DASHBOARD_LAYOUT = "SET_DASHBOARD_LAYOUT"
 export const SET_DASHBOARD_CONTENT = "SET_DASHBOARD_CONTENT"
-
+export const ADD_DASHBOARD_CARD = "ADD_DASHBOARD_CARD"
+export const REMOVE_DASHBOARD_CARD = "REMOVE_DASHBOARD_CARD"
 
 export function receiveData(data) {
     return { type: RECEIVE, data }
@@ -47,10 +48,19 @@ export function setDashboardContent(content) {
         Object.keys(content).forEach(key => {
             let items = content[key];
             items.forEach(item => {
+                let model = `${item.device}/${item.attribute}`;
                 dispatch(addAttributeListener(item.device, item.attribute));
             });
         });
     };
+}
+
+export function addDashboardCard() {
+    return {type: ADD_DASHBOARD_CARD}
+}
+
+export function removeDashboardCard(index) {
+    return {type: REMOVE_DASHBOARD_CARD, index};
 }
 
 

@@ -78,7 +78,6 @@ var ws = new WebSocket("ws://" + window.location.host + "/socket", "json");
 
 
 ws.addEventListener("message", msg => {
-    console.log(msg.data)
     var data = JSON.parse(msg.data);
     data.events.forEach(e => store.dispatch(e));
 });

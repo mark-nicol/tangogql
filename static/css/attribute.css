@@ -44,6 +44,8 @@ body {
 
 .value {
     font-size: 20px;
+    text-align: right;
+    padding-bottom: -2;
 }
 
 .value.number {

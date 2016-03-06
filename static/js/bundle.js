@@ -183,7 +183,6 @@
 	var ws = new WebSocket("ws://" + window.location.host + "/socket", "json");
 	
 	ws.addEventListener("message", function (msg) {
-	    console.log(msg.data);
 	    var data = JSON.parse(msg.data);
 	    data.events.forEach(function (e) {
 	        return store.dispatch(e);
@@ -40155,11 +40154,11 @@
   \*********************/
 /***/ function(module, exports, __webpack_require__) {
 
-	
-	
-	// This is probably not the way to do it...
 	"use strict";
 	
+	var _toConsumableArray = function (arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } };
+	
+	// This is probably not the way to do it...
 	module.exports = data;
 	/* redux store */
 	
@@ -40171,6 +40170,8 @@
 	var ADD_ATTRIBUTE_LISTENER = _actions.ADD_ATTRIBUTE_LISTENER;
 	var REMOVE_ATTRIBUTE_LISTENER = _actions.REMOVE_ATTRIBUTE_LISTENER;
 	var SET_DASHBOARD_LAYOUT = _actions.SET_DASHBOARD_LAYOUT;
+	var ADD_DASHBOARD_CARD = _actions.ADD_DASHBOARD_CARD;
+	var REMOVE_DASHBOARD_CARD = _actions.REMOVE_DASHBOARD_CARD;
 	var SET_DASHBOARD_CONTENT = _actions.SET_DASHBOARD_CONTENT;
 	
 	function deviceStore(state, action) {
@@ -40282,6 +40283,25 @@
 	    switch (action.type) {
 	        case SET_DASHBOARD_LAYOUT:
 	            return action.layout;
+	        case ADD_DASHBOARD_CARD:
+	            var i = undefined;
+	            if (state.length > 0) {
+	                var tmpState = [].concat(_toConsumableArray(state));
+	                tmpState.sort(function (c1, c2) {
+	                    return parseInt(c1.i) > parseInt(c2.i);
+	                });
+	                var lastCard = tmpState[tmpState.length - 1];
+	                i = parseInt(lastCard.i) + 1;
+	            } else {
+	                i = 0;
+	            }
+	            var newCard = { i: i.toString(), x: 0, y: 100, w: 3, h: 2 };
+	            return [].concat(_toConsumableArray(state), [newCard]);
+	        case REMOVE_DASHBOARD_CARD:
+	            var index = state.indexOf(state.find(function (card) {
+	                return card.i == action.index;
+	            }));
+	            return [].concat(_toConsumableArray(state.slice(0, index)), _toConsumableArray(state.slice(index + 1)));
 	    }
 	    return state;
 	}
@@ -40290,6 +40310,8 @@
 	    switch (action.type) {
 	        case SET_DASHBOARD_CONTENT:
 	            return Object.assign({}, state, action.content);
+	        case REMOVE_DASHBOARD_CARD:
+	
 	    }
 	    return state;
 	}
@@ -40307,7 +40329,7 @@
 	    attribute_configs: {},
 	    members: {},
 	    listeners: {},
-	    dashboardLayout: [{ i: "1", x: 0, y: 0, w: 3, h: 2 }, { i: "2", x: 3, y: 0, w: 2, h: 1 }],
+	    dashboardLayout: [{ i: "0", x: 0, y: 0, w: 4, h: 4 }],
 	    dashboardContent: {}
 	};
 	function data(_x, action) {
@@ -40348,6 +40370,8 @@
 	exports.removeAttributeListener = removeAttributeListener;
 	exports.setDashboardLayout = setDashboardLayout;
 	exports.setDashboardContent = setDashboardContent;
+	exports.addDashboardCard = addDashboardCard;
+	exports.removeDashboardCard = removeDashboardCard;
 	exports.fetchDomain = fetchDomain;
 	exports.fetchFamily = fetchFamily;
 	exports.fetchMember = fetchMember;
@@ -40379,8 +40403,12 @@
 	var SET_DASHBOARD_LAYOUT = "SET_DASHBOARD_LAYOUT";
 	exports.SET_DASHBOARD_LAYOUT = SET_DASHBOARD_LAYOUT;
 	var SET_DASHBOARD_CONTENT = "SET_DASHBOARD_CONTENT";
-	
 	exports.SET_DASHBOARD_CONTENT = SET_DASHBOARD_CONTENT;
+	var ADD_DASHBOARD_CARD = "ADD_DASHBOARD_CARD";
+	exports.ADD_DASHBOARD_CARD = ADD_DASHBOARD_CARD;
+	var REMOVE_DASHBOARD_CARD = "REMOVE_DASHBOARD_CARD";
+	
+	exports.REMOVE_DASHBOARD_CARD = REMOVE_DASHBOARD_CARD;
 	
 	function receiveData(data) {
 	    return { type: RECEIVE, data: data };
@@ -40415,10 +40443,19 @@
 	        Object.keys(content).forEach(function (key) {
 	            var items = content[key];
 	            items.forEach(function (item) {
+	                var model = "" + item.device + "/" + item.attribute;
 	                dispatch(addAttributeListener(item.device, item.attribute));
 	            });
 	        });
 	    };
+	}
+	
+	function addDashboardCard() {
+	    return { type: ADD_DASHBOARD_CARD };
+	}
+	
+	function removeDashboardCard(index) {
+	    return { type: REMOVE_DASHBOARD_CARD, index: index };
 	}
 	
 	// normalizr schema definitions
@@ -40591,7 +40628,11 @@
 	                    React.createElement(
 	                        "span",
 	                        { className: "value " + this.props.quality },
-	                        this.props.format ? sprintf(this.props.format, this.props.value) : this.props.value
+	                        React.createElement(
+	                            "div",
+	                            null,
+	                            this.props.format ? sprintf(this.props.format, this.props.value) : this.props.value
+	                        )
 	                    ),
 	                    React.createElement(
 	                        "span",
@@ -40606,24 +40647,23 @@
 	    return AttributeListener;
 	})(Component);
 	
-	var AttributeListenerList = (function (_Component2) {
-	    function AttributeListenerList() {
-	        _classCallCheck(this, AttributeListenerList);
+	var AttributeList = (function (_Component2) {
+	    function AttributeList() {
+	        _classCallCheck(this, AttributeList);
 	
 	        if (_Component2 != null) {
 	            _Component2.apply(this, arguments);
 	        }
 	    }
 	
-	    _inherits(AttributeListenerList, _Component2);
+	    _inherits(AttributeList, _Component2);
 	
-	    _createClass(AttributeListenerList, {
+	    _createClass(AttributeList, {
 	        render: {
 	            value: function render() {
 	                var _this = this;
 	
 	                var attrs = this.props.listeners.map(function (item, i) {
-	                    console.log("attr", item);
 	                    var model = "" + item.device + "/" + item.attribute;
 	                    var attr = _this.props.attributes[model];
 	                    var value = _this.props.values[model];
@@ -40646,7 +40686,7 @@
 	        }
 	    });
 	
-	    return AttributeListenerList;
+	    return AttributeList;
 	})(Component);
 	
 	function select(state) {
@@ -40657,7 +40697,7 @@
 	    };
 	}
 	
-	module.exports = connect(select)(AttributeListenerList);
+	module.exports = connect(select)(AttributeList);
 
 /***/ },
 /* 615 */
@@ -41275,6 +41315,8 @@
 	
 	var setDashboardLayout = _actions.setDashboardLayout;
 	var setDashboardContent = _actions.setDashboardContent;
+	var addDashboardCard = _actions.addDashboardCard;
+	var removeDashboardCard = _actions.removeDashboardCard;
 	
 	var Attributes = _interopRequire(__webpack_require__(/*! ./attribute */ 614));
 	
@@ -41292,11 +41334,22 @@
 	    _inherits(_Card, _React$Component);
 	
 	    _createClass(_Card, {
+	        onRemove: {
+	            value: function onRemove() {
+	                this.props.dispatch(removeDashboardCard(this.props.index));
+	            }
+	        },
 	        render: {
 	            value: function render() {
 	                return this.props.connectDropTarget(React.createElement(
 	                    "div",
 	                    { className: "card" + (this.props.isOver ? " over" : "") },
+	                    React.createElement(
+	                        "button",
+	                        { className: "remove-card",
+	                            onClick: this.onRemove.bind(this) },
+	                        "x"
+	                    ),
 	                    React.createElement(
 	                        "div",
 	                        { className: "content" },
@@ -41319,7 +41372,7 @@
 	        // let's add the attribute to the content
 	        var item = monitor.getItem();
 	        var content = [].concat(_toConsumableArray(props.content || []), [item]);
-	        props.dispatch(setDashboardContent(_defineProperty({}, props.name, content)));
+	        props.dispatch(setDashboardContent(_defineProperty({}, props.index, content)));
 	    }
 	};
 	
@@ -41349,6 +41402,11 @@
 	                this.props.dispatch(setDashboardLayout(layout));
 	            }
 	        },
+	        onAddCard: {
+	            value: function onAddCard() {
+	                this.props.dispatch(addDashboardCard());
+	            }
+	        },
 	        render: {
 	            value: function render() {
 	                var _this = this;
@@ -41357,17 +41415,26 @@
 	                    return React.createElement(
 	                        "div",
 	                        { key: l.i, _grid: l },
-	                        React.createElement(Card, { name: l.i, content: _this.props.content[l.i],
+	                        React.createElement(Card, { index: l.i, content: _this.props.content[l.i],
 	                            dispatch: _this.props.dispatch })
 	                    );
 	                });
 	                return React.createElement(
-	                    ReactGridLayout,
-	                    { className: "dashboard",
-	                        autoSize: true, rowHeight: 30,
-	                        onResizeStop: this.onLayoutChange.bind(this),
-	                        onDragStop: this.onLayoutChange.bind(this) },
-	                    cards
+	                    "div",
+	                    { className: "dashboard" },
+	                    React.createElement(
+	                        ReactGridLayout,
+	                        { className: "dashboard",
+	                            autoSize: true, rowHeight: 30,
+	                            onResizeStop: this.onLayoutChange.bind(this),
+	                            onDragStop: this.onLayoutChange.bind(this) },
+	                        cards
+	                    ),
+	                    React.createElement(
+	                        "button",
+	                        { className: "add-card", onClick: this.onAddCard.bind(this) },
+	                        "+"
+	                    )
 	                );
 	            }
 	        }
