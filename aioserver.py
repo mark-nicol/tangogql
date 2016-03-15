@@ -1,3 +1,4 @@
+from collections import defaultdict
 import json
 import logging
 import time
@@ -10,24 +11,56 @@ from PyTango import DeviceProxy
 from PyTango import DeviceAttributeConfig, DeviceAttribute
 from PyTango import EventType, DevFailed
 import PyTango
+from asyncio import Queue, QueueEmpty
 
 from schema import tangoschema
 from listener import TaurusWebAttribute
 
 
-def serialize(attr, event, protocol="json"):
+def serialize(events, protocol="json"):
     "Returns event data in a serialized form according to a protocol"
     if protocol == "json":
         # default protocol; simplest, human readable, but also very inefficient
         # in particular for spectrum/image data
-        return json.dumps({"events": [event]})
+        return json.dumps({"events": events})
     elif protocol == "bson":
         # "Binary JSON" protocol. A lot more space efficient than
         # encoding as JSON, especially for float values and arrays.
         # There's very little size overhead.
         # Have not looked into encoding performance.
-        return bson.dumps({"events": event})
+        return bson.dumps({"events": events})
     raise ValueError("Unknown protocol '%s'" % protocol)
+
+
+async def consumer(queue, ws):
+    """A coroutine that monitors a queue, collecting events into buckets
+    that are periodically sent to a socket. It acts as a rate limiter
+    and smooths out the traffic over the websocket.  Note that all
+    received data is sent, it's just delayed and chunked."""
+    while True:
+        t0 = time.time()
+        events = []
+        while time.time() - t0 < 0.1:
+            # TODO: improve this inner loop
+            try:
+                event = queue.get_nowait()
+                events.append(event)
+            except asyncio.QueueEmpty:
+                await asyncio.sleep(0.01)
+        if not events:
+            continue
+        try:
+            data = serialize(events, ws.protocol)
+            if isinstance(data, bytes):
+                ws.send_bytes(data)
+            else:
+                ws.send_str(data)
+        except RuntimeError as e:
+            # guess the client must be gone. Maybe there's a neater
+            # way to detect this.
+            logging.warn(e)
+            break
+    logging.info("Sender for %r exited" % socket)
 
 
 async def handle_websocket(request):
@@ -39,15 +72,10 @@ async def handle_websocket(request):
 
     logging.info("Listener has connected; protocol %s" % ws.protocol)
 
+    queue = Queue(5)
+    loop = asyncio.get_event_loop()
+    loop.create_task(consumer(queue, ws))
     listeners = {}
-
-    def send(attr, event):
-        "send an event over the websocket"
-        data = serialize(attr, event, ws.protocol)
-        if isinstance(data, bytes):
-            ws.send_bytes(data)
-        else:
-            ws.send_str(data)
 
     # wait for messages over the socket
     # A message must be JSON, in the format:
@@ -55,12 +83,13 @@ async def handle_websocket(request):
     # where "type" can be "SUBSCRIBE" or "UNSUBSCRIBE" and models is a list of
     # device attributes.
     async for msg in ws:
+        print(msg)
         try:
             if msg.tp == aiohttp.MsgType.text:
                 action = json.loads(msg.data)
                 if action["type"] == 'SUBSCRIBE':
                     for attr in action["models"]:
-                        listener = TaurusWebAttribute(attr, send)
+                        listener = TaurusWebAttribute(attr, queue)
                         listeners[attr] = listener
                         logging.debug("add listener for '%s'", attr)
                 elif action["type"] == "UNSUBSCRIBE":

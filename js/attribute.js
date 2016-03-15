@@ -16,11 +16,11 @@ class AttributeListener extends Component {
                 <div className="attribute" onClick={this.onClick.bind(this)}>
                 <span className="label">{this.props.label}</span>
                 <span className={"value " + this.props.quality}>
-                <div>
+                <span>
                 {this.props.format?
                  sprintf(this.props.format, this.props.value) :
                  this.props.value}
-                </div>
+                </span>
                 </span>
                 <span className="unit">{this.props.unit}</span>
                 </div>);

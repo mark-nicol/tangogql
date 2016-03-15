@@ -44,7 +44,7 @@ body {
 
 .value {
     font-size: 20px;
-    text-align: right;
+    align: right;
     padding-bottom: -2;
 }
 
@@ -67,6 +67,10 @@ body {
 
 .value.UNKNOWN {
     border-bottom: 3px solid #grey;    
+}
+
+.value span {
+    /* background: white; */
 }
 
 input {

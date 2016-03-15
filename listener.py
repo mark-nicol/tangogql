@@ -1,3 +1,4 @@
+from asyncio import QueueFull
 import numpy as np
 from taurus import Attribute, Manager
 from taurus.core.taurusbasetypes import TaurusEventType
@@ -43,9 +44,9 @@ def format_config_event(evt):
 # Based on code from the taurus-web project
 class TaurusWebAttribute(object):
 
-    def __init__(self, name, callback):
+    def __init__(self, name, queue):
         self.name = name
-        self.callback = callback
+        self.queue = queue
         self._last_time = 0
         self.last_value_event = None
         self.last_config_event = None
@@ -68,7 +69,13 @@ class TaurusWebAttribute(object):
                 value = format_value_event(evt_value)
                 self.last_value_event = value
 
-        self.callback(self.name, {"type": action, "data": {self.name: value}})
+        # self.callback(self.name, {"type": action, "data": {self.name: value}})
+        event = {"type": action, "data": {self.name: value}}
+        try:
+            self.queue.put_nowait(event)
+        except QueueFull:
+            print("Queue full!")
+        print(event)
 
     def clear(self):
         self.attribute.removeListener(self)

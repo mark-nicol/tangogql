@@ -48,7 +48,7 @@ class _App extends React.Component {
 
     render() {
         return (
-                <section id="inner" className="main hbox space-between">            
+                <section id="inner" className="main hbox space-between">
                 <nav id="tree">
                 <Tree pattern="*" store={this.props.store}/>
                 </nav>
@@ -79,6 +79,7 @@ var ws = new WebSocket("ws://" + window.location.host + "/socket", "json");
 
 ws.addEventListener("message", msg => {
     var data = JSON.parse(msg.data);
+    console.log(data);
     data.events.forEach(e => store.dispatch(e));
 });
 

@@ -184,6 +184,7 @@
 	
 	ws.addEventListener("message", function (msg) {
 	    var data = JSON.parse(msg.data);
+	    console.log(data);
 	    data.events.forEach(function (e) {
 	        return store.dispatch(e);
 	    });
@@ -40629,7 +40630,7 @@
 	                        "span",
 	                        { className: "value " + this.props.quality },
 	                        React.createElement(
-	                            "div",
+	                            "span",
 	                            null,
 	                            this.props.format ? sprintf(this.props.format, this.props.value) : this.props.value
 	                        )
