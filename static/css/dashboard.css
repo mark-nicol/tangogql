@@ -1,3 +1,7 @@
+.dashboard {
+    margin: 20px;
+}
+
 .card {
     height: 100%;
 }
@@ -24,8 +28,9 @@ button.add-card {
     width: 30px;
     height: 30px;
     position: absolute;
-    top: 0;
-    right: 0;
+    border-radius: 15px;
+    top: 5px;
+    right: 5px;
 }
 
 button.remove-card {
