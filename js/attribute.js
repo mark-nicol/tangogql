@@ -32,9 +32,9 @@ class AttributeList extends Component {
     render () {
         let attrs = this.props.listeners.map((item, i) => {
             let model = `${item.device}/${item.attribute}`;
-            let attr = this.props.attributes[model]
-            let value = this.props.values[model]
-            let config = this.props.configs[model]            
+            let attr = this.props.attributes[model] || {};
+            let value = this.props.values[model] || {};
+            let config = this.props.configs[model] || {};
             return <AttributeListener key={i}  model={model} name={attr.name}
                       value={value? value.value : null}
                       quality={value? value.quality : "UNKNOWN"}            
@@ -56,5 +56,6 @@ function select (state) {
         configs: state.data.attribute_configs
     }
 }
+
 
 export default connect(select)(AttributeList);
