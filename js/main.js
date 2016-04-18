@@ -14,9 +14,10 @@ import data from "./store.js";
 import AttributeListenerList from "./attribute";
 import Tree from "./tree"
 import {fetchDomain, fetchFamily, fetchMember} from "./store";
-import {receiveChange, receiveConfig, setDashboardLayout,
+import {receiveChange, receiveConfig, setDashboardLayout, setDashboardContent,
         ADD_ATTRIBUTE_LISTENER, REMOVE_ATTRIBUTE_LISTENER} from "./actions";
 import TangoDashboard from "./dashboard";
+import {loadStateFromHash, setHashFromState, debounce} from "./util";
 
 
 // redux store
@@ -86,6 +87,7 @@ ws.addEventListener("message", msg => {
 
 ws.addEventListener("open", () => {
     console.log("Websocket open!")
+    setupHashHandling();
 });
 
 
@@ -113,3 +115,49 @@ function wsListener () {
 
 
 store.subscribe(wsListener);
+
+
+function setupHashHandling() {
+
+    /* 
+       Setup browser URL handling. 
+
+       The layout (all the boxes' positions and dimensions) and content (which attributes go in which box)
+       are stored as a JSON string in the URL "hash". This means that it's easy to save a dashboard as it's
+       all encoded inside the URL - just make a bookmark.
+
+       On the other hand, it looks like URL:s should be capped at ~2000 characters or they might not work 
+       in all browsers. Not sure how to handle this, or if it will even be a problem. JSON is a pretty 
+       wasteful protocol for storing information so we can easily optimize this if needed.
+
+       Also, this code is pretty simplistic and probably does not handle every case.
+    */
+    
+    let currentHash;
+
+    function dispatchFromHash() {
+        if (document.location.hash == currentHash)  // avoid circular behavior
+            return
+        else
+            currentHash = document.location.hash
+        const hashData = loadStateFromHash()
+        store.dispatch(setDashboardLayout(hashData.layout));
+        store.dispatch(setDashboardContent(hashData.content));
+    }
+
+    // if the URL changes, update the dashboard    
+    window.addEventListener("hashchange", function () {
+        dispatchFromHash();
+    })
+
+    // conversely, update the URL if the dashboard changes
+    store.subscribe(debounce(function () {
+        setHashFromState(store.getState());
+        currentHash = document.location.hash;
+    }, 100));
+
+    if (document.location.hash.length > 1) {
+        dispatchFromHash();
+    }
+    
+}
