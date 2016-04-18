@@ -139,7 +139,7 @@ if __name__ == "__main__":
 
     loop = asyncio.get_event_loop()
     handler = app.make_handler(debug=True)
-    f = loop.create_server(handler, '127.0.0.1', 5003)
+    f = loop.create_server(handler, '0.0.0.0', 5003)
     logging.info("Point your browser to http://localhost:5003/index.html")
     srv = loop.run_until_complete(f)
     try:
