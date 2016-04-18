@@ -62,7 +62,7 @@ class _App extends React.Component {
     
 }
 
-const App = DragDropContext(HTML5Backend)(_App);1
+const App = DragDropContext(HTML5Backend)(_App);
 
 render(
         <Provider store={store}>
