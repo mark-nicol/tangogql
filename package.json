@@ -6,7 +6,7 @@
         "react-component"
     ],
     "dependencies": {
-        "react": "^0.14",
+        "react": "*",
         "react-dom": "*",
         "redux": "*",
         "react-redux": "*",
@@ -22,8 +22,15 @@
         "react-dnd-html5-backend": "*"
     },
     "devDependencies": {
-        "babel-core": "^4.4.5",
-        "babel-loader": "^4.0.0",
-        "webpack": "^1.5.3"
+        "babel-core": "*",
+        "babel-loader": "*",
+        "webpack": "*",
+        "babel-preset-es2015": "*",
+        "babel-preset-es2015-loose": "*", 
+        "babel-preset-stage-0": "*",
+        "babel-preset-stage-1": "*",
+        "babel-preset-stage-2": "*",
+        "babel-preset-stage-3": "*",
+        "babel-preset-react": "*"
     }
 }

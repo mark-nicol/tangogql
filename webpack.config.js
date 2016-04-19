@@ -6,10 +6,20 @@ module.exports = {
     },
     module: {
         loaders: [
-            { test: /\.jsx?$/, exclude: /node-modules/, loader: "babel-loader" }
+            {
+                test: /\.js$/,
+                exclude: /node_modules/,
+                loader: "babel-loader",
+                query: {
+                    presets: [
+                        "es2015",
+                        "stage-0", "stage-1", "stage-2", "stage-3",
+                        "react"] 
+                }
+            }
         ]
     },
     resolve: {
-        extensions: [ "", ".js", ".jsx" ]
+        extensions: [ "", ".js" ]
     }
 };
