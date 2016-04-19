@@ -72,7 +72,7 @@ async def handle_websocket(request):
 
     logging.info("Listener has connected; protocol %s" % ws.protocol)
 
-    queue = Queue(5)
+    queue = Queue(100)
     loop = asyncio.get_event_loop()
     loop.create_task(consumer(queue, ws))
     listeners = {}
