@@ -47,14 +47,30 @@ let mainContainer = document.getElementById("container");
 
 class _App extends React.Component {
 
+    constructor () {
+        super();
+        this.state = {editMode: false}
+    }
+
+    onToggleEditMode () {
+        this.setState({editMode: !this.state.editMode})
+        // A hack to fake a window size event, in order to make the
+        // dashboard grid layout recalculate the container width and
+        // rerender. There must be a better way!
+        setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
+    }
+
     render() {
+        console.log("render App")
         return (
                 <section id="inner" className="main hbox space-between">
-                <nav id="tree">
-                <Tree pattern="*" store={this.props.store}/>
+                <nav id="tree" style={{display: this.state.editMode? null : "none"}}>
+                <Tree pattern="*"  store={this.props.store}/>
                 </nav>
-                <article id="main">
-                <TangoDashboard width={500}/>
+                <article id="main" ref="dashboard">
+                <button id="toggle-edit" 
+                        onClick={this.onToggleEditMode.bind(this)}></button>
+                <TangoDashboard editMode={this.state.editMode}/>
                 </article>
                 </section>
         );
@@ -64,12 +80,16 @@ class _App extends React.Component {
 
 const App = DragDropContext(HTML5Backend)(_App);
 
-render(
-        <Provider store={store}>
-        <App/>
-        </Provider>,
-    mainContainer
-)
+function renderAll() {
+    render(
+            <Provider store={store}>
+            <App/>
+            </Provider>,
+        mainContainer
+    )
+}
+
+renderAll()
 
 
 /* hacking a websocket in "on top" of the redux store... 

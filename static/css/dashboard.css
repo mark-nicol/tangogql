@@ -17,20 +17,18 @@
     overflow-y: auto;
     max-height: 100%;
 }
-    
+
 .card.over {
     outline: 3px solid black;
 }
 
-
 button.add-card {
-    border: 2px solid black;
     width: 30px;
     height: 30px;
     position: absolute;
     border-radius: 15px;
-    top: 5px;
-    right: 5px;
+    top: 40px;
+    left: 5px;
 }
 
 button.remove-card {
@@ -47,7 +45,18 @@ button.remove-card {
     opacity: 0.5;
 }    
 
-
 .card:hover button {
     display: block;
+}
+
+
+button#toggle-edit {
+    position: absolute;
+    top: 5px;
+    left: 0;
+    width: 35px;
+    height: 30px;
+    border-top-right-radius: 15px;
+    border-bottom-right-radius: 15px;
+    border-left: 0;
 }
