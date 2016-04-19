@@ -32,13 +32,13 @@ class AttributeList extends Component {
     render () {
         let attrs = this.props.listeners.map((item, i) => {
             let model = `${item.device}/${item.attribute}`;
-            let attr = this.props.attributes[model] || {};
-            let value = this.props.values[model] || {};
-            let config = this.props.configs[model] || {};
-            return <AttributeListener key={i}  model={model} name={attr.name}
+            let attr = this.props.attributes[model];
+            let value = this.props.values[model];
+            let config = this.props.configs[model];
+            return <AttributeListener key={i}  model={model} name={attr? attr.name : "?"}
                       value={value? value.value : null}
                       quality={value? value.quality : "UNKNOWN"}            
-                      label={config? config.label || attr.name : attr.name}
+            label={config? config.label || (attr? attr.name : "?") : attr? attr.name : "?"}
                       unit={config? config.unit || "" : ""}
                       format={config? config.format : null}            
                       dispatch={this.props.dispatch}/>
