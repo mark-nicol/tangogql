@@ -9,7 +9,7 @@ import PyTango
 
 def error_str(err):
     if isinstance(err, PyTango.DevFailed):
-        err = err[0]
+        #err = err[0]
         return "[{0}] {1}".format(err.reason, err.desc)
     return str(err)
 
@@ -54,6 +54,8 @@ class TaurusWebAttribute(object):
         self.attribute.addListener(self)
 
     def eventReceived(self, evt_src, evt_type, evt_value):
+
+        print(evt_value)
 
         if evt_type == TaurusEventType.Error:
             action = "ERROR"
