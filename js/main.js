@@ -9,6 +9,7 @@ import Lokka from "lokka";
 import Transport from "lokka-transport-http"
 import HTML5Backend from 'react-dnd-html5-backend';
 import { DragDropContext } from 'react-dnd';
+// import Plotly from "Plotly";
 
 import data from "./store.js";
 import AttributeListenerList from "./attribute";
@@ -19,6 +20,9 @@ import {receiveChange, receiveConfig, setDashboardLayout, setDashboardContent,
 import TangoDashboard from "./dashboard";
 import {loadStateFromHash, setHashFromState, debounce} from "./util";
 
+
+
+// console.log("Plotly", Plotly);
 
 // redux store
 
@@ -122,7 +126,7 @@ function wsListener () {
         return
     switch (lastAction.type) {
     case ADD_ATTRIBUTE_LISTENER:
-        let model = `${lastAction.data.device}/${lastAction.data.attribute}`;
+        let model = lastAction.data.model;
         ws.send(JSON.stringify({"type": "SUBSCRIBE",
                                 "models": [model]}));
         break;

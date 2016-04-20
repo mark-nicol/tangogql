@@ -88,11 +88,24 @@ class DeviceAttribute(TangoSomething):
 
     name = String()
     device = String()
-    data_type = String()
-    data_format = String()
+    datatype = String()
+    dataformat = String()
     writable = String()
     label = String()
     unit = String()
+
+    # @graphene.resolve_only_args
+    # def resolve_data_type(self):
+    #     proxy = proxies.get(self.device)
+    #     info = proxy.get_attribute_config(self.name)
+    #     return str(info.data_type)
+
+    # @graphene.resolve_only_args
+    # def resolve_data_format(self):
+    #     print("resolve_data_format", self.device, self.name)
+    #     proxy = proxies.get(self.device)
+    #     info = proxy.get_attribute_config(self.name)
+    #     return str(info.data_format)
 
 
 class Device(TangoSomething):
@@ -115,14 +128,14 @@ class Device(TangoSomething):
 
     @graphene.resolve_only_args
     def resolve_attributes(self, pattern="*"):
+        print("resolving_attributes ", self.name, pattern)
         proxy = proxies.get(self.name)
         attr_infos = proxy.attribute_list_query()
         rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
-        return [DeviceAttribute(name=a.name, device=self.name,
-                                data_type=str(a.data_type),
-                                writable=str(a.writable),
-                                data_format=str(a.data_format),
-                                label=a.label, unit=a.unit)
+        return [DeviceAttribute(
+            name=a.name, device=self.name, writable=a.writable,
+            datatype=PyTango.CmdArgType.values[a.data_type],
+            dataformat=a.data_format, label=a.label, unit=a.unit)
                 for a in attr_infos if rule.match(a.name)]
 
     @graphene.resolve_only_args
@@ -274,26 +287,30 @@ if __name__ == "__main__":
     query Hejsan {
         a: devices(pattern: "sys/tg_test/1") {
             name
-            info {
-              exported
-              server
-            }
+            exported
             properties {
               name
               value
             }
-        },
-        b: devices(pattern: "sys/database/*") {
-            name
-            info {
-              exported
-            }
-
-            attributes(pattern: "state") {
+            attributes {
               name
               label
+              unit
+              datatype
+              dataformat
             }
-        },
+        }
+        # b: devices(pattern: "sys/database/*") {
+        #     name
+        #     info {
+        #       exported
+        #     }
+
+        #     attributes(pattern: "state") {
+        #       name
+        #       label
+        #     }
+        # },
 
         # domains(pattern: "*") {
         #     name

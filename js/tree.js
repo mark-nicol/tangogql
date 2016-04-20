@@ -9,10 +9,11 @@ import { fetchDomain, fetchFamily, fetchMember, fetchAttribute,
 const attributeSource = {
     beginDrag(props) {
         console.log("beginDrag", props)        
-        return {
-            device: props.device,
-            attribute: props.name
-        };
+        // return {
+        //     device: props.device,
+        //     attribute: props.name
+        // };
+        return {model: `${props.device}/${props.name}`};
     }
 };
 
@@ -149,7 +150,7 @@ class AttributesTreeNode extends TreeNode {
             let children = device.attributes || [];
             return children.map(path => {
                 let attribute = this.props.store.attributes[path];
-                return <Attribute key={path} name={attribute.name}
+                return <Attribute key={path} {...attribute}
                              device={this.props.device}
                              dispatch={this.props.dispatch}/>;
             });
@@ -166,10 +167,20 @@ class _Attribute extends Component {
     }
     
     render () {
-        const { isDragging, connectDragSource, text } = this.props;
-        return connectDragSource(
-                <div onClick={this.onClick.bind(this)}>{this.props.name}</div>
-        );
+        const { isDragging, connectDragSource, text,
+                datatype, dataformat } = this.props;
+        const classes = `type-${datatype.toLowerCase()} format-${dataformat.toLowerCase()}`;
+
+        if (dataformat != "IMAGE")
+            return connectDragSource(
+                       <div className={classes} onClick={this.onClick.bind(this)}>
+                           {this.props.name}
+                       </div>);
+        else
+            return (<div className={classes} onClick={this.onClick.bind(this)}>
+                        {this.props.name}
+                    </div>);
+            
     }
 }
 
@@ -191,7 +202,9 @@ class Tree extends Component {
                            children={domain.families || []}/>
             }
         )
-        return (<ul> { nodes } </ul>);
+        return (<div>
+                 <ul> { nodes } </ul>
+                </div>);
     }
 }
 

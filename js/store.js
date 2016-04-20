@@ -135,7 +135,11 @@ function dashboardLayoutStore (state, action) {
         } else {
             i = 0;
         }
-        let newCard = {i: i.toString(), x: 0, y: 100, w: 3, h: 2};
+        let newCard;
+        if (action.cardType == "PLOT")
+            newCard = {i: i.toString(), x: 0, y: 100, w: 5, h: 3};
+        else
+            newCard = {i: i.toString(), x: 0, y: 100, w: 3, h: 2};
         return [...state, newCard];
     case REMOVE_DASHBOARD_CARD:
         let index = state.indexOf(state.find(card => card.i == action.index))
@@ -150,6 +154,9 @@ function dashboardContentStore (state, action) {
     case SET_DASHBOARD_CONTENT:
         return Object.assign({}, state, action.content);
     case REMOVE_DASHBOARD_CARD:
+        // TODO: implement this!
+        break;
+    case REMOVE_ATTRIBUTE_LISTENER:
         
     }
     return state;

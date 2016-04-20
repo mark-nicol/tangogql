@@ -27,9 +27,9 @@ export function receiveConfig(data) {
     return { type: CONFIG, data }
 }
 
-export function addAttributeListener(device, attribute) {
+export function addAttributeListener(model) {
     return { type: ADD_ATTRIBUTE_LISTENER,
-             data: {device: device, attribute: attribute} } 
+             data: {model} } 
 }
 
 export function removeAttributeListener(model) {
@@ -47,16 +47,15 @@ export function setDashboardContent(content) {
         console.log("setDashboardcontent", content);
         Object.keys(content).forEach(key => {
             let items = content[key];
-            items.forEach(item => {
-                let model = `${item.device}/${item.attribute}`;
-                dispatch(addAttributeListener(item.device, item.attribute));
+            items.forEach(model => {
+                dispatch(addAttributeListener(model));
             });
         });
     };
 }
 
-export function addDashboardCard() {
-    return {type: ADD_DASHBOARD_CARD}
+export function addDashboardCard(cardType) {
+    return {type: ADD_DASHBOARD_CARD, cardType}
 }
 
 export function removeDashboardCard(index) {
@@ -193,6 +192,8 @@ export function fetchAttribute(device) {
             attributes { 
                device
                name
+               datatype
+               dataformat
             }
         }
     }`;
