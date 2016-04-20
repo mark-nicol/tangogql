@@ -6,3 +6,15 @@ ul {
 div.member.unexported {
     color: grey;    
 }
+
+.format-scalar {
+    color: blue;
+}
+
+.format-spectrum {
+    color: green;
+}
+
+.format-image {
+    color: grey;
+}
