@@ -16,6 +16,7 @@ import AttributeListenerList from "./attribute";
 import Tree from "./tree"
 import {fetchDomain, fetchFamily, fetchMember} from "./store";
 import {receiveChange, receiveConfig, setDashboardLayout, setDashboardContent,
+        setDashboardCardType,
         ADD_ATTRIBUTE_LISTENER, REMOVE_ATTRIBUTE_LISTENER} from "./actions";
 import TangoDashboard from "./dashboard";
 import {loadStateFromHash, setHashFromState, debounce} from "./util";
@@ -104,8 +105,10 @@ var ws = new WebSocket("ws://" + window.location.host + "/socket", "json");
 
 ws.addEventListener("message", msg => {
     var data = JSON.parse(msg.data);
-    console.log(data);
-    data.events.forEach(e => store.dispatch(e));
+    if (data.events.CHANGE)
+        store.dispatch(receiveChange(data.events.CHANGE))
+    if (data.events.CONFIG)
+        store.dispatch(receiveConfig(data.events.CONFIG))
 });
 
 
@@ -165,7 +168,9 @@ function setupHashHandling() {
         else
             currentHash = document.location.hash
         const hashData = loadStateFromHash()
-        store.dispatch(setDashboardLayout(hashData.layout));
+        console.log("loaded hash data", hashData);
+        store.dispatch(setDashboardCardType(hashData.cardType));
+        store.dispatch(setDashboardLayout(hashData.layout)); 
         store.dispatch(setDashboardContent(hashData.content));
     }
 

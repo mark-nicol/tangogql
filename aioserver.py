@@ -39,16 +39,19 @@ async def consumer(queue, ws):
     received data is sent, it's just delayed and chunked."""
     while True:
         t0 = time.time()
-        events = []
-        while time.time() - t0 < 0.1:
+        events = {}
+        while time.time() - t0 < 1.0:
             # TODO: improve this inner loop
             try:
                 event = queue.get_nowait()
-                events.append(event)
+                if event["type"] not in events:
+                    events[event["type"]] = {}
+                events[event["type"]].update(event["data"])
             except asyncio.QueueEmpty:
-                await asyncio.sleep(0.01)
+                await asyncio.sleep(0.1)
         if not events:
             continue
+        logging.debug(events)
         try:
             data = serialize(events, ws.protocol)
             if isinstance(data, bytes):
@@ -60,7 +63,7 @@ async def consumer(queue, ws):
             # way to detect this.
             logging.warn(e)
             break
-    logging.info("Sender for %r exited" % socket)
+    logging.info("Sender for %r exited" % ws)
 
 
 async def handle_websocket(request):
@@ -130,6 +133,8 @@ async def db_handler(request):
 
 
 if __name__ == "__main__":
+
+    logging.basicConfig(level=logging.DEBUG)
 
     app = aiohttp.web.Application(debug=True)
 
