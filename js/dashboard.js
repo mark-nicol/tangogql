@@ -109,14 +109,16 @@ class TangoDashboard extends React.Component {
                         onDragStop={this.onLayoutChange.bind(this)}>
                     {cards}
                 </WidthReactGridLayout>
-                <button className="add-card" style={{display: this.props.editMode? null : "none"}}
-            onClick={this.onAddCard.bind(this, "LIST")}>
-                +
+                <button className="add-card" title="Add attribute card"
+                        style={{display: this.props.editMode? null : "none"}}
+                        onClick={this.onAddCard.bind(this, "LIST")}>
+                A
                 </button>
 
-                <button className="add-trend" style={{display: this.props.editMode? null : "none"}}
-            onClick={this.onAddCard.bind(this, "TREND")}>
-                +
+                <button className="add-trend" title="Add trend card"
+                        style={{display: this.props.editMode? null : "none"}}
+                        onClick={this.onAddCard.bind(this, "TREND")}>
+                T
                 </button>
             </div>
         );

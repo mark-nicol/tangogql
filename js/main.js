@@ -73,8 +73,8 @@ class _App extends React.Component {
                 <Tree pattern="*"  store={this.props.store}/>
                 </nav>
                 <article id="main" ref="dashboard">
-                <button id="toggle-edit" 
-                        onClick={this.onToggleEditMode.bind(this)}></button>
+                <button id="toggle-edit" title="Toggle edit mode"
+                        onClick={this.onToggleEditMode.bind(this)}>E</button>
                 <TangoDashboard editMode={this.state.editMode}/>
                 </article>
                 </section>
