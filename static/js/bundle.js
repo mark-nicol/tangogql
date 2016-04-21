@@ -85,11 +85,11 @@
 	
 	var _reactDnd = __webpack_require__(/*! react-dnd */ 403);
 	
-	var _store = __webpack_require__(/*! ./store.js */ 455);
+	var _store = __webpack_require__(/*! ./store.js */ 454);
 	
 	var _store2 = _interopRequireDefault(_store);
 	
-	var _attribute = __webpack_require__(/*! ./attribute */ 457);
+	var _attribute = __webpack_require__(/*! ./attribute */ 456);
 	
 	var _attribute2 = _interopRequireDefault(_attribute);
 	
@@ -97,15 +97,15 @@
 	
 	var _tree2 = _interopRequireDefault(_tree);
 	
-	var _store3 = __webpack_require__(/*! ./store */ 455);
+	var _store3 = __webpack_require__(/*! ./store */ 454);
 	
-	var _actions = __webpack_require__(/*! ./actions */ 456);
+	var _actions = __webpack_require__(/*! ./actions */ 455);
 	
 	var _dashboard = __webpack_require__(/*! ./dashboard */ 460);
 	
 	var _dashboard2 = _interopRequireDefault(_dashboard);
 	
-	var _util = __webpack_require__(/*! ./util */ 477);
+	var _util = __webpack_require__(/*! ./util */ 461);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -182,8 +182,12 @@
 	                _react2.default.createElement(
 	                    "article",
 	                    { id: "main", ref: "dashboard" },
-	                    _react2.default.createElement("button", { id: "toggle-edit",
-	                        onClick: this.onToggleEditMode.bind(this) }),
+	                    _react2.default.createElement(
+	                        "button",
+	                        { id: "toggle-edit", title: "Toggle edit mode",
+	                            onClick: this.onToggleEditMode.bind(this) },
+	                        "E"
+	                    ),
 	                    _react2.default.createElement(_dashboard2.default, { editMode: this.state.editMode })
 	                )
 	            );
@@ -212,10 +216,8 @@
 	
 	ws.addEventListener("message", function (msg) {
 	    var data = JSON.parse(msg.data);
-	    console.log(data);
-	    data.events.forEach(function (e) {
-	        return store.dispatch(e);
-	    });
+	    if (data.events.CHANGE) store.dispatch((0, _actions.receiveChange)(data.events.CHANGE));
+	    if (data.events.CONFIG) store.dispatch((0, _actions.receiveConfig)(data.events.CONFIG));
 	});
 	
 	ws.addEventListener("open", function () {
@@ -268,6 +270,8 @@
 	        if (document.location.hash == currentHash) // avoid circular behavior
 	            return;else currentHash = document.location.hash;
 	        var hashData = (0, _util.loadStateFromHash)();
+	        console.log("loaded hash data", hashData);
+	        store.dispatch((0, _actions.setDashboardCardType)(hashData.cardType));
 	        store.dispatch((0, _actions.setDashboardLayout)(hashData.layout));
 	        store.dispatch((0, _actions.setDashboardContent)(hashData.content));
 	    }
@@ -34738,8 +34742,7 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 454 */,
-/* 455 */
+/* 454 */
 /*!*********************!*\
   !*** ./js/store.js ***!
   \*********************/
@@ -34753,9 +34756,11 @@
 	
 	var _initialState;
 	
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+	
 	exports.default = data;
 	
-	var _actions = __webpack_require__(/*! ./actions */ 456);
+	var _actions = __webpack_require__(/*! ./actions */ 455);
 	
 	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 	
@@ -34811,6 +34816,39 @@
 	    }
 	}
 	
+	function attributeValueHistoryStore(state, action) {
+	    if (!action.data) return state;
+	    switch (action.type) {
+	        case _actions.CHANGE:
+	            var newData = {};
+	            Object.keys(action.data).forEach(function (attr) {
+	                var x = void 0,
+	                    y = void 0,
+	                    newX = void 0,
+	                    newY = void 0;
+	                if (state[attr]) {
+	                    x = state[attr].x;
+	                    y = state[attr].y;
+	                }
+	                if (x) {
+	                    newX = [].concat(_toConsumableArray(x), [action.data[attr].time * 1000]);
+	                } else newX = [action.data[attr].time * 1000];
+	                if (y) {
+	                    newY = [].concat(_toConsumableArray(y), [action.data[attr].value]);
+	                } else {
+	                    newY = [action.data[attr].value];
+	                }
+	                if (newX.length > 1000) {
+	                    newX = newX.slice(newX.length - 1000);
+	                    newY = newY.slice(newX.length - 1000);
+	                }
+	                newData[attr] = { x: newX, y: newY };
+	            });
+	            return _extends({}, state, newData);
+	    }
+	    return state;
+	}
+	
 	// store for attribute config data
 	function attributeConfigStore(state, action) {
 	    if (!action.data) return state;
@@ -34858,24 +34896,14 @@
 	    }
 	}
 	
+	function makeCardIndex() {}
+	
 	function dashboardLayoutStore(state, action) {
 	    switch (action.type) {
 	        case _actions.SET_DASHBOARD_LAYOUT:
 	            return action.layout;
 	        case _actions.ADD_DASHBOARD_CARD:
-	            var i = void 0;
-	            if (state.length > 0) {
-	                var tmpState = [].concat(_toConsumableArray(state));
-	                tmpState.sort(function (c1, c2) {
-	                    return parseInt(c1.i) > parseInt(c2.i);
-	                });
-	                var lastCard = tmpState[tmpState.length - 1];
-	                i = parseInt(lastCard.i) + 1;
-	            } else {
-	                i = 0;
-	            }
-	            var newCard = void 0;
-	            if (action.cardType == "PLOT") newCard = { i: i.toString(), x: 0, y: 100, w: 5, h: 3 };else newCard = { i: i.toString(), x: 0, y: 100, w: 3, h: 2 };
+	            var newCard = { i: action.index, x: 0, y: 100, w: 3, h: 2 };
 	            return [].concat(_toConsumableArray(state), [newCard]);
 	        case _actions.REMOVE_DASHBOARD_CARD:
 	            var index = state.indexOf(state.find(function (card) {
@@ -34899,13 +34927,23 @@
 	    return state;
 	}
 	
+	function dashboardCardTypeStore(state, action) {
+	    switch (action.type) {
+	        case _actions.SET_DASHBOARD_CARD_TYPE:
+	            return _extends({}, state, action.cardTypes);
+	        case _actions.ADD_DASHBOARD_CARD:
+	            return _extends({}, state, _defineProperty({}, action.index, action.cardType));
+	    }
+	    return state;
+	}
+	
 	// Combining the stores
 	
 	var initialState = (_initialState = {
 	    devices: {},
 	    domains: {},
 	    families: {}
-	}, _defineProperty(_initialState, "domains", {}), _defineProperty(_initialState, "properties", {}), _defineProperty(_initialState, "attributes", {}), _defineProperty(_initialState, "attribute_values", {}), _defineProperty(_initialState, "attribute_configs", {}), _defineProperty(_initialState, "members", {}), _defineProperty(_initialState, "listeners", {}), _defineProperty(_initialState, "dashboardLayout", [{ i: "0", x: 0, y: 0, w: 4, h: 4 }]), _defineProperty(_initialState, "dashboardContent", {}), _initialState);
+	}, _defineProperty(_initialState, "domains", {}), _defineProperty(_initialState, "properties", {}), _defineProperty(_initialState, "attributes", {}), _defineProperty(_initialState, "attribute_values", {}), _defineProperty(_initialState, "attribute_value_history", {}), _defineProperty(_initialState, "attribute_configs", {}), _defineProperty(_initialState, "members", {}), _defineProperty(_initialState, "listeners", {}), _defineProperty(_initialState, "dashboardLayout", []), _defineProperty(_initialState, "dashboardContent", {}), _defineProperty(_initialState, "dashboardCardType", {}), _initialState);
 	
 	// This is probably not the way to do it...
 	function data() {
@@ -34919,19 +34957,21 @@
 	        members = memberStore(state.members, action),
 	        attributes = attributeStore(state.attributes, action),
 	        attribute_values = attributeValueStore(state.attribute_values, action),
+	        attribute_value_history = attributeValueHistoryStore(state.attribute_value_history, action),
 	        attribute_configs = attributeConfigStore(state.attribute_configs, action),
 	        properties = propertyStore(state.properties, action),
 	        listeners = listenerStore(state.listeners, action),
 	        dashboardLayout = dashboardLayoutStore(state.dashboardLayout, action),
-	        dashboardContent = dashboardContentStore(state.dashboardContent, action);
+	        dashboardContent = dashboardContentStore(state.dashboardContent, action),
+	        dashboardCardType = dashboardCardTypeStore(state.dashboardCardType, action);
 	
 	    return { devices: devices, domains: domains, families: families, members: members, properties: properties, attributes: attributes,
-	        attribute_values: attribute_values, attribute_configs: attribute_configs, listeners: listeners,
-	        dashboardLayout: dashboardLayout, dashboardContent: dashboardContent };
+	        attribute_values: attribute_values, attribute_value_history: attribute_value_history, attribute_configs: attribute_configs, listeners: listeners,
+	        dashboardLayout: dashboardLayout, dashboardContent: dashboardContent, dashboardCardType: dashboardCardType };
 	}
 
 /***/ },
-/* 456 */
+/* 455 */
 /*!***********************!*\
   !*** ./js/actions.js ***!
   \***********************/
@@ -34942,7 +34982,7 @@
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
-	exports.REMOVE_DASHBOARD_CARD = exports.ADD_DASHBOARD_CARD = exports.SET_DASHBOARD_CONTENT = exports.SET_DASHBOARD_LAYOUT = exports.CONFIG = exports.CHANGE = exports.REMOVE_ATTRIBUTE_LISTENER = exports.ADD_ATTRIBUTE_LISTENER = exports.RECEIVE = undefined;
+	exports.SET_DASHBOARD_CARD_TYPE = exports.REMOVE_DASHBOARD_CARD = exports.ADD_DASHBOARD_CARD = exports.SET_DASHBOARD_CONTENT = exports.SET_DASHBOARD_LAYOUT = exports.CONFIG = exports.CHANGE = exports.REMOVE_ATTRIBUTE_LISTENER = exports.ADD_ATTRIBUTE_LISTENER = exports.RECEIVE = undefined;
 	exports.receiveData = receiveData;
 	exports.receiveChange = receiveChange;
 	exports.receiveConfig = receiveConfig;
@@ -34952,6 +34992,7 @@
 	exports.setDashboardContent = setDashboardContent;
 	exports.addDashboardCard = addDashboardCard;
 	exports.removeDashboardCard = removeDashboardCard;
+	exports.setDashboardCardType = setDashboardCardType;
 	exports.fetchDomain = fetchDomain;
 	exports.fetchFamily = fetchFamily;
 	exports.fetchMember = fetchMember;
@@ -34969,8 +35010,9 @@
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	var RECEIVE = exports.RECEIVE = "RECEIVE"; /* redux actions */
+	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } } /* redux actions */
 	
+	var RECEIVE = exports.RECEIVE = "RECEIVE";
 	var ADD_ATTRIBUTE_LISTENER = exports.ADD_ATTRIBUTE_LISTENER = "ADD_ATTRIBUTE_LISTENER";
 	var REMOVE_ATTRIBUTE_LISTENER = exports.REMOVE_ATTRIBUTE_LISTENER = "REMOVE_ATTRIBUTE_LISTENER";
 	var CHANGE = exports.CHANGE = "CHANGE";
@@ -34979,6 +35021,7 @@
 	var SET_DASHBOARD_CONTENT = exports.SET_DASHBOARD_CONTENT = "SET_DASHBOARD_CONTENT";
 	var ADD_DASHBOARD_CARD = exports.ADD_DASHBOARD_CARD = "ADD_DASHBOARD_CARD";
 	var REMOVE_DASHBOARD_CARD = exports.REMOVE_DASHBOARD_CARD = "REMOVE_DASHBOARD_CARD";
+	var SET_DASHBOARD_CARD_TYPE = exports.SET_DASHBOARD_CARD_TYPE = "SET_DASHBOARD_CARD_TYPE";
 	
 	function receiveData(data) {
 	    return { type: RECEIVE, data: data };
@@ -35019,12 +35062,34 @@
 	    };
 	}
 	
+	function makeCardIndex(state) {
+	    var i = void 0;
+	    if (state.data.dashboardLayout.length > 0) {
+	        var tmpState = [].concat(_toConsumableArray(state.data.dashboardLayout));
+	        tmpState.sort(function (c1, c2) {
+	            return parseInt(c1.i) > parseInt(c2.i);
+	        });
+	        var lastCard = tmpState[tmpState.length - 1];
+	        i = parseInt(lastCard.i) + 1;
+	    } else {
+	        i = 0;
+	    }
+	    return i.toString();
+	}
+	
 	function addDashboardCard(cardType) {
-	    return { type: ADD_DASHBOARD_CARD, cardType: cardType };
+	    return function (dispatch, getState) {
+	        var index = makeCardIndex(getState());
+	        dispatch({ type: ADD_DASHBOARD_CARD, index: index, cardType: cardType });
+	    };
 	}
 	
 	function removeDashboardCard(index) {
 	    return { type: REMOVE_DASHBOARD_CARD, index: index };
+	}
+	
+	function setDashboardCardType(cardTypes) {
+	    return { type: SET_DASHBOARD_CARD_TYPE, cardTypes: cardTypes };
 	}
 	
 	// normalizr schema definitions
@@ -35129,7 +35194,7 @@
 	
 	    return function (dispatch) {
 	        //dispatch(requestDevices("blabla"))
-	        var q = "{\n        devices(pattern: \"" + device + "\") {\n            name\n            attributes { \n               device\n               name\n               datatype\n               dataformat\n            }\n        }\n    }";
+	        var q = "{\n        devices(pattern: \"" + device + "\") {\n            name\n            attributes { \n               device\n               name\n               label\n               unit\n               description\n               datatype\n               dataformat\n            }\n        }\n    }";
 	
 	        client.query(q).then(function (result) {
 	            dataDispatcher(dispatch, result);
@@ -35140,7 +35205,7 @@
 	}
 
 /***/ },
-/* 457 */
+/* 456 */
 /*!*************************!*\
   !*** ./js/attribute.js ***!
   \*************************/
@@ -35162,9 +35227,13 @@
 	
 	var _reactRedux = __webpack_require__(/*! react-redux */ 247);
 	
-	var _sprintfJs = __webpack_require__(/*! sprintf-js */ 458);
+	var _sprintfJs = __webpack_require__(/*! sprintf-js */ 457);
 	
-	var _actions = __webpack_require__(/*! ./actions */ 456);
+	var _Plotly = __webpack_require__(/*! Plotly */ 458);
+	
+	var _Plotly2 = _interopRequireDefault(_Plotly);
+	
+	var _actions = __webpack_require__(/*! ./actions */ 455);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -35174,33 +35243,111 @@
 	
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
-	var ScalarAttributeListener = function (_Component) {
-	    _inherits(ScalarAttributeListener, _Component);
+	var SpectrumAttribute = function (_Component) {
+	    _inherits(SpectrumAttribute, _Component);
 	
-	    function ScalarAttributeListener() {
-	        _classCallCheck(this, ScalarAttributeListener);
+	    function SpectrumAttribute() {
+	        var _Object$getPrototypeO;
 	
-	        return _possibleConstructorReturn(this, Object.getPrototypeOf(ScalarAttributeListener).apply(this, arguments));
+	        var _temp, _this, _ret;
+	
+	        _classCallCheck(this, SpectrumAttribute);
+	
+	        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+	            args[_key] = arguments[_key];
+	        }
+	
+	        return _ret = (_temp = (_this = _possibleConstructorReturn(this, (_Object$getPrototypeO = Object.getPrototypeOf(SpectrumAttribute)).call.apply(_Object$getPrototypeO, [this].concat(args))), _this), _this._cache = null, _temp), _possibleConstructorReturn(_this, _ret);
 	    }
 	
-	    _createClass(ScalarAttributeListener, [{
-	        key: "onClick",
-	        value: function onClick() {
-	            this.props.onRemove();
+	    _createClass(SpectrumAttribute, [{
+	        key: "getCardWidth",
+	        value: function getCardWidth() {
+	            // a tediuos (and fragile) hack to get the width of the card
+	            var node = (0, _reactDom.findDOMNode)(this.refs.plot);
+	            return node.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.clientWidth;
+	        }
+	    }, {
+	        key: "componentDidMount",
+	        value: function componentDidMount() {
+	            var node = (0, _reactDom.findDOMNode)(this.refs.plot);
+	            var data = [{
+	                // x: ['2013-10-04 22:23:00', '2013-11-04 22:23:00', '2013-12-04 22:23:00'],
+	                y: [],
+	                type: 'scatter'
+	            }];
+	            var layout = {
+	                title: this.props.label || this.props.name,
+	                //autosize: true,
+	                width: this.getCardWidth(),
+	                height: 150,
+	                paper_bgcolor: 'rgba(0,0,0,0)',
+	                margin: {
+	                    l: 30,
+	                    r: 0,
+	                    b: 25,
+	                    t: 35,
+	                    pad: 4
+	                }
+	            };
+	            _Plotly2.default.newPlot(node, data, layout, { displayModeBar: false });
+	        }
+	    }, {
+	        key: "shouldComponentUpdate",
+	        value: function shouldComponentUpdate() {
+	            return false;
+	        }
+	    }, {
+	        key: "componentWillReceiveProps",
+	        value: function componentWillReceiveProps(props) {
+	            if (props.value === this._cache) // also check label, etc!
+	                return;
+	            this._cache = props.value;
+	            var node = (0, _reactDom.findDOMNode)(this.refs.plot);
+	            _Plotly2.default.relayout(node, { width: this.getCardWidth() - 20 });
+	            _Plotly2.default.restyle(node, { y: [props.value] }, 0);
 	        }
 	    }, {
 	        key: "render",
 	        value: function render() {
 	            return _react2.default.createElement(
-	                "div",
-	                { className: "attribute", onClick: this.onClick.bind(this) },
+	                "tr",
+	                { className: "attribute", onClick: this.props.onRemove, style: { height: "150px" } },
+	                _react2.default.createElement("td", { colSpan: 3, className: "plot", ref: "plot" })
+	            );
+	        }
+	    }]);
+	
+	    return SpectrumAttribute;
+	}(_react.Component);
+	
+	var ScalarAttribute = function (_Component2) {
+	    _inherits(ScalarAttribute, _Component2);
+	
+	    function ScalarAttribute() {
+	        _classCallCheck(this, ScalarAttribute);
+	
+	        return _possibleConstructorReturn(this, Object.getPrototypeOf(ScalarAttribute).apply(this, arguments));
+	    }
+	
+	    _createClass(ScalarAttribute, [{
+	        key: "shouldComponentUpdate",
+	        value: function shouldComponentUpdate(props) {
+	            return props.value !== this.props.value || props.name != this.props.name || props.label != this.props.label || props.unit != this.props.unit || props.quality != this.props.quality;
+	        }
+	    }, {
+	        key: "render",
+	        value: function render() {
+	            return _react2.default.createElement(
+	                "tr",
+	                { onClick: this.props.onRemove, className: "attribute" },
 	                _react2.default.createElement(
-	                    "span",
+	                    "td",
 	                    { className: "label" },
 	                    this.props.label
 	                ),
 	                _react2.default.createElement(
-	                    "span",
+	                    "td",
 	                    { className: "value " + this.props.quality },
 	                    _react2.default.createElement(
 	                        "span",
@@ -35209,7 +35356,7 @@
 	                    )
 	                ),
 	                _react2.default.createElement(
-	                    "span",
+	                    "td",
 	                    { className: "unit" },
 	                    this.props.unit
 	                )
@@ -35217,41 +35364,31 @@
 	        }
 	    }]);
 	
-	    return ScalarAttributeListener;
+	    return ScalarAttribute;
 	}(_react.Component);
 	
-	var SpectrumAttributeListener = function (_Component2) {
-	    _inherits(SpectrumAttributeListener, _Component2);
+	var AttributeListener = function (_Component3) {
+	    _inherits(AttributeListener, _Component3);
 	
-	    function SpectrumAttributeListener() {
-	        _classCallCheck(this, SpectrumAttributeListener);
+	    function AttributeListener() {
+	        _classCallCheck(this, AttributeListener);
 	
-	        return _possibleConstructorReturn(this, Object.getPrototypeOf(SpectrumAttributeListener).apply(this, arguments));
+	        return _possibleConstructorReturn(this, Object.getPrototypeOf(AttributeListener).apply(this, arguments));
 	    }
 	
-	    _createClass(SpectrumAttributeListener, [{
-	        key: "onClick",
-	        value: function onClick() {
-	            this.props.dispatch((0, _actions.removeAttributeListener)(this.props.model));
-	        }
-	    }, {
-	        key: "componentDidMount",
-	        value: function componentDidMount() {
-	            var node = (0, _reactDom.findDOMNode)(this.refs.container);
-	        }
-	    }, {
+	    _createClass(AttributeListener, [{
 	        key: "render",
 	        value: function render() {
-	            return _react2.default.createElement("div", { ref: "container", className: "attribute",
-	                onClick: this.onClick.bind(this) });
+	            if (this.props.data_format == "SPECTRUM") return _react2.default.createElement(SpectrumAttribute, this.props);
+	            return _react2.default.createElement(ScalarAttribute, this.props);
 	        }
 	    }]);
 	
-	    return SpectrumAttributeListener;
+	    return AttributeListener;
 	}(_react.Component);
 	
-	var AttributeList = function (_Component3) {
-	    _inherits(AttributeList, _Component3);
+	var AttributeList = function (_Component4) {
+	    _inherits(AttributeList, _Component4);
 	
 	    function AttributeList() {
 	        _classCallCheck(this, AttributeList);
@@ -35263,30 +35400,40 @@
 	        key: "onRemoveAttribute",
 	        value: function onRemoveAttribute(attr) {}
 	    }, {
+	        key: "getAttributeComponent",
+	        value: function getAttributeComponent(model, i) {
+	            var _this5 = this;
+	
+	            var attr = this.props.attributes[model],
+	                value = this.props.values[model],
+	                config = this.props.configs[model];
+	
+	            return _react2.default.createElement(AttributeListener, { key: i, model: model,
+	                name: attr ? attr.name : "?",
+	                value: value ? value.value : null,
+	                quality: value ? value.quality : "UNKNOWN",
+	                label: config ? config.label || (attr ? attr.name : "?") : attr ? attr.name : "?",
+	                unit: config ? config.unit || "" : "",
+	                format: config ? config.format : null,
+	                data_format: config ? config.data_format : null,
+	                dispatch: this.props.dispatch,
+	                onRemove: function onRemove() {
+	                    return _this5.props.onRemoveAttribute(model);
+	                } });
+	        }
+	    }, {
 	        key: "render",
 	        value: function render() {
-	            var _this4 = this;
-	
-	            var attrs = this.props.listeners.map(function (model, i) {
-	                var attr = _this4.props.attributes[model],
-	                    value = _this4.props.values[model],
-	                    config = _this4.props.configs[model];
-	                return _react2.default.createElement(ScalarAttributeListener, { key: i, model: model,
-	                    name: attr ? attr.name : "?",
-	                    value: value ? value.value : null,
-	                    quality: value ? value.quality : "UNKNOWN",
-	                    label: config ? config.label || (attr ? attr.name : "?") : attr ? attr.name : "?",
-	                    unit: config ? config.unit || "" : "",
-	                    format: config ? config.format : null,
-	                    dispatch: _this4.props.dispatch,
-	                    onRemove: function onRemove() {
-	                        return _this4.props.onRemoveAttribute(model);
-	                    } });
-	            });
+	            var attrs = this.props.listeners.map(this.getAttributeComponent.bind(this));
+	            //return <div className="attribute-list">{attrs}</div>;
 	            return _react2.default.createElement(
-	                "div",
+	                "table",
 	                { className: "attribute-list" },
-	                attrs
+	                _react2.default.createElement(
+	                    "tbody",
+	                    null,
+	                    attrs
+	                )
 	            );
 	        }
 	    }]);
@@ -35298,14 +35445,15 @@
 	    return {
 	        attributes: state.data.attributes,
 	        values: state.data.attribute_values,
-	        configs: state.data.attribute_configs
+	        configs: state.data.attribute_configs,
+	        history: state.data.attribute_value_history
 	    };
 	}
 	
 	exports.default = (0, _reactRedux.connect)(select)(AttributeList);
 
 /***/ },
-/* 458 */
+/* 457 */
 /*!*************************************!*\
   !*** ./~/sprintf-js/src/sprintf.js ***!
   \*************************************/
@@ -35522,6 +35670,15 @@
 
 
 /***/ },
+/* 458 */
+/*!*************************!*\
+  !*** external "Plotly" ***!
+  \*************************/
+/***/ function(module, exports) {
+
+	module.exports = Plotly;
+
+/***/ },
 /* 459 */
 /*!********************!*\
   !*** ./js/tree.js ***!
@@ -35546,7 +35703,7 @@
 	
 	var _reactDnd = __webpack_require__(/*! react-dnd */ 403);
 	
-	var _actions = __webpack_require__(/*! ./actions */ 456);
+	var _actions = __webpack_require__(/*! ./actions */ 455);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -35800,8 +35957,9 @@
 	
 	            if (dataformat != "IMAGE") return connectDragSource(_react2.default.createElement(
 	                'div',
-	                { className: classes, onClick: this.onClick.bind(this) },
-	                this.props.name
+	                { className: classes, title: this.props.name + " type:" + this.props.datatype + " unit:" + this.props.unit + " desc:" + this.props.description,
+	                    onClick: this.onClick.bind(this) },
+	                this.props.label || this.props.name
 	            ));else return _react2.default.createElement(
 	                'div',
 	                { className: classes, onClick: this.onClick.bind(this) },
@@ -35884,19 +36042,25 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
+	var _reactDom = __webpack_require__(/*! react-dom */ 32);
+	
 	var _reactRedux = __webpack_require__(/*! react-redux */ 247);
 	
-	var _reactGridLayout = __webpack_require__(/*! react-grid-layout */ 461);
+	var _reactGridLayout = __webpack_require__(/*! react-grid-layout */ 462);
 	
 	var _reactGridLayout2 = _interopRequireDefault(_reactGridLayout);
 	
 	var _reactDnd = __webpack_require__(/*! react-dnd */ 403);
 	
-	var _actions = __webpack_require__(/*! ./actions */ 456);
+	var _actions = __webpack_require__(/*! ./actions */ 455);
 	
-	var _attribute = __webpack_require__(/*! ./attribute */ 457);
+	var _attribute = __webpack_require__(/*! ./attribute */ 456);
 	
 	var _attribute2 = _interopRequireDefault(_attribute);
+	
+	var _trend = __webpack_require__(/*! ./trend */ 478);
+	
+	var _trend2 = _interopRequireDefault(_trend);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -35912,24 +36076,53 @@
 	
 	var WidthReactGridLayout = (0, _reactGridLayout.WidthProvider)(_reactGridLayout2.default);
 	
+	var ContentEditable = _react2.default.createClass({
+	    displayName: "ContentEditable",
+	
+	    render: function render() {
+	        return _react2.default.createElement("span", {
+	            onInput: this.emitChange,
+	            onBlur: this.emitChange,
+	            contentEditable: true,
+	            dangerouslySetInnerHTML: { __html: this.props.html } });
+	    },
+	    shouldComponentUpdate: function shouldComponentUpdate(nextProps) {
+	        return nextProps.html !== (0, _reactDom.findDOMNode)(this).innerHTML;
+	    },
+	    emitChange: function emitChange() {
+	        var html = (0, _reactDom.findDOMNode)(this).innerHTML;
+	        if (this.props.onChange && html !== this.lastHtml) {
+	
+	            this.props.onChange({
+	                target: {
+	                    value: html
+	                }
+	            });
+	        }
+	        this.lastHtml = html;
+	    }
+	});
+	
 	var _Card = function (_React$Component) {
 	    _inherits(_Card, _React$Component);
 	
 	    function _Card() {
-	        var _Object$getPrototypeO;
-	
-	        var _temp, _this, _ret;
-	
 	        _classCallCheck(this, _Card);
 	
-	        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-	            args[_key] = arguments[_key];
-	        }
+	        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(_Card).call(this));
 	
-	        return _ret = (_temp = (_this = _possibleConstructorReturn(this, (_Object$getPrototypeO = Object.getPrototypeOf(_Card)).call.apply(_Object$getPrototypeO, [this].concat(args))), _this), _this.cardClass = "list-card", _temp), _possibleConstructorReturn(_this, _ret);
+	        _this.cardClass = "list-card";
+	
+	        _this.state = { title: "Title here" };
+	        return _this;
 	    }
 	
 	    _createClass(_Card, [{
+	        key: "onChangeTitle",
+	        value: function onChangeTitle(event) {
+	            this.setState({ title: event.target.value });
+	        }
+	    }, {
 	        key: "onRemove",
 	        value: function onRemove() {
 	            this.props.dispatch((0, _actions.removeDashboardCard)(this.props.index));
@@ -35944,26 +36137,63 @@
 	    }, {
 	        key: "getContent",
 	        value: function getContent() {
+	            if (this.props.cardType == "TREND") return _react2.default.createElement(_trend2.default, { listeners: this.props.content || [] });
 	            return _react2.default.createElement(_attribute2.default, { listeners: this.props.content || [],
 	                onRemoveAttribute: this.onRemoveAttribute.bind(this) });
+	        }
+	    }, {
+	        key: "getTitle",
+	        value: function getTitle() {
+	            if (this.props.editMode) return _react2.default.createElement(ContentEditable, { html: this.state.title,
+	                onChange: this.onChangeTitle.bind(this) });
+	            return _react2.default.createElement(
+	                "span",
+	                null,
+	                this.state.title
+	            );
 	        }
 	    }, {
 	        key: "render",
 	        value: function render() {
 	            return this.props.connectDropTarget(_react2.default.createElement(
-	                "div",
+	                "table",
 	                { className: "card" + " " + this.cardClass + (this.props.isOver ? " over" : "") },
 	                _react2.default.createElement(
-	                    "button",
-	                    { className: "remove-card",
-	                        style: { display: this.props.editMode ? null : "none" },
-	                        onClick: this.onRemove.bind(this) },
-	                    "x"
+	                    "thead",
+	                    null,
+	                    _react2.default.createElement(
+	                        "tr",
+	                        null,
+	                        _react2.default.createElement(
+	                            "th",
+	                            null,
+	                            this.getTitle()
+	                        )
+	                    )
 	                ),
 	                _react2.default.createElement(
-	                    "div",
-	                    { className: "content" },
-	                    this.getContent()
+	                    "tbody",
+	                    null,
+	                    _react2.default.createElement(
+	                        "tr",
+	                        null,
+	                        _react2.default.createElement(
+	                            "td",
+	                            null,
+	                            _react2.default.createElement(
+	                                "button",
+	                                { className: "remove-card",
+	                                    style: { display: this.props.editMode ? null : "none" },
+	                                    onClick: this.onRemove.bind(this) },
+	                                "x"
+	                            ),
+	                            _react2.default.createElement(
+	                                "div",
+	                                { className: "content" },
+	                                this.getContent()
+	                            )
+	                        )
+	                    )
 	                )
 	            ));
 	        }
@@ -35995,39 +36225,6 @@
 	// A card that can accept dropped attributes
 	var Card = (0, _reactDnd.DropTarget)("ATTRIBUTE", cardTarget, collect)(_Card);
 	
-	var _PlotCard = function (_Card2) {
-	    _inherits(_PlotCard, _Card2);
-	
-	    function _PlotCard() {
-	        var _Object$getPrototypeO2;
-	
-	        var _temp2, _this2, _ret2;
-	
-	        _classCallCheck(this, _PlotCard);
-	
-	        for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-	            args[_key2] = arguments[_key2];
-	        }
-	
-	        return _ret2 = (_temp2 = (_this2 = _possibleConstructorReturn(this, (_Object$getPrototypeO2 = Object.getPrototypeOf(_PlotCard)).call.apply(_Object$getPrototypeO2, [this].concat(args))), _this2), _this2.cardClass = "plot-card", _temp2), _possibleConstructorReturn(_this2, _ret2);
-	    }
-	
-	    _createClass(_PlotCard, [{
-	        key: "getContent",
-	        value: function getContent() {
-	            return _react2.default.createElement(
-	                "div",
-	                null,
-	                "Hello"
-	            );
-	        }
-	    }]);
-	
-	    return _PlotCard;
-	}(_Card);
-	
-	var PlotCard = (0, _reactDnd.DropTarget)("ATTRIBUTE", cardTarget, collect)(_PlotCard);
-	
 	var TangoDashboard = function (_React$Component2) {
 	    _inherits(TangoDashboard, _React$Component2);
 	
@@ -36044,27 +36241,23 @@
 	        }
 	    }, {
 	        key: "onAddCard",
-	        value: function onAddCard() {
-	            this.props.dispatch((0, _actions.addDashboardCard)());
-	        }
-	    }, {
-	        key: "onAddPlotCard",
-	        value: function onAddPlotCard() {
-	            this.props.dispatch((0, _actions.addDashboardCard)("PLOT"));
+	        value: function onAddCard(cardType) {
+	            this.props.dispatch((0, _actions.addDashboardCard)(cardType));
 	        }
 	    }, {
 	        key: "render",
 	        value: function render() {
-	            var _this4 = this;
+	            var _this3 = this;
 	
 	            console.log("render dashboard");
 	            var cards = this.props.layout.map(function (l) {
 	                return _react2.default.createElement(
 	                    "div",
 	                    { key: l.i, _grid: l },
-	                    _react2.default.createElement(Card, { index: l.i, content: _this4.props.content[l.i],
-	                        editMode: _this4.props.editMode,
-	                        dispatch: _this4.props.dispatch })
+	                    _react2.default.createElement(Card, { index: l.i, cardType: _this3.props.cardType[l.i],
+	                        content: _this3.props.content[l.i],
+	                        editMode: _this3.props.editMode,
+	                        dispatch: _this3.props.dispatch })
 	                );
 	            });
 	
@@ -36082,15 +36275,17 @@
 	                ),
 	                _react2.default.createElement(
 	                    "button",
-	                    { className: "add-card", style: { display: this.props.editMode ? null : "none" },
-	                        onClick: this.onAddCard.bind(this) },
-	                    "+"
+	                    { className: "add-card", title: "Add attribute card",
+	                        style: { display: this.props.editMode ? null : "none" },
+	                        onClick: this.onAddCard.bind(this, "LIST") },
+	                    "A"
 	                ),
 	                _react2.default.createElement(
 	                    "button",
-	                    { className: "add-plot-card", style: { display: this.props.editMode ? null : "none" },
-	                        onClick: this.onAddPlotCard.bind(this) },
-	                    "+"
+	                    { className: "add-trend", title: "Add trend card",
+	                        style: { display: this.props.editMode ? null : "none" },
+	                        onClick: this.onAddCard.bind(this, "TREND") },
+	                    "T"
 	                )
 	            );
 	        }
@@ -36102,7 +36297,8 @@
 	var mapStateToProps = function mapStateToProps(state) {
 	    return {
 	        layout: state.data.dashboardLayout,
-	        content: state.data.dashboardContent
+	        content: state.data.dashboardContent,
+	        cardType: state.data.dashboardCardType
 	    };
 	};
 	
@@ -36110,20 +36306,73 @@
 
 /***/ },
 /* 461 */
+/*!********************!*\
+  !*** ./js/util.js ***!
+  \********************/
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	exports.getURLParameterByName = getURLParameterByName;
+	exports.loadStateFromHash = loadStateFromHash;
+	exports.setHashFromState = setHashFromState;
+	exports.debounce = debounce;
+	function getURLParameterByName(name) {
+	    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+	    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+	        results = regex.exec(location.search);
+	    return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+	}
+	
+	function loadStateFromHash() {
+	    // TODO: verify that the hash data makes sense?
+	    return JSON.parse(decodeURIComponent(document.location.hash).slice(1));
+	}
+	
+	function setHashFromState(state) {
+	    var hash = JSON.stringify({
+	        layout: state.data.dashboardLayout,
+	        content: state.data.dashboardContent,
+	        cardType: state.data.dashboardCardType
+	    });
+	    document.location.hash = hash;
+	}
+	
+	function debounce(func, wait, immediate) {
+	    var timeout;
+	    return function () {
+	        var context = this,
+	            args = arguments;
+	        var later = function later() {
+	            timeout = null;
+	            if (!immediate) func.apply(context, args);
+	        };
+	        var callNow = immediate && !timeout;
+	        clearTimeout(timeout);
+	        timeout = setTimeout(later, wait);
+	        if (callNow) func.apply(context, args);
+	    };
+	};
+
+/***/ },
+/* 462 */
 /*!**************************************!*\
   !*** ./~/react-grid-layout/index.js ***!
   \**************************************/
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(/*! ./build/ReactGridLayout */ 462).default;
-	module.exports.utils = __webpack_require__(/*! ./build/utils */ 467);
-	module.exports.Responsive = __webpack_require__(/*! ./build/ResponsiveReactGridLayout */ 474).default;
-	module.exports.Responsive.utils = __webpack_require__(/*! ./build/responsiveUtils */ 475);
-	module.exports.WidthProvider = __webpack_require__(/*! ./build/components/WidthProvider */ 476).default;
+	module.exports = __webpack_require__(/*! ./build/ReactGridLayout */ 463).default;
+	module.exports.utils = __webpack_require__(/*! ./build/utils */ 468);
+	module.exports.Responsive = __webpack_require__(/*! ./build/ResponsiveReactGridLayout */ 475).default;
+	module.exports.Responsive.utils = __webpack_require__(/*! ./build/responsiveUtils */ 476);
+	module.exports.WidthProvider = __webpack_require__(/*! ./build/components/WidthProvider */ 477).default;
 
 
 /***/ },
-/* 462 */
+/* 463 */
 /*!******************************************************!*\
   !*** ./~/react-grid-layout/build/ReactGridLayout.js ***!
   \******************************************************/
@@ -36139,13 +36388,13 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _lodash = __webpack_require__(/*! lodash.isequal */ 463);
+	var _lodash = __webpack_require__(/*! lodash.isequal */ 464);
 	
 	var _lodash2 = _interopRequireDefault(_lodash);
 	
-	var _utils = __webpack_require__(/*! ./utils */ 467);
+	var _utils = __webpack_require__(/*! ./utils */ 468);
 	
-	var _GridItem = __webpack_require__(/*! ./GridItem */ 468);
+	var _GridItem = __webpack_require__(/*! ./GridItem */ 469);
 	
 	var _GridItem2 = _interopRequireDefault(_GridItem);
 	
@@ -36636,7 +36885,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! ./~/process/browser.js */ 3)))
 
 /***/ },
-/* 463 */
+/* 464 */
 /*!***********************************!*\
   !*** ./~/lodash.isequal/index.js ***!
   \***********************************/
@@ -36650,9 +36899,9 @@
 	 * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>
 	 * Copyright Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
 	 */
-	var Stack = __webpack_require__(/*! lodash._stack */ 464),
-	    keys = __webpack_require__(/*! lodash.keys */ 465),
-	    root = __webpack_require__(/*! lodash._root */ 466);
+	var Stack = __webpack_require__(/*! lodash._stack */ 465),
+	    keys = __webpack_require__(/*! lodash.keys */ 466),
+	    root = __webpack_require__(/*! lodash._root */ 467);
 	
 	/** Used to compose bitmasks for comparison styles. */
 	var UNORDERED_COMPARE_FLAG = 1,
@@ -37476,7 +37725,7 @@
 
 
 /***/ },
-/* 464 */
+/* 465 */
 /*!**********************************!*\
   !*** ./~/lodash._stack/index.js ***!
   \**********************************/
@@ -38148,7 +38397,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! ./../webpack/buildin/module.js */ 206)(module), (function() { return this; }())))
 
 /***/ },
-/* 465 */
+/* 466 */
 /*!********************************!*\
   !*** ./~/lodash.keys/index.js ***!
   \********************************/
@@ -38622,7 +38871,7 @@
 
 
 /***/ },
-/* 466 */
+/* 467 */
 /*!*********************************!*\
   !*** ./~/lodash._root/index.js ***!
   \*********************************/
@@ -38691,7 +38940,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! ./../webpack/buildin/module.js */ 206)(module), (function() { return this; }())))
 
 /***/ },
-/* 467 */
+/* 468 */
 /*!********************************************!*\
   !*** ./~/react-grid-layout/build/utils.js ***!
   \********************************************/
@@ -39150,7 +39399,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! ./~/process/browser.js */ 3)))
 
 /***/ },
-/* 468 */
+/* 469 */
 /*!***********************************************!*\
   !*** ./~/react-grid-layout/build/GridItem.js ***!
   \***********************************************/
@@ -39166,11 +39415,11 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _reactDraggable = __webpack_require__(/*! react-draggable */ 469);
+	var _reactDraggable = __webpack_require__(/*! react-draggable */ 470);
 	
-	var _reactResizable = __webpack_require__(/*! react-resizable */ 470);
+	var _reactResizable = __webpack_require__(/*! react-resizable */ 471);
 	
-	var _utils = __webpack_require__(/*! ./utils */ 467);
+	var _utils = __webpack_require__(/*! ./utils */ 468);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -39640,7 +39889,7 @@
 	exports.default = GridItem;
 
 /***/ },
-/* 469 */
+/* 470 */
 /*!***************************************************!*\
   !*** ./~/react-draggable/dist/react-draggable.js ***!
   \***************************************************/
@@ -41013,7 +41262,7 @@
 	//# sourceMappingURL=react-draggable.js.map
 
 /***/ },
-/* 470 */
+/* 471 */
 /*!************************************!*\
   !*** ./~/react-resizable/index.js ***!
   \************************************/
@@ -41024,12 +41273,12 @@
 	  throw new Error("Don't instantiate Resizable directly! Use require('react-resizable').Resizable");
 	};
 	
-	module.exports.Resizable = __webpack_require__(/*! ./build/Resizable */ 471).default;
-	module.exports.ResizableBox = __webpack_require__(/*! ./build/ResizableBox */ 473).default;
+	module.exports.Resizable = __webpack_require__(/*! ./build/Resizable */ 472).default;
+	module.exports.ResizableBox = __webpack_require__(/*! ./build/ResizableBox */ 474).default;
 
 
 /***/ },
-/* 471 */
+/* 472 */
 /*!**********************************************!*\
   !*** ./~/react-resizable/build/Resizable.js ***!
   \**********************************************/
@@ -41045,9 +41294,9 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _reactDraggable = __webpack_require__(/*! react-draggable */ 469);
+	var _reactDraggable = __webpack_require__(/*! react-draggable */ 470);
 	
-	var _cloneElement = __webpack_require__(/*! ./cloneElement */ 472);
+	var _cloneElement = __webpack_require__(/*! ./cloneElement */ 473);
 	
 	var _cloneElement2 = _interopRequireDefault(_cloneElement);
 	
@@ -41268,7 +41517,7 @@
 	exports.default = Resizable;
 
 /***/ },
-/* 472 */
+/* 473 */
 /*!*************************************************!*\
   !*** ./~/react-resizable/build/cloneElement.js ***!
   \*************************************************/
@@ -41296,7 +41545,7 @@
 	};
 
 /***/ },
-/* 473 */
+/* 474 */
 /*!*************************************************!*\
   !*** ./~/react-resizable/build/ResizableBox.js ***!
   \*************************************************/
@@ -41312,7 +41561,7 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _Resizable = __webpack_require__(/*! ./Resizable */ 471);
+	var _Resizable = __webpack_require__(/*! ./Resizable */ 472);
 	
 	var _Resizable2 = _interopRequireDefault(_Resizable);
 	
@@ -41404,7 +41653,7 @@
 	exports.default = ResizableBox;
 
 /***/ },
-/* 474 */
+/* 475 */
 /*!****************************************************************!*\
   !*** ./~/react-grid-layout/build/ResponsiveReactGridLayout.js ***!
   \****************************************************************/
@@ -41420,15 +41669,15 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _lodash = __webpack_require__(/*! lodash.isequal */ 463);
+	var _lodash = __webpack_require__(/*! lodash.isequal */ 464);
 	
 	var _lodash2 = _interopRequireDefault(_lodash);
 	
-	var _utils = __webpack_require__(/*! ./utils */ 467);
+	var _utils = __webpack_require__(/*! ./utils */ 468);
 	
-	var _responsiveUtils = __webpack_require__(/*! ./responsiveUtils */ 475);
+	var _responsiveUtils = __webpack_require__(/*! ./responsiveUtils */ 476);
 	
-	var _ReactGridLayout = __webpack_require__(/*! ./ReactGridLayout */ 462);
+	var _ReactGridLayout = __webpack_require__(/*! ./ReactGridLayout */ 463);
 	
 	var _ReactGridLayout2 = _interopRequireDefault(_ReactGridLayout);
 	
@@ -41629,7 +41878,7 @@
 	exports.default = ResponsiveReactGridLayout;
 
 /***/ },
-/* 475 */
+/* 476 */
 /*!******************************************************!*\
   !*** ./~/react-grid-layout/build/responsiveUtils.js ***!
   \******************************************************/
@@ -41643,7 +41892,7 @@
 	exports.findOrGenerateResponsiveLayout = findOrGenerateResponsiveLayout;
 	exports.sortBreakpoints = sortBreakpoints;
 	
-	var _utils = __webpack_require__(/*! ./utils */ 467);
+	var _utils = __webpack_require__(/*! ./utils */ 468);
 	
 	/**
 	 * Given a width, find the highest breakpoint that matches is valid for it (width > breakpoint).
@@ -41722,7 +41971,7 @@
 	}
 
 /***/ },
-/* 476 */
+/* 477 */
 /*!***************************************************************!*\
   !*** ./~/react-grid-layout/build/components/WidthProvider.js ***!
   \***************************************************************/
@@ -41810,56 +42059,188 @@
 	};
 
 /***/ },
-/* 477 */
-/*!********************!*\
-  !*** ./js/util.js ***!
-  \********************/
-/***/ function(module, exports) {
+/* 478 */
+/*!*********************!*\
+  !*** ./js/trend.js ***!
+  \*********************/
+/***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
 	
 	Object.defineProperty(exports, "__esModule", {
-					value: true
+	    value: true
 	});
-	exports.getURLParameterByName = getURLParameterByName;
-	exports.loadStateFromHash = loadStateFromHash;
-	exports.setHashFromState = setHashFromState;
-	exports.debounce = debounce;
-	function getURLParameterByName(name) {
-					name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-					var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
-					    results = regex.exec(location.search);
-					return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-	}
 	
-	function loadStateFromHash() {
-					// TODO: verify that the hash data makes sense?
-					return JSON.parse(decodeURIComponent(document.location.hash).slice(1));
-	}
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 	
-	function setHashFromState(state) {
-					var hash = JSON.stringify({
-									layout: state.data.dashboardLayout,
-									content: state.data.dashboardContent
-					});
-					document.location.hash = hash;
-	}
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	function debounce(func, wait, immediate) {
-					var timeout;
-					return function () {
-									var context = this,
-									    args = arguments;
-									var later = function later() {
-													timeout = null;
-													if (!immediate) func.apply(context, args);
-									};
-									var callNow = immediate && !timeout;
-									clearTimeout(timeout);
-									timeout = setTimeout(later, wait);
-									if (callNow) func.apply(context, args);
-					};
+	var _react = __webpack_require__(/*! react */ 1);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _reactDom = __webpack_require__(/*! react-dom */ 32);
+	
+	var _reactRedux = __webpack_require__(/*! react-redux */ 247);
+	
+	var _sprintfJs = __webpack_require__(/*! sprintf-js */ 457);
+	
+	var _Plotly = __webpack_require__(/*! Plotly */ 458);
+	
+	var _Plotly2 = _interopRequireDefault(_Plotly);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var AttributeTrend = function (_Component) {
+	    _inherits(AttributeTrend, _Component);
+	
+	    function AttributeTrend() {
+	        _classCallCheck(this, AttributeTrend);
+	
+	        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(AttributeTrend).call(this));
+	
+	        _this._cache = {};
+	
+	        _this.state = { data: [] };
+	        return _this;
+	    }
+	
+	    _createClass(AttributeTrend, [{
+	        key: "componentDidMount",
+	        value: function componentDidMount() {
+	            var node = (0, _reactDom.findDOMNode)(this.refs.trend);
+	            var data = [{
+	                x: [],
+	                y: [],
+	                type: 'scatter',
+	                mode: "lines",
+	                name: "hello",
+	                showlegend: true,
+	                yaxis: "y1",
+	                legendgroup: "0"
+	            }];
+	            var layout = {
+	                // title: this.props.label || this.props.name,
+	                // autosize: true,
+	                width: node.offsetWidth,
+	                height: 300,
+	                showlegend: true,
+	                xaxis: {
+	                    type: "date",
+	                    zerolinecolor: '#aaa'
+	                    // range: [
+	                    //     (new Date()).getTime() - 3600 * 1000,
+	                    //     (new Date()).getTime()
+	                    // ]
+	                },
+	                yaxis: {
+	                    zerolinecolor: '#aaa'
+	                },
+	                yaxis2: {
+	                    side: "right",
+	                    overlaying: 'y',
+	                    showgrid: false,
+	                    zeroline: false
+	                },
+	                legend: {
+	                    // yanchor:"middle",
+	                    // traceorder: "grouped",
+	                    font: {
+	                        size: 14
+	                    },
+	                    bgcolor: 'rgba(255,255,255,0.75)',
+	                    y: 1,
+	                    x: 0
+	                },
+	                // paper_bgcolor: 'rgba(0,0,0,0)',
+	                margin: {
+	                    l: 50,
+	                    r: 20,
+	                    b: 40,
+	                    t: 10
+	                }
+	            };
+	            // pad: 4
+	            _Plotly2.default.newPlot(node, data, layout, { displayModeBar: false });
+	        }
+	    }, {
+	        key: "shouldComponentUpdate",
+	        value: function shouldComponentUpdate() {
+	            return false;
+	        }
+	    }, {
+	        key: "componentWillReceiveProps",
+	        value: function componentWillReceiveProps(props) {
+	            var _this2 = this;
+	
+	            var node = (0, _reactDom.findDOMNode)(this.refs.trend);
+	            console.log("trrend node", node);
+	            var data = { x: [], y: [],
+	                name: this.props.listeners.map(function (l) {
+	                    return _this2.props.configs[l] ? _this2.props.configs[l].label || _this2.props.configs[l].name : l;
+	                }) };
+	            var updatedLines = [];
+	            this.props.listeners.forEach(function (model, i) {
+	                var history = _this2.props.history[model] || { x: [], y: [] };
+	                // if (history == this._cache[model])
+	                //     return
+	                _this2._cache[model] = history;
+	                data.x.push(history.x);
+	                data.y.push(history.y);
+	                updatedLines.push(i);
+	            });
+	
+	            console.log("history", data);
+	            var layout = {
+	                xaxis: {
+	                    type: "date",
+	                    range: [new Date().getTime() - this.props.historySize * 1000, new Date().getTime() + 1000]
+	                },
+	                yaxis: {
+	                    title: props.configs[props.listeners[0]] ? props.configs[props.listeners[0]].unit : ""
+	                }
+	            };
+	            console.log("layout", layout);
+	            while (this.props.listeners.length > node.data.length) {
+	                _Plotly2.default.addTraces(node, { x: [], y: [], yaxis: "y2", legendgroup: "1",
+	                    type: "scatter", mode: "lines" });
+	            }_Plotly2.default.relayout(node, _extends({ width: node.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.clientWidth - 10, height: node.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.clientHeight - 30 }, layout));
+	            _Plotly2.default.restyle(node, data, updatedLines);
+	        }
+	    }, {
+	        key: "render",
+	        value: function render() {
+	            return _react2.default.createElement(
+	                "div",
+	                { className: "container", ref: "container" },
+	                _react2.default.createElement("div", { className: "trend", ref: "trend" })
+	            );
+	        }
+	    }]);
+	
+	    return AttributeTrend;
+	}(_react.Component);
+	
+	AttributeTrend.defaultProps = {
+	    historySize: 5 * 60
 	};
+	
+	function select(state) {
+	    return {
+	        attributes: state.data.attributes,
+	        values: state.data.attribute_values,
+	        configs: state.data.attribute_configs,
+	        history: state.data.attribute_value_history
+	    };
+	}
+	
+	exports.default = (0, _reactRedux.connect)(select)(AttributeTrend);
 
 /***/ }
 /******/ ]);
