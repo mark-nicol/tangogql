@@ -3,7 +3,7 @@
 import {RECEIVE, CHANGE, CONFIG, ADD_ATTRIBUTE_LISTENER,
         REMOVE_ATTRIBUTE_LISTENER,
         SET_DASHBOARD_LAYOUT, ADD_DASHBOARD_CARD, REMOVE_DASHBOARD_CARD,
-        SET_DASHBOARD_CONTENT} from "./actions";
+        SET_DASHBOARD_CONTENT, SET_DASHBOARD_CARD_TYPE} from "./actions";
 
 
 function deviceStore (state, action) {
@@ -67,6 +67,39 @@ function attributeValueStore (state, action) {
 }
 
 
+function attributeValueHistoryStore (state, action) {
+    if (!action.data)
+        return state
+    switch (action.type) {
+    case CHANGE:
+        let newData = {}
+        Object.keys(action.data).forEach((attr) => {
+            let x, y, newX, newY;
+            if (state[attr]) {
+                x = state[attr].x;
+                y = state[attr].y;
+            }
+            if (x) {
+                newX = [...x, action.data[attr].time * 1000];
+            } else
+                newX = [action.data[attr].time * 1000];
+            if (y) {
+                newY = [...y, action.data[attr].value];
+            } else {
+                newY = [action.data[attr].value];
+            }
+            if (newX.length > 1000) {
+                newX = newX.slice(newX.length-1000);
+                newY = newY.slice(newX.length-1000);
+            }
+            newData[attr] = {x: newX, y: newY};
+        });
+        return {...state, ...newData};
+    }
+    return state;
+}
+
+
 // store for attribute config data
 function attributeConfigStore (state, action) {
     if (!action.data)
@@ -121,28 +154,19 @@ function listenerStore (state, action) {
 }
 
 
+function makeCardIndex() {
+    
+}
+
 function dashboardLayoutStore (state, action) {
     switch (action.type) {
     case SET_DASHBOARD_LAYOUT:
         return action.layout;
     case ADD_DASHBOARD_CARD:
-        let i;
-        if (state.length > 0) {
-            let tmpState = [...state];
-            tmpState.sort((c1, c2) => parseInt(c1.i) > parseInt(c2.i));
-            let lastCard = tmpState[tmpState.length-1];
-            i = parseInt(lastCard.i) + 1;
-        } else {
-            i = 0;
-        }
-        let newCard;
-        if (action.cardType == "PLOT")
-            newCard = {i: i.toString(), x: 0, y: 100, w: 5, h: 3};
-        else
-            newCard = {i: i.toString(), x: 0, y: 100, w: 3, h: 2};
+        const newCard = {i: action.index, x: 0, y: 100, w: 3, h: 2};
         return [...state, newCard];
     case REMOVE_DASHBOARD_CARD:
-        let index = state.indexOf(state.find(card => card.i == action.index))
+        const index = state.indexOf(state.find(card => card.i == action.index))
         return [...state.slice(0, index), ...state.slice(index+1)];
     }
     return state;
@@ -163,6 +187,17 @@ function dashboardContentStore (state, action) {
 }
 
 
+function dashboardCardTypeStore (state, action) {
+    switch (action.type) {
+    case SET_DASHBOARD_CARD_TYPE:
+        return {...state, ...action.cardTypes};
+    case ADD_DASHBOARD_CARD:
+        return {...state, [action.index]: action.cardType};
+    }
+    return state;
+}
+
+
 // Combining the stores 
 
 let initialState = {
@@ -173,13 +208,13 @@ let initialState = {
     properties: {},
     attributes: {},    
     attribute_values: {},
+    attribute_value_history: {},
     attribute_configs: {},    
     members: {},
     listeners: {},
-    dashboardLayout: [
-        {i: "0", x: 0, y: 0, w: 4, h: 4},
-    ],
-    dashboardContent: {}
+    dashboardLayout: [],
+    dashboardContent: {},
+    dashboardCardType: {}
 }
 
 
@@ -192,14 +227,16 @@ export default function data (state=initialState, action) {
           members = memberStore(state.members, action),
           attributes = attributeStore(state.attributes, action),
           attribute_values = attributeValueStore(state.attribute_values, action),
+          attribute_value_history = attributeValueHistoryStore(state.attribute_value_history, action),
           attribute_configs = attributeConfigStore(state.attribute_configs, action),          
           properties = propertyStore(state.properties, action),
           listeners = listenerStore(state.listeners, action),
           dashboardLayout = dashboardLayoutStore(state.dashboardLayout, action),
-          dashboardContent = dashboardContentStore(state.dashboardContent, action);
+          dashboardContent = dashboardContentStore(state.dashboardContent, action),
+          dashboardCardType = dashboardCardTypeStore(state.dashboardCardType, action);
     
     return {devices, domains, families, members, properties, attributes,
-            attribute_values, attribute_configs, listeners,
-            dashboardLayout, dashboardContent};
+            attribute_values, attribute_value_history, attribute_configs, listeners,
+            dashboardLayout, dashboardContent, dashboardCardType};
 }
 

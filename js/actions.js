@@ -14,6 +14,8 @@ export const SET_DASHBOARD_LAYOUT = "SET_DASHBOARD_LAYOUT"
 export const SET_DASHBOARD_CONTENT = "SET_DASHBOARD_CONTENT"
 export const ADD_DASHBOARD_CARD = "ADD_DASHBOARD_CARD"
 export const REMOVE_DASHBOARD_CARD = "REMOVE_DASHBOARD_CARD"
+export const SET_DASHBOARD_CARD_TYPE = "SET_DASHBOARD_CARD_TYPE"
+
 
 export function receiveData(data) {
     return { type: RECEIVE, data }
@@ -54,12 +56,33 @@ export function setDashboardContent(content) {
     };
 }
 
+
+function makeCardIndex(state) {
+    let i;
+    if (state.data.dashboardLayout.length > 0) {
+        let tmpState = [...state.data.dashboardLayout];
+        tmpState.sort((c1, c2) => parseInt(c1.i) > parseInt(c2.i));
+        let lastCard = tmpState[tmpState.length-1];
+        i = parseInt(lastCard.i) + 1;
+    } else {
+        i = 0;
+    }
+    return i.toString();
+}
+
 export function addDashboardCard(cardType) {
-    return {type: ADD_DASHBOARD_CARD, cardType}
+    return (dispatch, getState) => {
+        let index = makeCardIndex(getState());
+        dispatch({type: ADD_DASHBOARD_CARD, index, cardType})
+    }
 }
 
 export function removeDashboardCard(index) {
     return {type: REMOVE_DASHBOARD_CARD, index};
+}
+
+export function setDashboardCardType(cardTypes) {
+    return {type: SET_DASHBOARD_CARD_TYPE, cardTypes};
 }
 
 

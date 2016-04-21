@@ -4,21 +4,25 @@ body {
 }
 
 .attribute-list {
-    display: table;
     width: 100%;
+    border-collapse: collapse;
+    overflow-x: hidden;
 }
 
 .attribute {
-    display: table-row;
+    
 }
 
 .attribute:nth-child(even) {
     background: #eee;
 }
 
-.attribute span {
-    display: table-cell;
+.attribute td {
     padding: 0 5px;
+}
+
+.attribute td.plot {
+    width: 100%;
 }
 
 .attribute .label {
@@ -27,7 +31,6 @@ body {
 
 .attribute .value {
     width: 100%;
-    text-align: right;
 }
 
 .attribute.error {
@@ -86,3 +89,9 @@ input.unapplied:focus {
     border: 2px dashed black;
     /* background: #faa; */
 }
+
+
+.attribute .plot-container {
+    width: 100%;
+}
+               

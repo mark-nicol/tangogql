@@ -2,47 +2,90 @@ import React, {Component} from "react";
 import { findDOMNode } from "react-dom";
 import { connect } from 'react-redux'
 import { sprintf } from 'sprintf-js'
+import Plotly from "Plotly"
 
 import {removeAttributeListener} from './actions';
 
 
-class ScalarAttributeListener extends Component {
+class SpectrumAttribute extends Component {
 
-    onClick () {
-        this.props.onRemove();
+    getCardWidth () {
+        // a tediuos (and fragile) hack to get the width of the card
+        const node = findDOMNode(this.refs.plot);
+        return node.parentNode.parentNode.parentNode.parentNode.clientWidth
+    }
+    
+    componentDidMount() {
+        const node = findDOMNode(this.refs.plot);
+        const data = [
+            {
+                // x: ['2013-10-04 22:23:00', '2013-11-04 22:23:00', '2013-12-04 22:23:00'],
+                y: [],
+                type: 'scatter'
+            }
+        ];
+        const layout = {
+            title: this.props.label || this.props.name,
+            //autosize: true,
+            width: this.getCardWidth(),
+            height: 150,
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            margin: {
+                l: 30,
+                r: 20,
+                b: 20,
+                t: 30,
+                pad: 4
+            }        
+        }
+        Plotly.newPlot(node, data, layout, {displayModeBar: false});
+    }
+    
+    shouldComponentUpdate() {
+        return false;
+    }
+
+    componentWillReceiveProps (props) {
+        const node = findDOMNode(this.refs.plot);
+        Plotly.relayout(node, {width: this.getCardWidth()})
+        Plotly.restyle(node, {y: [props.value]}, 0);
     }
     
     render () {
-        return (<div className="attribute" onClick={this.onClick.bind(this)}>
-                  <span className="label">{this.props.label}</span>
-                  <span className={"value " + this.props.quality}>
+        return <tr className="attribute" onClick={this.props.onRemove} style={{height: "150px"}}>
+               <td colSpan={3} className="plot" ref="plot"/>
+               </tr>
+    }
+    
+}
+
+
+class ScalarAttribute extends Component {
+    
+    render() {
+        return (
+                <tr onClick={this.props.onRemove} className="attribute">
+                <td className="label">{this.props.label}</td>
+                <td className={"value " + this.props.quality}>
                     <span>
                       {this.props.format?
                        sprintf(this.props.format, this.props.value) :
                        this.props.value}
                     </span>
-                  </span>
-                  <span className="unit">{this.props.unit}</span>
-                </div>);
+                </td>
+                <td className="unit">{this.props.unit}</td>
+             </tr>
+        );
     }
 }
 
 
-class SpectrumAttributeListener extends Component {
+class AttributeListener extends Component {
 
-    onClick () {
-        this.props.dispatch(removeAttributeListener(this.props.model));
-    }
-
-    componentDidMount () {
-        const node = findDOMNode(this.refs.container);
-        
-    }
-    
     render () {
-        return (<div ref="container" className="attribute"
-                     onClick={this.onClick.bind(this)}>
-                </div>);
+        if (this.props.data_format == "SPECTRUM")
+            return <SpectrumAttribute {...this.props}/>
+        return <ScalarAttribute {...this.props}/>
     }
 }
 
@@ -52,13 +95,14 @@ class AttributeList extends Component {
     onRemoveAttribute (attr) {
         
     }
-    
-    render () {
-        let attrs = this.props.listeners.map((model, i) => {
-            let attr = this.props.attributes[model],
-                value = this.props.values[model],
-                config = this.props.configs[model];
-            return <ScalarAttributeListener key={i} model={model}
+
+    getAttributeComponent (model, i) {
+
+        let attr = this.props.attributes[model],
+            value = this.props.values[model],
+            config = this.props.configs[model];
+        
+        return <AttributeListener key={i} model={model}
                        name={attr? attr.name : "?"}
                        value={value? value.value : null}
                        quality={value? value.quality : "UNKNOWN"}            
@@ -66,19 +110,26 @@ class AttributeList extends Component {
                               attr? attr.name : "?"}
                        unit={config? config.unit || "" : ""}
                        format={config? config.format : null}            
-            dispatch={this.props.dispatch}
-            onRemove={()=>this.props.onRemoveAttribute(model)}/>
-        });
-        return <div className="attribute-list">{attrs}</div>;
+                       data_format={config? config.data_format : null}
+                       dispatch={this.props.dispatch}
+                       onRemove={()=>this.props.onRemoveAttribute(model)}/>
+    }
+    
+    render () {
+        let attrs = this.props.listeners.map(this.getAttributeComponent.bind(this));
+        //return <div className="attribute-list">{attrs}</div>;
+        return <table className="attribute-list"><tbody>{attrs}</tbody></table>;
     }
 }
+
 
 
 function select (state) {
     return {
         attributes: state.data.attributes,
         values: state.data.attribute_values,
-        configs: state.data.attribute_configs
+        configs: state.data.attribute_configs,
+        history: state.data.attribute_value_history
     }
 }
 

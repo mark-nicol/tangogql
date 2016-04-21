@@ -7,6 +7,8 @@ import {DropTarget} from "react-dnd";
 import {setDashboardLayout, setDashboardContent,
         addDashboardCard, removeDashboardCard} from "./actions";
 import Attributes from "./attribute";
+import Trend from "./trend";
+
 
 const WidthReactGridLayout = WidthProvider(ReactGridLayout);
 
@@ -27,6 +29,8 @@ class _Card extends React.Component {
     }
     
     getContent() {
+        if (this.props.cardType == "TREND")
+            return <Trend listeners={this.props.content || []}/>
         return <Attributes listeners={this.props.content || []}
                            onRemoveAttribute={this.onRemoveAttribute.bind(this)}/>
     }
@@ -73,19 +77,6 @@ function collect(connect, monitor) {
 const Card = DropTarget("ATTRIBUTE", cardTarget, collect)(_Card);
 
 
-class _PlotCard extends _Card {
-
-    cardClass = "plot-card"
-    
-    getContent() {
-        return <div>Hello</div>
-    }
-    
-}
-
-
-const PlotCard = DropTarget("ATTRIBUTE", cardTarget, collect)(_PlotCard);
-
 
 class TangoDashboard extends React.Component {
 
@@ -93,22 +84,19 @@ class TangoDashboard extends React.Component {
         this.props.dispatch(setDashboardLayout(layout))
     }
 
-    onAddCard () {
-        this.props.dispatch(addDashboardCard());
+    onAddCard (cardType) {
+        this.props.dispatch(addDashboardCard(cardType));
     }
 
-    onAddPlotCard() {
-        this.props.dispatch(addDashboardCard("PLOT"))
-    }
-    
     render() {
         console.log("render dashboard");
         const cards = this.props.layout.map(
             l => {
                 return (<div key={l.i} _grid={l}>
-                        <Card index={l.i} content={this.props.content[l.i]}
-                        editMode={this.props.editMode}
-                        dispatch={this.props.dispatch}/>
+                        <Card index={l.i} cardType={this.props.cardType[l.i]}
+                              content={this.props.content[l.i]}
+                              editMode={this.props.editMode}
+                              dispatch={this.props.dispatch}/>
                         </div>);
             });
         
@@ -122,12 +110,12 @@ class TangoDashboard extends React.Component {
                     {cards}
                 </WidthReactGridLayout>
                 <button className="add-card" style={{display: this.props.editMode? null : "none"}}
-                        onClick={this.onAddCard.bind(this)}>
+            onClick={this.onAddCard.bind(this, "LIST")}>
                 +
                 </button>
 
-                <button className="add-plot-card" style={{display: this.props.editMode? null : "none"}}
-                        onClick={this.onAddPlotCard.bind(this)}>
+                <button className="add-trend" style={{display: this.props.editMode? null : "none"}}
+            onClick={this.onAddCard.bind(this, "TREND")}>
                 +
                 </button>
             </div>
@@ -140,6 +128,7 @@ const mapStateToProps = (state) => {
     return {
         layout: state.data.dashboardLayout,
         content: state.data.dashboardContent,
+        cardType: state.data.dashboardCardType
     }
 }
 

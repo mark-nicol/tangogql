@@ -21,5 +21,9 @@ module.exports = {
     },
     resolve: {
         extensions: [ "", ".js" ]
+    },
+    externals: {
+        "Plotly": "Plotly"
     }
+
 };
