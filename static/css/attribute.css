@@ -9,7 +9,10 @@ body {
     overflow-x: hidden;
 }
 
-.attribute {
+
+
+table.attribute-list tr.attribute {
+    border-bottom: 1px solid #ccc;
     
 }
 
@@ -17,8 +20,10 @@ body {
     background: #eee;
 }
 
-.attribute td {
+tr.attribute td {
+    width: 33%;
     padding: 0 5px;
+    vertical-align: bottom;
 }
 
 .attribute td.plot {
@@ -26,11 +31,12 @@ body {
 }
 
 .attribute .label {
+    width: 0;
+    white-space: nowrap;
     text-align: right;
 }
 
 .attribute .value {
-    width: 100%;
     text-align: right;
 }
 
@@ -61,9 +67,9 @@ body {
     text-align: center;
 }
 
-.value.ATTR_VALID {
-    border-bottom: 3px solid #0f0;
-}
+/* .value.ATTR_VALID { */
+/*     border-bottom: 3px solid #0f0; */
+/* } */
 
 .value.ATTR_INVALID {
     border-bottom: 3px solid red;    

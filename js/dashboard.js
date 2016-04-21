@@ -1,4 +1,5 @@
 import React from "react";
+import {findDOMNode} from "react-dom";
 import { connect } from 'react-redux'
 import ReactGridLayout from "react-grid-layout";
 import {WidthProvider} from "react-grid-layout";
@@ -13,9 +14,44 @@ import Trend from "./trend";
 const WidthReactGridLayout = WidthProvider(ReactGridLayout);
 
 
+var ContentEditable = React.createClass({
+    render: function(){
+        return <span
+            onInput={this.emitChange} 
+            onBlur={this.emitChange}
+            contentEditable
+            dangerouslySetInnerHTML={{__html: this.props.html}}/>;
+    },
+    shouldComponentUpdate: function(nextProps){
+        return nextProps.html !== findDOMNode(this).innerHTML;
+    },
+    emitChange: function(){
+        var html = findDOMNode(this).innerHTML;
+        if (this.props.onChange && html !== this.lastHtml) {
+
+            this.props.onChange({
+                target: {
+                    value: html
+                }
+            });
+        }
+        this.lastHtml = html;
+    }
+});
+
+
 class _Card extends React.Component {
 
     cardClass = "list-card"
+
+    constructor () {
+        super();
+        this.state = {title: "Title here"}
+    }
+    
+    onChangeTitle (event) {
+        this.setState({title: event.target.value})
+    }
     
     onRemove () {
         this.props.dispatch(removeDashboardCard(this.props.index));
@@ -34,19 +70,38 @@ class _Card extends React.Component {
         return <Attributes listeners={this.props.content || []}
                            onRemoveAttribute={this.onRemoveAttribute.bind(this)}/>
     }
+
+    getTitle () {
+        if (this.props.editMode)
+            return <ContentEditable html={this.state.title}
+                                    onChange={this.onChangeTitle.bind(this)}/>
+        return <span>{this.state.title}</span>
+    }
     
     render() {
         return this.props.connectDropTarget(
-            <div className={"card" + " " + this.cardClass + (this.props.isOver? " over" : "")}>
+            <table className={"card" + " " + this.cardClass + (this.props.isOver? " over" : "")}>
+                <thead>
+                <tr>
+                <th>
+                {this.getTitle()}
+                </th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr><td>
+                
                 <button className="remove-card"
                         style={{display: this.props.editMode? null : "none"}}
                         onClick={this.onRemove.bind(this)}>
                     x
-                </button>
+            </button>
                 <div className="content">
                 {this.getContent()}
-                </div>
-            </div>);
+            </div>
+            </td></tr>
+            </tbody>                
+            </table>);
     }
 }
 
