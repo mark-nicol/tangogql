@@ -14,7 +14,7 @@ class SpectrumAttribute extends Component {
     getCardWidth () {
         // a tediuos (and fragile) hack to get the width of the card
         const node = findDOMNode(this.refs.plot);
-        return node.parentNode.parentNode.parentNode.parentNode.clientWidth
+        return node.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.clientWidth
     }
     
     componentDidMount() {
@@ -34,9 +34,9 @@ class SpectrumAttribute extends Component {
             paper_bgcolor: 'rgba(0,0,0,0)',
             margin: {
                 l: 30,
-                r: 20,
-                b: 20,
-                t: 30,
+                r: 0,
+                b: 25,
+                t: 35,
                 pad: 4
             }        
         }
@@ -52,7 +52,7 @@ class SpectrumAttribute extends Component {
             return
         this._cache = props.value;
         const node = findDOMNode(this.refs.plot);
-        Plotly.relayout(node, {width: this.getCardWidth()})
+        Plotly.relayout(node, {width: this.getCardWidth()-20})
         Plotly.restyle(node, {y: [props.value]}, 0);
     }
     

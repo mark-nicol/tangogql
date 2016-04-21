@@ -36,10 +36,14 @@ class AttributeTrend extends Component {
             showlegend: true,
             xaxis: {
                 type: "date",
+                zerolinecolor: '#aaa'
                 // range: [
                 //     (new Date()).getTime() - 3600 * 1000,
                 //     (new Date()).getTime()
                 // ]
+            },
+            yaxis: {
+                zerolinecolor: '#aaa'
             },
             yaxis2: {
                 side: "right",
@@ -62,7 +66,7 @@ class AttributeTrend extends Component {
                 l: 50,
                 r: 20,
                 b: 40,
-                t: 30,
+                t: 10,
                 // pad: 4
             }        
         }
@@ -83,8 +87,8 @@ class AttributeTrend extends Component {
         let updatedLines = []
         this.props.listeners.forEach((model, i) => {
             const history = this.props.history[model] || {x: [], y: []};
-            if (history == this._cache[model])
-                return
+            // if (history == this._cache[model])
+            //     return
             this._cache[model] = history;
             data.x.push(history.x)
             data.y.push(history.y)
@@ -109,12 +113,14 @@ class AttributeTrend extends Component {
             Plotly.addTraces(node, {x: [], y: [], yaxis: "y2", legendgroup: "1",
                                     type: "scatter", mode: "lines"})
                     
-        Plotly.relayout(node, {width: node.clientWidth-20, ...layout})
+        Plotly.relayout(node, {width: node.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.clientWidth - 10, height: node.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.clientHeight - 30, ...layout})
         Plotly.restyle(node, data, updatedLines);
     }
     
     render () {
-        return <div className="trend" ref="trend"></div>
+        return <div className="container" ref="container">
+            <div className="trend" ref="trend"/>
+            </div>
     }
             
 }
