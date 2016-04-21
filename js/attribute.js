@@ -9,6 +9,8 @@ import {removeAttributeListener} from './actions';
 
 class SpectrumAttribute extends Component {
 
+    _cache = null
+
     getCardWidth () {
         // a tediuos (and fragile) hack to get the width of the card
         const node = findDOMNode(this.refs.plot);
@@ -46,6 +48,9 @@ class SpectrumAttribute extends Component {
     }
 
     componentWillReceiveProps (props) {
+        if (props.value === this._cache)  // also check label, etc!
+            return
+        this._cache = props.value;
         const node = findDOMNode(this.refs.plot);
         Plotly.relayout(node, {width: this.getCardWidth()})
         Plotly.restyle(node, {y: [props.value]}, 0);
@@ -61,6 +66,11 @@ class SpectrumAttribute extends Component {
 
 
 class ScalarAttribute extends Component {
+
+    shouldComponentUpdate (props) {
+        return props.value !== this.props.value || props.name != this.props.name || props.label != this.props.label
+            || props.unit != this.props.unit || props.quality != this.props.quality;
+    }
     
     render() {
         return (
