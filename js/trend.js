@@ -7,6 +7,8 @@ import Plotly from "Plotly"
 
 class AttributeTrend extends Component {
 
+    _cache = {}
+    
     constructor () {
         super();
         this.state = {data: []}
@@ -72,14 +74,21 @@ class AttributeTrend extends Component {
     }
 
     componentWillReceiveProps (props) {
+
+        
         const node = findDOMNode(this.refs.trend);
         console.log("trrend node", node);
         let data = {x: [], y: [],
                     name: this.props.listeners.map(l => this.props.configs[l]? this.props.configs[l].label || this.props.configs[l].name : l)}
+        let updatedLines = []
         this.props.listeners.forEach((model, i) => {
             const history = this.props.history[model] || {x: [], y: []};
+            if (history == this._cache[model])
+                return
+            this._cache[model] = history;
             data.x.push(history.x)
             data.y.push(history.y)
+            updatedLines.push(i)
         })
 
         console.log("history", data);
@@ -101,7 +110,7 @@ class AttributeTrend extends Component {
                                     type: "scatter", mode: "lines"})
                     
         Plotly.relayout(node, {width: node.clientWidth-20, ...layout})
-        Plotly.restyle(node, data, this.props.listeners.map((l, i) => i));
+        Plotly.restyle(node, data, updatedLines);
     }
     
     render () {
