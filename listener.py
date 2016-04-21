@@ -10,7 +10,8 @@ import PyTango
 def error_str(err):
     if isinstance(err, PyTango.DevFailed):
         #err = err[0]
-        return "[{0}] {1}".format(err.reason, err.desc)
+        #return "[{0}] {1}".format(err.reason, err.desc)
+        return str(err)
     return str(err)
 
 
@@ -18,7 +19,8 @@ def format_value(value, attr_type):
     if attr_type is PyTango.ArgType.DevState:
         return str(value)
     if isinstance(value, np.ndarray):
-        return value.tobytes()  # TODO: is this a copy..?
+        # return value.tobytes()  # TODO: is this a copy..?
+        return value.tolist()
     return value
 
 
@@ -37,6 +39,8 @@ def format_config_event(evt):
         'label': evt.label,
         'unit': evt.unit if evt.unit != "No unit" else "",
         'format': evt.format,
+        'data_format': str(evt.data_format),
+        'data_type': str(PyTango.CmdArgType.values[evt.data_type])
         # ...
     }
 
