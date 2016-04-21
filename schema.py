@@ -93,6 +93,7 @@ class DeviceAttribute(TangoSomething):
     writable = String()
     label = String()
     unit = String()
+    description = String()
 
     # @graphene.resolve_only_args
     # def resolve_data_type(self):
@@ -135,7 +136,8 @@ class Device(TangoSomething):
         return [DeviceAttribute(
             name=a.name, device=self.name, writable=a.writable,
             datatype=PyTango.CmdArgType.values[a.data_type],
-            dataformat=a.data_format, label=a.label, unit=a.unit)
+            dataformat=a.data_format,
+            label=a.label, unit=a.unit, description=a.description)
                 for a in attr_infos if rule.match(a.name)]
 
     @graphene.resolve_only_args

@@ -215,6 +215,9 @@ export function fetchAttribute(device) {
             attributes { 
                device
                name
+               label
+               unit
+               description
                datatype
                dataformat
             }

@@ -173,8 +173,12 @@ class _Attribute extends Component {
 
         if (dataformat != "IMAGE")
             return connectDragSource(
-                       <div className={classes} onClick={this.onClick.bind(this)}>
-                           {this.props.name}
+                    <div className={classes} title={this.props.name + " type:" +
+                                                    this.props.datatype + " unit:" +
+                                                    this.props.unit + " desc:" +
+                                                    this.props.description}
+                       onClick={this.onClick.bind(this)}>
+                          {this.props.label || this.props.name}
                        </div>);
         else
             return (<div className={classes} onClick={this.onClick.bind(this)}>
