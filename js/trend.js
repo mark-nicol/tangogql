@@ -43,11 +43,13 @@ class AttributeTrend extends Component {
                 // ]
             },
             yaxis: {
-                zerolinecolor: '#aaa'
+                zerolinecolor: '#aaa',
+                tickformat: "2s"
             },
             yaxis2: {
                 side: "right",
                 overlaying: 'y',
+                tickformat: "2s",                
                 showgrid: false,
                 zeroline: false
             },
@@ -64,7 +66,7 @@ class AttributeTrend extends Component {
             // paper_bgcolor: 'rgba(0,0,0,0)',
             margin: {
                 l: 50,
-                r: 20,
+                r: 50,
                 b: 40,
                 t: 10,
                 // pad: 4
@@ -105,7 +107,8 @@ class AttributeTrend extends Component {
                 ]
             },
             yaxis: {
-                title: props.configs[props.listeners[0]]? props.configs[props.listeners[0]].unit : ""
+                title: props.configs[props.listeners[0]]? props.configs[props.listeners[0]].unit : "",
+                tickformat: "s"
             },
         }
         console.log("layout", layout)
