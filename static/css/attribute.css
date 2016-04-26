@@ -12,24 +12,29 @@ body {
 
 /* a trick to get an underline for all attributes, except the last one,
 BUT if there is only one attribute we still want it...*/
-table.attribute-list tr.attribute:first-child:last-child {
-    border-bottom: 1px solid #ccc;  
-}
+/* table.attribute-list tbody:first-child:last-child tr.attribute { */
+/*     border-bottom: 1px solid #ccc; */
+/* } */
 
-table.attribute-list tr.attribute:not(:last-child) {
+table.attribute-list tbody tr.attribute {
     border-bottom: 1px solid #ccc;
 }
 
-.attribute-list .attribute:nth-child(even) {
+.attribute-list tbody:nth-child(even) tr {
     background: #eee;
 }
 
-.attribute-list  tr.attribute td {
+.attribute-list tr.attribute td {
     width: 33%;
     padding: 0 5px;       
     /* vertical-align: bottom; */
 }                         
-                          
+
+
+.attribute-list .over td {
+    border-top: 1px solid black;
+}
+
 
 .attribute-list .attribute td.plot {
     width: 100%;

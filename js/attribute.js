@@ -1,7 +1,8 @@
 import React, {Component} from "react";
 import { findDOMNode } from "react-dom";
+import {DropTarget} from "react-dnd";
 import { connect } from 'react-redux'
-import { sprintf } from 'sprintf-js'
+import { sprintf } from 'sprintf-js' 
 import Plotly from "Plotly"
 
 import {removeAttributeListener} from './actions';
@@ -17,7 +18,7 @@ class SpectrumAttribute extends Component {
     getCardWidth () {
         // a tediuos (and fragile) hack to get the width of the card
         const node = findDOMNode(this.refs.plot);
-        return node.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.clientWidth
+        return node.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.clientWidth
     }
     
     componentDidMount() {
@@ -45,7 +46,7 @@ class SpectrumAttribute extends Component {
             yaxis: {
                 nticks: 3,
                 tickformat: ".1e",
-                type: "log",
+                // type: "log",
                 tickmode: "linear"
             }
         }
@@ -63,14 +64,16 @@ class SpectrumAttribute extends Component {
         const node = findDOMNode(this.refs.plot);
         const min = Math.min(...props.value), max = Math.max(...props.value);
         Plotly.relayout(node, {width: this.getCardWidth()-20,
-                               yaxis: {nticks: 3, type: "log", tickmode: "array", tickformat: ".1e",
+                               yaxis: {nticks: 3, // type: "log",
+                                       tickmode: "array", tickformat: ".1e",
                                        tickvals: [min, max], ticktext: [0, 1]}})
         Plotly.restyle(node, {y: [props.value]}, 0);
     }
     
     render () {
-        return <tr className="attribute" onClick={this.props.onRemove} style={{height: "150px"}}>
-               <td colSpan={3} className="plot" ref="plot"/>
+        return <tr className="attribute" onClick={this.props.onRemove}
+                   style={{height: "150px"}}>
+                 <td colSpan={3} className="plot" ref="plot"/>
                </tr>
     }
     
@@ -114,14 +117,41 @@ class ScalarAttribute extends Component {
 }
 
 
-class AttributeListener extends Component {
+class _Attribute extends Component {
 
     render () {
         if (this.props.data_format == "SPECTRUM")
-            return <SpectrumAttribute {...this.props}/>
-        return <ScalarAttribute {...this.props}/>
+            return this.props.connectDropTarget(
+                    <tbody className={this.props.isOver? " over" : ""}>
+                        <SpectrumAttribute {...this.props}/>
+                    </tbody>);
+        return this.props.connectDropTarget(
+                <tbody className={this.props.isOver? " over" : ""}>
+                    <ScalarAttribute {...this.props}/>
+                </tbody>);
     }
 }
+
+const attributeTarget = {
+    canDrop(props, monitor) {
+        return true;
+    },
+    drop(props, monitor, component) {
+        let item = monitor.getItem();
+        props.onInsert(item.model);
+    }
+}
+
+
+function collect(connect, monitor) {
+    return {
+        connectDropTarget: connect.dropTarget(),
+        isOver: monitor.isOver()
+    }
+}
+
+
+const Attribute = DropTarget("ATTRIBUTE", attributeTarget, collect)(_Attribute);
 
 
 class AttributeList extends Component {
@@ -138,7 +168,7 @@ class AttributeList extends Component {
             value = this.props.values[model],
             config = this.props.configs[model];
         
-        return <AttributeListener key={i} model={model}
+        return <Attribute key={i} model={model}
                        name={attr? attr.name : "?"}
                        value={value? value.value : null}
                        quality={value? value.quality : "UNKNOWN"}            
@@ -148,7 +178,8 @@ class AttributeList extends Component {
                        format={config? config.format : null}            
                        data_format={config? config.data_format : null}
                        dispatch={this.props.dispatch}
-                       onRemove={()=>this.props.onRemoveAttribute(model)}/>
+                       onRemove={()=>this.props.onRemoveAttribute(model)}
+                       onInsert={(model)=>this.props.onInsertAttribute(model, i)}/>
     }
     
     render () {

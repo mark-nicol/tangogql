@@ -63,14 +63,24 @@ class _Card extends React.Component {
         const index = this.props.content.indexOf(attr)
         const newContent = [...this.props.content.slice(0, index),
                             ...this.props.content.slice(index+1)]
-        this.props.dispatch(setDashboardContent({[this.props.index]: newContent}))
+        this.props.dispatch(
+            setDashboardContent({[this.props.index]: newContent}))
+    }
+
+    onInsertAttribute(model, index) {
+        const newContent = [...this.props.content.slice(0, index),
+                            model,
+                            ...this.props.content.slice(index)]
+        this.props.dispatch(
+            setDashboardContent({[this.props.index]: newContent}))
     }
     
     getContent() {
         if (this.props.cardType == "TREND")
             return <Trend listeners={this.props.content || []}/>
         return <Attributes listeners={this.props.content || []}
-                           onRemoveAttribute={this.onRemoveAttribute.bind(this)}/>
+                      onRemoveAttribute={this.onRemoveAttribute.bind(this)}
+                      onInsertAttribute={this.onInsertAttribute.bind(this)}/>
     }
 
     getTitle () {
@@ -115,6 +125,8 @@ const cardTarget = {
     drop(props, monitor, component) {
         // user is dropping an attribute from the tree on the card
         // let's add the attribute to the content
+        if (monitor.didDrop())
+            return
         let item = monitor.getItem();
         let content = [...(props.content || []), item.model];
         props.dispatch(setDashboardContent({[props.index]: content}));
