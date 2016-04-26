@@ -1,44 +1,44 @@
-ul {
+.tree ul {
     list-style: none;
-    margin-left: 10px;
+    margin-left: 3px;
+    padding-left: 3px;
+}
+
+.tree ul li li {
+    white-space: nowrap;
     padding-left: 10px;
 }
 
-li {
-    white-space: nowrap;
-}
-
-span.member.unexported {
+.tree span.member.unexported {
     color: grey;    
 }
 
-div.attribute {
+.tree div.attribute {
     white-space: nowrap;
 }
-
-.format-scalar {
+.
+.tree format-scalar {
     color: blue;
 }
 
-.format-spectrum {
+.tree .format-spectrum {
     color: green;
 }
 
-.format-image {
+.tree .format-image {
     color: grey;
 }
 
-ul li span.open::before {
+.tree ul li span.open::before {
     content: "▼";
     display: inline;
     padding-right: 5px;
-    width: 50px;
 }
 
-ul li span.closed::before {
+.tree ul li span.closed::before {
     content: "▶"; 
     display: inline;
-    padding-right: 5px;
     font-size: smaller;
-    width: 50px;
+    padding-left: 5px;
+    padding-right: 5px;
 }

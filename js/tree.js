@@ -214,7 +214,7 @@ class Tree extends Component {
                            children={domain.families || []}/>
             }
         )
-        return (<div>
+        return (<div className="tree">
                  <ul> { nodes } </ul>
                 </div>);
     }
