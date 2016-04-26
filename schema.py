@@ -5,6 +5,7 @@ A GraphQL schema for TANGO.
 import fnmatch
 import re
 from collections import defaultdict
+from operator import attrgetter
 
 import PyTango
 import graphene
@@ -138,7 +139,8 @@ class Device(TangoSomething):
             datatype=PyTango.CmdArgType.values[a.data_type],
             dataformat=a.data_format,
             label=a.label, unit=a.unit, description=a.description)
-                for a in attr_infos if rule.match(a.name)]
+                for a in sorted(attr_infos, key=attrgetter("name"))
+                                if rule.match(a.name)]
 
     @graphene.resolve_only_args
     def resolve_exported(self):
@@ -247,22 +249,23 @@ class Query(ObjectType):
     @graphene.resolve_only_args
     def resolve_devices(self, pattern="*"):
         devices = db.get_device_exported(pattern)
-        return [Device(name=d) for d in devices]
+        return [Device(name=d) for d in sorted(devices)]
 
     @graphene.resolve_only_args
     def resolve_domains(self, pattern="*"):
         domains = db.get_device_domain("%s/*" % pattern)
-        return [Domain(name=d) for d in domains]
+        return [Domain(name=d) for d in sorted(domains)]
 
     @graphene.resolve_only_args
     def resolve_families(self, domain="*", pattern="*"):
         families = db.get_device_family("%s/%s/*" % (domain, pattern))
-        return [Family(domain=domain, name=d) for d in families]
+        return [Family(domain=domain, name=d) for d in sorted(families)]
 
     @graphene.resolve_only_args
     def resolve_members(self, domain="*", family="*", pattern="*"):
         members = db.get_device_member("%s/%s/%s" % (domain, family, pattern))
-        return [Member(domain=domain, family=family, name=m) for m in members]
+        return [Member(domain=domain, family=family, name=m)
+                for m in sorted(members)]
 
     @graphene.resolve_only_args
     def resolve_servers(self, pattern="*"):
@@ -270,7 +273,7 @@ class Query(ObjectType):
         # The db service does not allow wildcard here, but it can still
         # useful to limit the number of children. Let's fake it!
         rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
-        return [Server(name=srv) for srv in servers if rule.match(srv)]
+        return [Server(name=srv) for srv in sorted(servers) if rule.match(srv)]
 
 
 class DatabaseMutations(ObjectType):
