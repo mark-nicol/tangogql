@@ -169,16 +169,16 @@ class _Attribute extends Component {
     render () {
         const { isDragging, connectDragSource, text,
                 datatype, dataformat } = this.props;
-        const classes = `type-${datatype.toLowerCase()} format-${dataformat.toLowerCase()}`;
+        const classes = `attribute type-${datatype.toLowerCase()} format-${dataformat.toLowerCase()}`;
 
         if (dataformat != "IMAGE")
             return connectDragSource(
-                    <div className={classes} title={this.props.name + " type:" +
+                    <div className={classes} title={this.props.label + " type:" +
                                                     this.props.datatype + " unit:" +
                                                     this.props.unit + " desc:" +
                                                     this.props.description}
                        onClick={this.onClick.bind(this)}>
-                          {this.props.label || this.props.name}
+                          {this.props.name}
                        </div>);
         else
             return (<div className={classes} onClick={this.onClick.bind(this)}>
@@ -189,6 +189,13 @@ class _Attribute extends Component {
 }
 
 const Attribute = DragSource("ATTRIBUTE", attributeSource, collect)(_Attribute);
+
+
+function getDomainPattern(pattern) {
+    if (pattern.indexOf("/") != -1)
+        return pattern.split("/")[0]
+    return 
+}
 
 
 class Tree extends Component {
