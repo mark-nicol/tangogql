@@ -10,60 +10,75 @@ body {
 }
 
 
-
-table.attribute-list tr.attribute {
-    border-bottom: 1px solid #ccc;
-    
+/* a trick to get an underline for all attributes, except the last one,
+BUT if there is only one attribute we still want it...*/
+table.attribute-list tr.attribute:first-child:last-child {
+    border-bottom: 1px solid #ccc;  
 }
 
-.attribute:nth-child(even) {
+table.attribute-list tr.attribute:not(:last-child) {
+    border-bottom: 1px solid #ccc;
+}
+
+.attribute-list .attribute:nth-child(even) {
     background: #eee;
 }
 
-tr.attribute td {
+.attribute-list  tr.attribute td {
     width: 33%;
-    padding: 0 5px;
-    vertical-align: bottom;
-}
+    padding: 0 5px;       
+    /* vertical-align: bottom; */
+}                         
+                          
 
-.attribute td.plot {
+.attribute-list .attribute td.plot {
     width: 100%;
 }
 
-.attribute .label {
-    width: 0;
+.attribute-list .attribute .label {
+    width: 50%;
     white-space: nowrap;
     text-align: right;
 }
 
-.attribute .value {
+.attribute-list .attribute .value {
+    width: 50%;
     text-align: right;
 }
 
-.attribute.error {
+.attribute-list .attribute .unit {
+    width: 0;
+    white-space: nowrap;
+}
+
+.attribute-list .attribute.error {
     color: red;
 }
 
-.name {
+.attribute-list .attribute .name {
     text-align: right;
 }
 
-.attribute.write .name {
+.attribute-list .attribute.write .name {
     text-decoration: underline;
 }
 
-.value {
+.attribute-list .attribute .value {
     font-size: 20px;
     align: right;
     padding-bottom: -2;
 }
 
-.value.number {
+.attribute-list .attribute .value span {
+    padding: 0 3px;
+}
+
+.attribute-list .attribute .value.number {
     width: 100px;
     text-align: right;
 }
 
-.value.state {
+.attribute-list .attribute .value.state {
     text-align: center;
 }
 
@@ -71,15 +86,29 @@ tr.attribute td {
 /*     border-bottom: 3px solid #0f0; */
 /* } */
 
-.value.ATTR_INVALID {
-    border-bottom: 3px solid red;    
+.attribute-list .attribute .value.ATTR_INVALID span {
+    /* border-bottom: 3px solid red;     */
+    background-color: red;
+    color: white;
 }
 
-.value.UNKNOWN {
-    border-bottom: 3px solid #grey;    
+.attribute-list .attribute .value.ATTR_ALARM span {
+    /* border-bottom: 3px solid yellow;     */
+    background-color: orange;
+    color: white;
 }
 
-.value span {
+.attribute-list .attribute .value.ATTR_WARNING span {
+    /* border-bottom: 3px solid yellow;     */
+    background-color: yellow;
+}
+
+.attribute-list .attribute .value.UNKNOWN span {
+    /* border-bottom: 3px solid #grey;     */
+    color: grey;
+}
+
+.attribute-list .attribute .value span {
     /* background: white; */
 }
 
@@ -96,7 +125,6 @@ input.unapplied:focus {
     border: 2px dashed black;
     /* background: #faa; */
 }
-
 
 .attribute .plot-container {
     width: 100%;

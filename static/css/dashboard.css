@@ -6,15 +6,17 @@
     height: 100%;
 }
 
-.card .handle {
-    display: table-row;
-    height: 10px;
-    background: #bbb;
+.card thead th {
+    height: 0;
 }
 
 table.card {
     width: inherit;
     overflow-x: hidden;
+}
+
+table.card > tbody > tr > td {
+    vertical-align: top;
 }
 
 .card tbody tr td {
