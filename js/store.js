@@ -178,8 +178,9 @@ function dashboardContentStore (state, action) {
     case SET_DASHBOARD_CONTENT:
         return Object.assign({}, state, action.content);
     case REMOVE_DASHBOARD_CARD:
-        // TODO: implement this!
-        break;
+        let newState = {...state};
+        delete newState[action.index];
+        return newState;
     case REMOVE_ATTRIBUTE_LISTENER:
         
     }
@@ -193,6 +194,10 @@ function dashboardCardTypeStore (state, action) {
         return {...state, ...action.cardTypes};
     case ADD_DASHBOARD_CARD:
         return {...state, [action.index]: action.cardType};
+    case REMOVE_DASHBOARD_CARD:
+        let newState = {...state};
+        delete newState[action.index]
+        return newState;
     }
     return state;
 }

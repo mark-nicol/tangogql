@@ -77,8 +77,26 @@ export function addDashboardCard(cardType) {
     }
 }
 
+
+function checkForAttributeInDashboard(state, attr, skipIndex) {
+    const content = state.data.dashboardContent;
+    Object.keys(content).forEach(index => {
+        if (index != skipIndex && content[index].indexOf(attr) !== -1)
+            return true;
+    });
+    return false;
+}
+
 export function removeDashboardCard(index) {
-    return {type: REMOVE_DASHBOARD_CARD, index};
+    return function (dispatch, getState) {
+        const state = getState();
+        const content = state.data.dashboardContent[index];
+        content.forEach(model => {
+            if (!checkForAttributeInDashboard(state, model, index))
+                dispatch(removeAttributeListener(model));
+        });
+        dispatch({type: REMOVE_DASHBOARD_CARD, index});
+    }
 }
 
 export function setDashboardCardType(cardTypes) {
