@@ -37,8 +37,8 @@ def format_config_event(evt):
     return {
         'description': evt.description,
         'label': evt.label,
-        'unit': evt.unit if evt.unit != "No unit" else "",
-        'format': evt.format,
+        'unit': evt.unit if evt.unit != "No unit" else None,
+        'format': evt.format if evt.format != "Not specified" else None,
         'data_format': str(evt.data_format),
         'data_type': str(PyTango.CmdArgType.values[evt.data_type])
         # ...
