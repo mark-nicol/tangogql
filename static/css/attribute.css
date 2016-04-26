@@ -36,13 +36,13 @@ table.attribute-list tr.attribute:not(:last-child) {
 }
 
 .attribute-list .attribute .label {
-    width: 50%;
+    width: 0%;
     white-space: nowrap;
     text-align: right;
 }
 
 .attribute-list .attribute .value {
-    width: 50%;
+    width: 100%;
     text-align: right;
 }
 
