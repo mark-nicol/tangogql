@@ -9,6 +9,9 @@ import {removeAttributeListener} from './actions';
 
 class SpectrumAttribute extends Component {
 
+    // an attribute of SPECTRUM format (i.e. an array)
+    // TODO: handle non-numeric types
+    
     _cache = null
 
     getCardWidth () {
@@ -74,8 +77,24 @@ class SpectrumAttribute extends Component {
 }
 
 
+function formatValue(props) {
+    // Note: This could perhaps be more sophisticated, by taking into account the
+    // TANGO data format.
+    if (!isNaN(props.value)) {  // if it's not NaN, it's a number (according to JS logic)
+        if (props.format)
+            return sprintf(props.format, props.value);
+        return props.value
+    }
+    if (typeof props.value === 'string')
+        return props.value.replace("\n", "<br>")
+    return "" + props.value;
+}
+
+
 class ScalarAttribute extends Component {
 
+    // an attribute of SCALAR format
+    
     shouldComponentUpdate (props) {
         return props.value !== this.props.value || props.name != this.props.name || props.label != this.props.label
             || props.unit != this.props.unit || props.quality != this.props.quality;
@@ -86,11 +105,7 @@ class ScalarAttribute extends Component {
                 <tr onClick={this.props.onRemove} className="attribute">
                 <td className="label">{this.props.label}</td>
                 <td className={"value " + this.props.quality}>
-                    <span>
-                      {this.props.format?
-                       sprintf(this.props.format, this.props.value) :
-                       this.props.value}
-                    </span>
+                <span dangerouslySetInnerHTML={{__html: formatValue(this.props)}}/>
                 </td>
                 <td className="unit">{this.props.unit}</td>
              </tr>
@@ -111,6 +126,8 @@ class AttributeListener extends Component {
 
 class AttributeList extends Component {
 
+    // a list of attributes
+    
     onRemoveAttribute (attr) {
         
     }
