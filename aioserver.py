@@ -32,7 +32,8 @@ def serialize(events, protocol="json"):
     raise ValueError("Unknown protocol '%s'" % protocol)
 
 
-async def consumer(queue, ws):
+@asyncio.coroutine
+def consumer(queue, ws):
     """A coroutine that monitors a queue, collecting events into buckets
     that are periodically sent to a socket. It acts as a rate limiter
     and smooths out the traffic over the websocket.  Note that all
@@ -48,7 +49,7 @@ async def consumer(queue, ws):
                     events[event["type"]] = {}
                 events[event["type"]].update(event["data"])
             except asyncio.QueueEmpty:
-                await asyncio.sleep(0.1)
+                yield from asyncio.sleep(0.1)
         if not events:
             continue
         logging.debug(events)
@@ -66,12 +67,13 @@ async def consumer(queue, ws):
     logging.info("Sender for %r exited" % ws)
 
 
-async def handle_websocket(request):
+@asyncio.coroutine
+def handle_websocket(request):
 
     "Handles a websocket to a client over its lifetime"
 
     ws = web.WebSocketResponse(protocols=("json", "bson"))
-    await ws.prepare(request)
+    yield from ws.prepare(request)
 
     logging.info("Listener has connected; protocol %s" % ws.protocol)
 
@@ -85,7 +87,8 @@ async def handle_websocket(request):
     #   {"type": "SUBSCRIBE", "models": ["sys/tg_test/double_scalar"]}
     # where "type" can be "SUBSCRIBE" or "UNSUBSCRIBE" and models is a list of
     # device attributes.
-    async for msg in ws:
+    while True:
+        msg = yield from ws.receive()
         print(msg)
         try:
             if msg.tp == aiohttp.MsgType.text:
@@ -117,14 +120,16 @@ async def handle_websocket(request):
     return ws
 
 
-async def db_handler(request):
+@asyncio.coroutine
+def db_handler(request):
     "serve GraphQL queries"
-    post_data = await request.json()
+    post_data = yield from request.json()
     query = post_data["query"]
     loop = asyncio.get_event_loop()  # TODO: this looks stupid
     try:
         # guess we wouldn't have to do this if the client was async...
-        result = await loop.run_in_executor(None, tangoschema.execute, query)
+        result = yield from loop.run_in_executor(
+            None, tangoschema.execute, query)
         data = (json.dumps({"data": result.data or {}}, indent=4))
         return web.Response(body=data.encode("utf-8"),
                             content_type="application/json")
@@ -144,7 +149,7 @@ if __name__ == "__main__":
 
     loop = asyncio.get_event_loop()
     handler = app.make_handler(debug=True)
-    f = loop.create_server(handler, '0.0.0.0', 5003)
+    f = loop.create_server(handler, '0.0.0.0', 5004)
     logging.info("Point your browser to http://localhost:5003/index.html")
     srv = loop.run_until_complete(f)
     try:
