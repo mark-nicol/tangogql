@@ -33,12 +33,18 @@ class SpectrumAttribute extends Component {
             height: 150,
             paper_bgcolor: 'rgba(0,0,0,0)',
             margin: {
-                l: 30,
+                l: 50,
                 r: 0,
                 b: 25,
                 t: 35,
                 pad: 4
-            }        
+            },
+            yaxis: {
+                nticks: 3,
+                tickformat: ".1e",
+                type: "log",
+                tickmode: "linear"
+            }
         }
         Plotly.newPlot(node, data, layout, {displayModeBar: false});
     }
@@ -52,7 +58,10 @@ class SpectrumAttribute extends Component {
             return
         this._cache = props.value;
         const node = findDOMNode(this.refs.plot);
-        Plotly.relayout(node, {width: this.getCardWidth()-20})
+        const min = Math.min(...props.value), max = Math.max(...props.value);
+        Plotly.relayout(node, {width: this.getCardWidth()-20,
+                               yaxis: {nticks: 3, type: "log", tickmode: "array", tickformat: ".1e",
+                                       tickvals: [min, max], ticktext: [0, 1]}})
         Plotly.restyle(node, {y: [props.value]}, 0);
     }
     
