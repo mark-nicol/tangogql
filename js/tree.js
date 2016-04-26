@@ -58,9 +58,10 @@ class TreeNode extends Component {
         if (this.state.open)
             children = this.getChildren();
         return (
-            <li>
-                <div className={"node " + this.getClass()}
-                     onClick={this.onClick.bind(this)}>{this.props.name}</div>
+                <li>
+                <span className={(this.state.open? "open" : "closed") + " " + this.getClass()}
+                      onClick={this.onClick.bind(this)}>{this.props.name}</span>
+                    
                 <ul>
                     { children }
                 </ul>

@@ -1,9 +1,14 @@
 ul {
+    list-style: none;
     margin-left: 10px;
     padding-left: 10px;
 }
 
-div.member.unexported {
+li {
+    white-space: nowrap;
+}
+
+span.member.unexported {
     color: grey;    
 }
 
@@ -21,4 +26,19 @@ div.attribute {
 
 .format-image {
     color: grey;
+}
+
+ul li span.open::before {
+    content: "▼";
+    display: inline;
+    padding-right: 5px;
+    width: 50px;
+}
+
+ul li span.closed::before {
+    content: "▶"; 
+    display: inline;
+    padding-right: 5px;
+    font-size: smaller;
+    width: 50px;
 }
