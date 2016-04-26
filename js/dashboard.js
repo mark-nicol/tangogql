@@ -58,6 +58,8 @@ class _Card extends React.Component {
     }
 
     onRemoveAttribute (attr) {
+        if (!this.props.editMode)
+            return
         const index = this.props.content.indexOf(attr)
         const newContent = [...this.props.content.slice(0, index),
                             ...this.props.content.slice(index+1)]
@@ -97,8 +99,8 @@ class _Card extends React.Component {
                     x
             </button>
                 <div className="content">
-                {this.getContent()}
-            </div>
+                    {this.getContent()}
+                </div>
             </td></tr>
             </tbody>                
             </table>);
