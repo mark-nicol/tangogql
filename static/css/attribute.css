@@ -51,6 +51,11 @@ table.attribute-list tbody tr.attribute {
     text-align: right;
 }
 
+.attribute-list .attribute .value.datatype-DevString {
+    text-align: left;
+}
+
+
 .attribute-list .attribute .unit {
     width: 0;
     white-space: nowrap;
@@ -91,24 +96,24 @@ table.attribute-list tbody tr.attribute {
 /*     border-bottom: 3px solid #0f0; */
 /* } */
 
-.attribute-list .attribute .value.ATTR_INVALID span {
+.attribute-list .attribute .value.qualuty-ATTR_INVALID span {
     /* border-bottom: 3px solid red;     */
     background-color: red;
     color: white;
 }
 
-.attribute-list .attribute .value.ATTR_ALARM span {
+.attribute-list .attribute .value.quality-ATTR_ALARM span {
     /* border-bottom: 3px solid yellow;     */
     background-color: orange;
     color: white;
 }
 
-.attribute-list .attribute .value.ATTR_WARNING span {
+.attribute-list .attribute .value.quality-ATTR_WARNING span {
     /* border-bottom: 3px solid yellow;     */
     background-color: yellow;
 }
 
-.attribute-list .attribute .value.UNKNOWN span {
+.attribute-list .attribute .value.quality-UNKNOWN span {
     /* border-bottom: 3px solid #grey;     */
     color: grey;
 }

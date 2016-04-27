@@ -18,7 +18,7 @@ class SpectrumAttribute extends Component {
     getCardWidth () {
         // a tediuos (and fragile) hack to get the width of the card
         const node = findDOMNode(this.refs.plot);
-        return node.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.clientWidth
+        return node.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.clientWidth
     }
     
     componentDidMount() {
@@ -106,7 +106,8 @@ class ScalarAttribute extends Component {
         return (
                 <tr className="attribute">
                 <td className="label">{this.props.label}</td>
-                <td className={"value " + this.props.quality}>
+                <td className={"value " + "quality-" + this.props.quality +
+                               " datatype-" + this.props.data_type}>
                 <span dangerouslySetInnerHTML={{__html: formatValue(this.props)}}/>
                 </td>
                 <td className="unit">{this.props.unit}</td>
@@ -181,9 +182,10 @@ class AttributeList extends Component {
                        unit={config? config.unit || "" : ""}
                        format={config? config.format : null}            
                        data_format={config? config.data_format : null}
+                       data_type={config? config.data_type : null}        
                        dispatch={this.props.dispatch}
                        onRemove={()=>this.props.onRemoveAttribute(model)}
-                       onInsert={(model)=>this.props.onInsertAttribute(model, i)}/>
+                       onInsert={model=>this.props.onInsertAttribute(model, i)}/>
     }
     
     render () {
