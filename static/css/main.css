@@ -25,6 +25,10 @@ html {
     margin: 0;
     overflow-y: auto;
     overflow-x: hidden;
+    background-image: url(../images/MAX%20IV_ringar_gray.png);
+    background-repeat: no-repeat;
+    background-size: 100%;
+    opacity: 0.5;
 }
 
 #tree {
