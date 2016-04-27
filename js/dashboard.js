@@ -1,7 +1,7 @@
 import React from "react";
 import {findDOMNode} from "react-dom";
 import { connect } from 'react-redux'
-import ReactGridLayout from "react-grid-layout";
+import {Responsive} from "react-grid-layout";
 import {WidthProvider} from "react-grid-layout";
 import {DropTarget} from "react-dnd";
 
@@ -11,7 +11,7 @@ import Attributes from "./attribute";
 import Trend from "./trend";
 
 
-const WidthReactGridLayout = WidthProvider(ReactGridLayout);
+const WidthReactGridLayout = WidthProvider(Responsive);
 
 
 var ContentEditable = React.createClass({
@@ -97,18 +97,21 @@ class _Card extends React.Component {
                 <thead>
                 <tr>
                 <th>
+                <div className="card-index" style={{display: this.props.editMode? null : "none"}}>
+                      {this.props.index}</div>
                 {this.getTitle()}
+                <button className="remove-card"
+                        style={{display: this.props.editMode? null : "none"}}
+                        onClick={this.onRemove.bind(this)}>
+                    x
+            </button>
+
                 </th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr><td>
                 
-                <button className="remove-card"
-                        style={{display: this.props.editMode? null : "none"}}
-                        onClick={this.onRemove.bind(this)}>
-                    x
-            </button>
                 <div className="content">
                     {this.getContent()}
                 </div>
