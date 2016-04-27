@@ -71,8 +71,7 @@ class SpectrumAttribute extends Component {
     }
     
     render () {
-        return <tr className="attribute" onClick={this.props.onRemove}
-                   style={{height: "150px"}}>
+        return <tr className="attribute" style={{height: "150px"}}>
                  <td colSpan={3} className="plot" ref="plot"/>
                </tr>
     }
@@ -105,7 +104,7 @@ class ScalarAttribute extends Component {
     
     render() {
         return (
-                <tr onClick={this.props.onRemove} className="attribute">
+                <tr className="attribute">
                 <td className="label">{this.props.label}</td>
                 <td className={"value " + this.props.quality}>
                 <span dangerouslySetInnerHTML={{__html: formatValue(this.props)}}/>
@@ -119,16 +118,25 @@ class ScalarAttribute extends Component {
 
 class _Attribute extends Component {
 
-    render () {
+    getComponent() {
+        // return the correct type of component depending on the type of card
         if (this.props.data_format == "SPECTRUM")
-            return this.props.connectDropTarget(
-                    <tbody className={this.props.isOver? " over" : ""}>
-                        <SpectrumAttribute {...this.props}/>
-                    </tbody>);
+            return <SpectrumAttribute {...this.props}/>
+        return <ScalarAttribute {...this.props}/>
+    }
+
+    getRemoveButton() {
+        if (this.props.editMode)
+            return <button className="remove-attribute" 
+                           onClick={this.props.onRemove}>x</button>
+    }
+    
+    render () {        
         return this.props.connectDropTarget(
                 <tbody className={this.props.isOver? " over" : ""}>
-                    <ScalarAttribute {...this.props}/>
-                </tbody>);
+                {this.getRemoveButton()}
+                {this.getComponent()}
+            </tbody>);
     }
 }
 
@@ -158,17 +166,13 @@ class AttributeList extends Component {
 
     // a list of attributes
     
-    onRemoveAttribute (attr) {
-        
-    }
-
     getAttributeComponent (model, i) {
 
         let attr = this.props.attributes[model],
             value = this.props.values[model],
             config = this.props.configs[model];
         
-        return <Attribute key={i} model={model}
+        return <Attribute key={i} model={model} editMode={this.props.editMode}
                        name={attr? attr.name : "?"}
                        value={value? value.value : null}
                        quality={value? value.quality : "UNKNOWN"}            

@@ -17,7 +17,8 @@ export function setHashFromState(state) {
     let hash = JSON.stringify({
         layout: state.data.dashboardLayout,
         content: state.data.dashboardContent,
-        cardType: state.data.dashboardCardType
+        cardType: state.data.dashboardCardType,
+        cardTitle: state.data.dashboardCardTitle
     })
     document.location.hash = hash;
 }

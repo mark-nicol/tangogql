@@ -5,7 +5,7 @@ import ReactGridLayout from "react-grid-layout";
 import {WidthProvider} from "react-grid-layout";
 import {DropTarget} from "react-dnd";
 
-import {setDashboardLayout, setDashboardContent,
+import {setDashboardLayout, setDashboardContent, setDashboardCardTitle,
         addDashboardCard, removeDashboardCard} from "./actions";
 import Attributes from "./attribute";
 import Trend from "./trend";
@@ -44,13 +44,10 @@ class _Card extends React.Component {
 
     cardClass = "list-card"
 
-    constructor () {
-        super();
-        this.state = {title: "Title here"}
-    }
-    
     onChangeTitle (event) {
-        this.setState({title: event.target.value})
+        //this.setState({title: event.target.value})
+        this.props.dispatch(setDashboardCardTitle(
+            {[this.props.index]: event.target.value}));
     }
     
     onRemove () {
@@ -77,22 +74,26 @@ class _Card extends React.Component {
     
     getContent() {
         if (this.props.cardType == "TREND")
-            return <Trend listeners={this.props.content || []}/>
-        return <Attributes listeners={this.props.content || []}
+            return <Trend listeners={this.props.content || []} editMode={this.props.editMode}/>
+        return <Attributes listeners={this.props.content || []} editMode={this.props.editMode}
                       onRemoveAttribute={this.onRemoveAttribute.bind(this)}
                       onInsertAttribute={this.onInsertAttribute.bind(this)}/>
     }
 
     getTitle () {
         if (this.props.editMode)
-            return <ContentEditable html={this.state.title}
+            return <ContentEditable html={this.props.title}
                                     onChange={this.onChangeTitle.bind(this)}/>
-        return <span>{this.state.title}</span>
+        return <span>{this.props.title}</span>
+    }
+
+    getClasses () {
+        return "card " + this.props.cardType.toLowerCase() + (this.props.isOver? " over" : "")
     }
     
     render() {
         return this.props.connectDropTarget(
-            <table className={"card" + " " + this.cardClass + (this.props.isOver? " over" : "")}>
+            <table className={this.getClasses()}>
                 <thead>
                 <tr>
                 <th>
@@ -163,6 +164,7 @@ class TangoDashboard extends React.Component {
             l => {
                 return (<div key={l.i} _grid={l}>
                         <Card index={l.i} cardType={this.props.cardType[l.i]}
+                              title={this.props.cardTitle[l.i] || "(Title here)"}
                               content={this.props.content[l.i]}
                               editMode={this.props.editMode}
                               dispatch={this.props.dispatch}/>
@@ -199,7 +201,8 @@ const mapStateToProps = (state) => {
     return {
         layout: state.data.dashboardLayout,
         content: state.data.dashboardContent,
-        cardType: state.data.dashboardCardType
+        cardType: state.data.dashboardCardType,
+        cardTitle: state.data.dashboardCardTitle
     }
 }
 

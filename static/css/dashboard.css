@@ -6,6 +6,10 @@
     height: 100%;
 }
 
+.card.trend {
+    background: yellow;
+}
+
 .card thead th {
     height: 0;
 }
@@ -69,6 +73,7 @@ button.add-trend {
 button.remove-card {
     border: 0;
     background: white;
+    color: red;
     display: none;
     width: 16px;
     height: 16px;

@@ -16,7 +16,7 @@ import AttributeListenerList from "./attribute";
 import Tree from "./tree"
 import {fetchDomain, fetchFamily, fetchMember} from "./store";
 import {receiveChange, receiveConfig, setDashboardLayout, setDashboardContent,
-        setDashboardCardType,
+        setDashboardCardType, setDashboardCardTitle,
         ADD_ATTRIBUTE_LISTENER, REMOVE_ATTRIBUTE_LISTENER} from "./actions";
 import TangoDashboard from "./dashboard";
 import {loadStateFromHash, setHashFromState, debounce} from "./util";
@@ -66,11 +66,11 @@ class _App extends React.Component {
     }
 
     render() {
-        console.log("render App")
         return (
                 <section id="inner" className="main hbox space-between">
                 <nav id="tree" style={{display: this.state.editMode? null : "none"}}>
-                <Tree pattern="*"  store={this.props.store}/>
+                <Tree pattern="*" store={this.props.store}/>
+
                 </nav>
                 <article id="main" ref="dashboard">
                 <button id="toggle-edit" title="Toggle edit mode"
@@ -170,6 +170,7 @@ function setupHashHandling() {
         const hashData = loadStateFromHash()
         console.log("loaded hash data", hashData);
         store.dispatch(setDashboardCardType(hashData.cardType));
+        store.dispatch(setDashboardCardTitle(hashData.cardTitle));
         store.dispatch(setDashboardLayout(hashData.layout)); 
         store.dispatch(setDashboardContent(hashData.content));
     }

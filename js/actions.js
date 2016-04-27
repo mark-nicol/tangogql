@@ -15,6 +15,7 @@ export const SET_DASHBOARD_CONTENT = "SET_DASHBOARD_CONTENT"
 export const ADD_DASHBOARD_CARD = "ADD_DASHBOARD_CARD"
 export const REMOVE_DASHBOARD_CARD = "REMOVE_DASHBOARD_CARD"
 export const SET_DASHBOARD_CARD_TYPE = "SET_DASHBOARD_CARD_TYPE"
+export const SET_DASHBOARD_CARD_TITLE = "SET_DASHBOARD_CARD_TITLE"
 
 
 export function receiveData(data) {
@@ -101,6 +102,10 @@ export function removeDashboardCard(index) {
 
 export function setDashboardCardType(cardTypes) {
     return {type: SET_DASHBOARD_CARD_TYPE, cardTypes};
+}
+
+export function setDashboardCardTitle(titles) {
+    return {type: SET_DASHBOARD_CARD_TITLE, titles};
 }
 
 

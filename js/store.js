@@ -3,7 +3,8 @@
 import {RECEIVE, CHANGE, CONFIG, ADD_ATTRIBUTE_LISTENER,
         REMOVE_ATTRIBUTE_LISTENER,
         SET_DASHBOARD_LAYOUT, ADD_DASHBOARD_CARD, REMOVE_DASHBOARD_CARD,
-        SET_DASHBOARD_CONTENT, SET_DASHBOARD_CARD_TYPE} from "./actions";
+        SET_DASHBOARD_CONTENT, SET_DASHBOARD_CARD_TYPE,
+        SET_DASHBOARD_CARD_TITLE} from "./actions";
 
 
 function deviceStore (state, action) {
@@ -203,6 +204,15 @@ function dashboardCardTypeStore (state, action) {
 }
 
 
+function dashboardCardTitleStore (state, action) {
+    switch (action.type) {
+    case SET_DASHBOARD_CARD_TITLE:
+        return {...state, ...action.titles};
+    }
+    return state;
+}
+
+
 // Combining the stores 
 
 let initialState = {
@@ -219,7 +229,8 @@ let initialState = {
     listeners: {},
     dashboardLayout: [],
     dashboardContent: {},
-    dashboardCardType: {}
+    dashboardCardType: {},
+    dashboardCardTitle: {}
 }
 
 
@@ -238,10 +249,12 @@ export default function data (state=initialState, action) {
           listeners = listenerStore(state.listeners, action),
           dashboardLayout = dashboardLayoutStore(state.dashboardLayout, action),
           dashboardContent = dashboardContentStore(state.dashboardContent, action),
-          dashboardCardType = dashboardCardTypeStore(state.dashboardCardType, action);
+          dashboardCardType = dashboardCardTypeStore(state.dashboardCardType, action),
+          dashboardCardTitle = dashboardCardTitleStore(state.dashboardCardTitle, action);    
     
     return {devices, domains, families, members, properties, attributes,
             attribute_values, attribute_value_history, attribute_configs, listeners,
-            dashboardLayout, dashboardContent, dashboardCardType};
+            dashboardLayout, dashboardContent,
+            dashboardCardType, dashboardCardTitle};
 }
 
