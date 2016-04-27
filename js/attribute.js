@@ -189,7 +189,7 @@ class AttributeList extends Component {
     render () {
         let attrs = this.props.listeners.map(this.getAttributeComponent.bind(this));
         //return <div className="attribute-list">{attrs}</div>;
-        return <table className="attribute-list"><tbody>{attrs}</tbody></table>;
+        return <table className="attribute-list">{attrs}</table>;
     }
 }
 
