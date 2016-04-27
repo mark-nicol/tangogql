@@ -85,6 +85,12 @@ button.remove-card {
     opacity: 0.5;
 }    
 
+button.remove-card:hover {
+    background: red;
+    color: white;
+    opacity: 1;
+}  
+
 .card:hover button {
     display: block;
 }
