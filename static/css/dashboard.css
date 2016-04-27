@@ -107,7 +107,9 @@ button#toggle-edit {
     border-left: 0;
 }
 
-
-.plot-card {
-    background: yellow;
+.card div.card-index {
+    position: absolute;
+    top: 0;
+    left: 3px;
 }
+
