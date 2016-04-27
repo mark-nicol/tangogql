@@ -1,17 +1,28 @@
+"""A simple http backend for communicating with a TANGO control system
+
+The idea is that each client establishes a websocket connection with
+this server (on /socket), and sets up a number of subscriptions to
+TANGO attributes.  The server keeps track of changes to these
+attributes and sends events to the interested clients. The server uses
+Taurus for this, so polling, sharing listeners, etc is handled "under
+the hood".
+
+There is also a GraphQL endpoint (/db) for querying the TANGO database.
+"""
+
 from collections import defaultdict
 import json
 import logging
 import time
 from weakref import WeakSet, WeakValueDictionary
 
-import asyncio
 import aiohttp
 from aiohttp import web
-from PyTango import DeviceProxy
-from PyTango import DeviceAttributeConfig, DeviceAttribute
-from PyTango import EventType, DevFailed
-import PyTango
+import asyncio
 from asyncio import Queue, QueueEmpty
+import PyTango
+from PyTango import (DeviceProxy, DeviceAttributeConfig, DeviceAttribute,
+                     EventType, DevFailed)
 
 from schema import tangoschema
 from listener import TaurusWebAttribute
@@ -36,8 +47,7 @@ def serialize(events, protocol="json"):
 def consumer(queue, ws):
     """A coroutine that monitors a queue, collecting events into buckets
     that are periodically sent to a socket. It acts as a rate limiter
-    and smooths out the traffic over the websocket.  Note that all
-    received data is sent, it's just delayed and chunked."""
+    and smooths out the traffic over the websocket."""
     while True:
         t0 = time.time()
         events = {}
