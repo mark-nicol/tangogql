@@ -37,27 +37,42 @@ export function addAttributeListener(model) {
 
 export function removeAttributeListener(model) {
     return { type: REMOVE_ATTRIBUTE_LISTENER,
-             data: {model: model} } 
+             data: {model} } 
 }
 
 export function setDashboardLayout(layout) {
     return {type: SET_DASHBOARD_LAYOUT, layout}
 }
 
+// update the content (attributes) of one or more cards
+// the argument should be an object keyed by card index,
+// and containing lists of attributes
 export function setDashboardContent(content) {
-    return (dispatch) => {
-        dispatch({type: SET_DASHBOARD_CONTENT, content});
-        console.log("setDashboardcontent", content);
+    return (dispatch, getState) => {
+        const state = getState();
         Object.keys(content).forEach(key => {
             let items = content[key];
+            const oldItems = state.data.dashboardContent[key] || [];
+            // add listeners for the attributes (this is idempotent)
             items.forEach(model => {
                 dispatch(addAttributeListener(model));
             });
+            // check if any removed attributes are still used,
+            // otherwise unsubscribe them
+            oldItems.forEach(model => {
+                if (items.indexOf(model) == -1) {
+                    if (!checkForAttributeInDashboard(state, model, key)) {
+                        dispatch(removeAttributeListener(model));
+                    }
+                }
+            });
         });
+        dispatch({type: SET_DASHBOARD_CONTENT, content});
     };
 }
 
 
+// produce a new, unique card index
 function makeCardIndex(state) {
     let i;
     if (state.data.dashboardLayout.length > 0) {
@@ -79,12 +94,13 @@ export function addDashboardCard(cardType) {
 }
 
 
+// return whether an attribute is used somewhere else in the dashboard
 function checkForAttributeInDashboard(state, attr, skipIndex) {
     const content = state.data.dashboardContent;
-    Object.keys(content).forEach(index => {
+    for (let index of Object.keys(content)) {
         if (index != skipIndex && content[index].indexOf(attr) !== -1)
             return true;
-    });
+    }
     return false;
 }
 

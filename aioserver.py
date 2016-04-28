@@ -44,37 +44,54 @@ def serialize(events, protocol="json"):
 
 
 @asyncio.coroutine
-def consumer(queue, ws):
-    """A coroutine that monitors a queue, collecting events into buckets
-    that are periodically sent to a socket. It acts as a rate limiter
-    and smooths out the traffic over the websocket."""
+def consumer(keeper, ws):
+
+    """A coroutine that sends out any accumulated events once
+    per second."""
+
     while True:
-        t0 = time.time()
-        events = {}
-        while time.time() - t0 < 1.0:
-            # TODO: improve this inner loop
-            try:
-                event = queue.get_nowait()
-                if event["type"] not in events:
-                    events[event["type"]] = {}
-                events[event["type"]].update(event["data"])
-            except asyncio.QueueEmpty:
-                yield from asyncio.sleep(0.1)
-        if not events:
-            continue
-        logging.debug(events)
+        # check for new events once a second
+        yield from asyncio.sleep(1)
+        events = keeper.get()
+        # if not events:
+        #     # no events were collected
+        #     continue
         try:
             data = serialize(events, ws.protocol)
             if isinstance(data, bytes):
                 ws.send_bytes(data)
             else:
                 ws.send_str(data)
+            logging.debug("sent %d bytes", len(data))
         except RuntimeError as e:
             # guess the client must be gone. Maybe there's a neater
             # way to detect this.
             logging.warn(e)
             break
     logging.info("Sender for %r exited" % ws)
+
+
+class EventKeeper:
+
+    """A simple wrapper that keeps the latest event values for
+    each attribute"""
+
+    def __init__(self):
+        self._events = defaultdict(dict)
+        self._timestamps = defaultdict(dict)
+        self._latest = defaultdict(dict)
+
+    def put(self, model, action, value):
+        "Update a model"
+        self._events[action][model] = value
+        self._timestamps[action][model] = time.time()
+
+    def get(self):
+        "Returns the latest accumulated events"
+        tmp, self._events = self._events, defaultdict(dict)
+        for event_type, events in tmp.items():
+            self._latest[event_type].update(events)
+        return tmp
 
 
 @asyncio.coroutine
@@ -87,9 +104,9 @@ def handle_websocket(request):
 
     logging.info("Listener has connected; protocol %s" % ws.protocol)
 
-    queue = Queue(100)
+    keeper = EventKeeper()
     loop = asyncio.get_event_loop()
-    loop.create_task(consumer(queue, ws))
+    loop.create_task(consumer(keeper, ws))
     listeners = {}
 
     # wait for messages over the socket
@@ -103,9 +120,10 @@ def handle_websocket(request):
         try:
             if msg.tp == aiohttp.MsgType.text:
                 action = json.loads(msg.data)
+                logging.debug("ws got %r", action)
                 if action["type"] == 'SUBSCRIBE':
                     for attr in action["models"]:
-                        listener = TaurusWebAttribute(attr, queue)
+                        listener = TaurusWebAttribute(attr, keeper)
                         listeners[attr] = listener
                         logging.debug("add listener for '%s'", attr)
                 elif action["type"] == "UNSUBSCRIBE":

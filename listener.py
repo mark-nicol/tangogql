@@ -48,9 +48,9 @@ def format_config_event(evt):
 # Based on code from the taurus-web project
 class TaurusWebAttribute(object):
 
-    def __init__(self, name, queue):
+    def __init__(self, name, keeper):
         self.name = name
-        self.queue = queue
+        self.keeper = keeper
         self._last_time = 0
         self.last_value_event = None
         self.last_config_event = None
@@ -59,7 +59,7 @@ class TaurusWebAttribute(object):
 
     def eventReceived(self, evt_src, evt_type, evt_value):
 
-        print(evt_value)
+        # print(evt_value)
 
         if evt_type == TaurusEventType.Error:
             action = "ERROR"
@@ -76,12 +76,12 @@ class TaurusWebAttribute(object):
                 self.last_value_event = value
 
         # self.callback(self.name, {"type": action, "data": {self.name: value}})
-        event = {"type": action, "data": {self.name: value}}
+        # event = {"type": action, "data": value}
         try:
-            self.queue.put_nowait(event)
+            self.keeper.put(self.name, action, value)
         except QueueFull:
             print("Queue full!")
-        print(event)
+        # print(event)
 
     def clear(self):
         self.attribute.removeListener(self)
