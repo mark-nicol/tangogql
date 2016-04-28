@@ -46,15 +46,18 @@ table.attribute-list tbody tr.attribute {
     text-align: right;
 }
 
+/* usually, we right align values (e.g. numbers) */
 .attribute-list .attribute .value {
     width: 100%;
     text-align: right;
+    font-size: 20px;    
 }
 
-.attribute-list .attribute .value.datatype-DevString {
-    text-align: left;
+/* but we want to left align multiline text */
+.attribute-list .attribute .value.datatype-DevString div {
+    text-align: left;  
+    display: inline-block;  /* make it no wider than the text */
 }
-
 
 .attribute-list .attribute .unit {
     width: 0;
@@ -67,16 +70,6 @@ table.attribute-list tbody tr.attribute {
 
 .attribute-list .attribute .name {
     text-align: right;
-}
-
-.attribute-list .attribute.write .name {
-    text-decoration: underline;
-}
-
-.attribute-list .attribute .value {
-    font-size: 20px;
-    align: right;
-    padding-bottom: -2;
 }
 
 .attribute-list .attribute .value span {

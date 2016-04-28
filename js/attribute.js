@@ -108,7 +108,7 @@ class ScalarAttribute extends Component {
                 <td className="label">{this.props.label}</td>
                 <td className={"value " + "quality-" + this.props.quality +
                                " datatype-" + this.props.data_type}>
-                <span dangerouslySetInnerHTML={{__html: formatValue(this.props)}}/>
+                <div dangerouslySetInnerHTML={{__html: formatValue(this.props)}}/>
                 </td>
                 <td className="unit">{this.props.unit}</td>
              </tr>
