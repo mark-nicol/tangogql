@@ -43,25 +43,24 @@ def serialize(events, protocol="json"):
     raise ValueError("Unknown protocol '%s'" % protocol)
 
 
-@asyncio.coroutine
-def consumer(keeper, ws):
+async def consumer(keeper, ws):
 
     """A coroutine that sends out any accumulated events once
     per second."""
 
     while True:
         # check for new events once a second
-        yield from asyncio.sleep(1)
+        await asyncio.sleep(1)
         events = keeper.get()
         # if not events:
         #     # no events were collected
         #     continue
         try:
-            data = serialize(events, ws.protocol)
+            data = serialize(events, ws.ws_protocol)
             if isinstance(data, bytes):
-                ws.send_bytes(data)
+                await ws.send_bytes(data)
             else:
-                ws.send_str(data)
+                await ws.send_str(data)
             logging.debug("sent %d bytes", len(data))
         except RuntimeError as e:
             # guess the client must be gone. Maybe there's a neater
@@ -94,15 +93,14 @@ class EventKeeper:
         return tmp
 
 
-@asyncio.coroutine
-def handle_websocket(request):
+async def handle_websocket(request):
 
     "Handles a websocket to a client over its lifetime"
 
     ws = web.WebSocketResponse(protocols=("json", "bson"))
-    yield from ws.prepare(request)
+    await ws.prepare(request)
 
-    logging.info("Listener has connected; protocol %s" % ws.protocol)
+    logging.info("Listener has connected; protocol %s" % ws.ws_protocol)
 
     keeper = EventKeeper()
     loop = asyncio.get_event_loop()
@@ -115,10 +113,10 @@ def handle_websocket(request):
     # where "type" can be "SUBSCRIBE" or "UNSUBSCRIBE" and models is a list of
     # device attributes.
     while True:
-        msg = yield from ws.receive()
+        msg = await ws.receive()
         print(msg)
         try:
-            if msg.tp == aiohttp.MsgType.text:
+            if msg.type == aiohttp.WSMsgType.text:
                 action = json.loads(msg.data)
                 logging.debug("ws got %r", action)
                 if action["type"] == 'SUBSCRIBE':
@@ -148,15 +146,14 @@ def handle_websocket(request):
     return ws
 
 
-@asyncio.coroutine
-def db_handler(request):
+async def db_handler(request):
     "serve GraphQL queries"
-    post_data = yield from request.json()
+    post_data = await request.json()
     query = post_data["query"]
     loop = asyncio.get_event_loop()  # TODO: this looks stupid
     try:
         # guess we wouldn't have to do this if the client was async...
-        result = yield from loop.run_in_executor(
+        result = await loop.run_in_executor(
             None, tangoschema.execute, query)
         data = (json.dumps({"data": result.data or {}}, indent=4))
         return web.Response(body=data.encode("utf-8"),
