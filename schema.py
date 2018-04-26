@@ -18,22 +18,21 @@ db = CachedDatabase(ttl=10)
 proxies = DeviceProxyCache()
 
 
-class TangoSomething(Interface):
+class TangoSomething(ObjectType):
 
     nodetype = String()
 
-    @graphene.resolve_only_args
-    def resolve_nodetype(self):
+    def resolve_nodetype(self, info):
         return type(self).__name__.lower()
 
 
-class DeviceProperty(TangoSomething):
+class DeviceProperty(TangoSomething, Interface):
 
     name = String()
     device = String()
-    value = List(String())
+    value = List(String)
 
-    def resolve_value(self, args, info):
+    def resolve_value(self, info):
         device = self.device
         name = self.name
         value = db.get_device_property(device, name)
@@ -45,10 +44,10 @@ class PutDeviceProperty(Mutation):
 
     ok = Boolean()
 
-    class Input:
+    class Arguments:
         device = String()
         name = String()
-        value = List(String())
+        value = List(String)
         # async = Boolean()
 
     @classmethod
@@ -70,7 +69,7 @@ class DeleteDeviceProperty(Mutation):
 
     ok = Boolean()
 
-    class Input:
+    class Arguments:
         device = String()
         name = String()
 
@@ -85,7 +84,7 @@ class DeleteDeviceProperty(Mutation):
         return DeleteDeviceProperty(ok=True)
 
 
-class DeviceAttribute(TangoSomething):
+class DeviceAttribute(TangoSomething, Interface):
 
     name = String()
     device = String()
@@ -110,7 +109,7 @@ class DeviceAttribute(TangoSomething):
     #     return str(info.data_format)
 
 
-class Device(TangoSomething):
+class Device(TangoSomething, Interface):
 
     name = String()
     properties = List(DeviceProperty, pattern=String())
@@ -123,13 +122,11 @@ class Device(TangoSomething):
     stopped_date = Float()
     exported = Boolean()
 
-    @graphene.resolve_only_args
-    def resolve_properties(self, pattern="*"):
+    def resolve_properties(self, info, pattern="*"):
         props = db.get_device_property_list(self.name, pattern)
         return [DeviceProperty(name=p, device=self.name) for p in props]
 
-    @graphene.resolve_only_args
-    def resolve_attributes(self, pattern="*"):
+    def resolve_attributes(self, info, pattern="*"):
         print("resolving_attributes ", self.name, pattern)
         proxy = proxies.get(self.name)
         attr_infos = proxy.attribute_list_query()
@@ -142,8 +139,7 @@ class Device(TangoSomething):
                 for a in sorted(attr_infos, key=attrgetter("name"))
                                 if rule.match(a.name)]
 
-    @graphene.resolve_only_args
-    def resolve_exported(self):
+    def resolve_exported(self, info):
         return self.info.exported
 
     @property
@@ -168,14 +164,13 @@ class Member(Device):
         return self._info
 
 
-class Family(TangoSomething):
+class Family(TangoSomething, Interface):
 
     name = String()
     domain = String()
     members = List(Member, pattern=String())
 
-    @graphene.resolve_only_args
-    def resolve_members(self, pattern="*"):
+    def resolve_members(self, info, pattern="*"):
         members = db.get_device_member(
             "%s/%s/%s" % (self.domain, self.name, pattern))
         return [
@@ -184,18 +179,17 @@ class Family(TangoSomething):
         ]
 
 
-class Domain(TangoSomething):
+class Domain(TangoSomething, Interface):
 
     name = String()
     families = List(Family, pattern=String())
 
-    @graphene.resolve_only_args
-    def resolve_families(self, pattern="*"):
+    def resolve_families(self, info, pattern="*"):
         families = db.get_device_family("%s/%s/*" % (self.name, pattern))
         return [Family(name=f, domain=self.name) for f in families]
 
 
-class DeviceClass(TangoSomething):
+class DeviceClass(TangoSomething, Interface):
 
     name = String()
     server = String()
@@ -203,14 +197,13 @@ class DeviceClass(TangoSomething):
     devices = List(Device)
 
 
-class ServerInstance(TangoSomething):
+class ServerInstance(TangoSomething, Interface):
 
     name = String()
     server = String()
     classes = List(DeviceClass, pattern=String())
 
-    @graphene.resolve_only_args
-    def resolve_classes(self, pattern="*"):
+    def resolve_classes(self,info , pattern="*"):
         devs_clss = db.get_device_class_list("%s/%s" % (self.server, self.name))
         mapping = defaultdict(list)
         rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
@@ -222,13 +215,12 @@ class ServerInstance(TangoSomething):
                 if rule.match(clss)]
 
 
-class Server(TangoSomething):
+class Server(TangoSomething, Interface):
 
     name = String()
     instances = List(ServerInstance, pattern=String())
 
-    @graphene.resolve_only_args
-    def resolve_instances(self, pattern="*"):
+    def resolve_instances(self, info, pattern="*"):
         instances = db.get_instance_name_list(self.name)
         rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
         return [ServerInstance(name=inst, server=self.name)
@@ -246,29 +238,24 @@ class Query(ObjectType):
     instances = List(ServerInstance, server=String(), pattern=String())
     classes = List(DeviceClass, pattern=String())
 
-    @graphene.resolve_only_args
-    def resolve_devices(self, pattern="*"):
+    def resolve_devices(self, info, pattern="*"):
         devices = db.get_device_exported(pattern)
         return [Device(name=d) for d in sorted(devices)]
 
-    @graphene.resolve_only_args
-    def resolve_domains(self, pattern="*"):
+    def resolve_domains(self, info, pattern="*"):
         domains = db.get_device_domain("%s/*" % pattern)
         return [Domain(name=d) for d in sorted(domains)]
 
-    @graphene.resolve_only_args
-    def resolve_families(self, domain="*", pattern="*"):
+    def resolve_families(self, info, domain="*", pattern="*"):
         families = db.get_device_family("%s/%s/*" % (domain, pattern))
         return [Family(domain=domain, name=d) for d in sorted(families)]
 
-    @graphene.resolve_only_args
-    def resolve_members(self, domain="*", family="*", pattern="*"):
+    def resolve_members(self, info, domain="*", family="*", pattern="*"):
         members = db.get_device_member("%s/%s/%s" % (domain, family, pattern))
         return [Member(domain=domain, family=family, name=m)
                 for m in sorted(members)]
 
-    @graphene.resolve_only_args
-    def resolve_servers(self, pattern="*"):
+    def resolve_servers(self, info, pattern="*"):
         servers = db.get_server_name_list()
         # The db service does not allow wildcard here, but it can still
         # useful to limit the number of children. Let's fake it!
