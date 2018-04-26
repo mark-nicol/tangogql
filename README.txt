@@ -20,7 +20,7 @@ Once all is installed, start the server by doing:
 
   $ python3.5 aioserver.py
 
-The UI can be accessed at http://localhost:5003/index.html
+The UI can be accessed at http://localhost:5004/index.html
 
 The UI is written in javascript ES6, using React/redux to handle the UI and webpack to compile and build. A prebuilt "bundle" is included in the repo, but if you want to modify the code, you'll need to install nodejs and npm (according to your platform), and then do:
 
