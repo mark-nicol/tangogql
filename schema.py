@@ -129,9 +129,12 @@ class Device(TangoSomething, Interface):
     def get_attribute_value(self, proxy, attribute_name):
         value = None
         try:
-            value = getattr(proxy, attribute_name)
-            if attribute_name.startswith('Sta'):
-                value = value()
+            att_data = proxy.read_attribute(attribute_name)
+            value = {
+                'value': att_data.value,
+                'quality': att_data.quality.name,
+                'timestamp': att_data.time.tv_sec
+            }
         except:
             pass
         return value
