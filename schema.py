@@ -94,7 +94,7 @@ class DeviceAttribute(TangoSomething, Interface):
     label = String()
     unit = String()
     description = String()
-
+    value = String()
     # @graphene.resolve_only_args
     # def resolve_data_type(self):
     #     proxy = proxies.get(self.device)
@@ -126,6 +126,16 @@ class Device(TangoSomething, Interface):
         props = db.get_device_property_list(self.name, pattern)
         return [DeviceProperty(name=p, device=self.name) for p in props]
 
+    def get_attribute_value(self, proxy, attribute_name):
+        value = None
+        try:
+            value = getattr(proxy, attribute_name)
+            if attribute_name.startswith('Sta'):
+                value = value()
+        except:
+            pass
+        return value
+
     def resolve_attributes(self, info, pattern="*"):
         print("resolving_attributes ", self.name, pattern)
         proxy = proxies.get(self.name)
@@ -135,6 +145,7 @@ class Device(TangoSomething, Interface):
             name=a.name, device=self.name, writable=a.writable,
             datatype=PyTango.CmdArgType.values[a.data_type],
             dataformat=a.data_format,
+            value=self.get_attribute_value(proxy, a.name),
             label=a.label, unit=a.unit, description=a.description)
                 for a in sorted(attr_infos, key=attrgetter("name"))
                                 if rule.match(a.name)]
