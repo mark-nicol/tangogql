@@ -170,12 +170,11 @@ if __name__ == "__main__":
 
     app.router.add_route('GET', '/socket', handle_websocket)
     app.router.add_route('POST', '/db', db_handler)
-    app.router.add_static('/', 'static')
 
     loop = asyncio.get_event_loop()
     handler = app.make_handler(debug=True)
     f = loop.create_server(handler, '0.0.0.0', 5004)
-    logging.info("Point your browser to http://localhost:5003/index.html")
+    logging.info("Point your browser to http://localhost:5004/index.html")
     srv = loop.run_until_complete(f)
     try:
         loop.run_forever()
