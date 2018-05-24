@@ -1,0 +1,36 @@
+name: graphql
+channels:
+- tango-controls
+- defaults
+dependencies:
+- zeromq=4.2.2=hbedb6e5_2
+- zlib=1.2.11=ha838bed_2
+- omniorb=4.2.1=py35_0
+- pytango=9.2.2=py35h7a252e3_0
+- tango=9.2.5a=0
+- pyzmq=16.0.3=py35ha889422_0
+- readline=7.0=ha6073c6_4
+- setuptools=38.4.0=py35_0
+- pip:
+  - aiohttp==3.2.1
+  - aniso8601==3.0.0
+  - async-timeout==3.0.0
+  - attrs==18.1.0
+  - bson==0.5.5
+  - certifi==2018.4.16
+  - chardet==3.0.4
+  - graphene==2.1
+  - graphql-core==2.0
+  - graphql-relay==0.4.5
+  - idna==2.6
+  - idna-ssl==1.0.1
+  - mkl-fft==1.0.0
+  - mkl-random==1.0.1
+  - multidict==4.3.1
+  - promise==2.1
+  - pytango==9.2.2
+  - python-dateutil==2.7.3
+  - Rx==1.6.1
+  - six==1.11.0
+  - typing==3.6.4
+  - yarl==1.2.4
