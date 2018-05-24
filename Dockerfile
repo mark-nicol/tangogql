@@ -21,7 +21,7 @@ WORKDIR python3-taurus-core
 RUN  /bin/bash -c "source activate graphql && python setup.py install"
 
 WORKDIR /
-RUN git clone https://gitlab.maxiv.lu.se/kits-maxiv/dev-maxiv-graphql.git
+RUN git clone https://gitlab.maxiv.lu.se/kits-maxiv/web-maxiv-graphql.git
 
 WORKDIR dev-maxiv-graphql
 
