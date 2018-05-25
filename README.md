@@ -28,16 +28,32 @@ import requests
 query = 'query{  devices { name  }}'  # e.g. get the names of all devices
 query = 'query{  devices(pattern: "*tg_test*") { name  }}'
 #accessing attributes:
-qyery='query{\
+query='query{\
 			devices(pattern: "sys/tg_test/1"){\
 			   name,\
 			   attributes {\
 				   name,\
 				   datatype,\
-				   value\
 				   }\
 			   }\
 		   }'
+
+q = 'query{\
+	devices(pattern: "sys/tg_test/1"){\
+	   name,\
+	   attributes(pattern: "*scalar*") {\
+			name,\
+			datatype,\
+			dataformat,\
+			label,\
+			unit,\
+			description,\
+			value,\
+			quality,\
+			timestamp\
+		}\
+	}\
+}'
 
 resp = requests.post('http://w-v-kitslab-web-0:5005/db', json={'query': query})
 print(resp.json())

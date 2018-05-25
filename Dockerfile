@@ -4,10 +4,10 @@
 ############################################################
 
 # To build an image, e.g.:
-# $ docker build . -t docker.maxiv.lu.se/dev-maxiv-graphql
+# $ docker build . -t docker.maxiv.lu.se/graphql
 #
 # To run it, e.g.:
-# $ docker run -d -p 5004:5004  -e TANGO_HOST=w-v-kitslab-csdb-0:10000 --name=graphql docker.maxiv.lu.se/dev-maxiv-graphql
+# $ docker run -d -p 5004:5004  -e TANGO_HOST=w-v-kitslab-csdb-0:10000 --name=graphql docker.maxiv.lu.se/graphql
 
 FROM continuumio/miniconda3
 
