@@ -95,19 +95,39 @@ class DeviceAttribute(TangoSomething, Interface):
     unit = String()
     description = String()
     value = String()
-    # @graphene.resolve_only_args
-    # def resolve_data_type(self):
-    #     proxy = proxies.get(self.device)
-    #     info = proxy.get_attribute_config(self.name)
-    #     return str(info.data_type)
+    quality = String()
+    timestamp = Int()
 
-    # @graphene.resolve_only_args
-    # def resolve_data_format(self):
-    #     print("resolve_data_format", self.device, self.name)
-    #     proxy = proxies.get(self.device)
-    #     info = proxy.get_attribute_config(self.name)
-    #     return str(info.data_format)
+    def resolve_value(self, *args, **kwargs):
+        value = None
+        try:
+            proxy = proxies.get(self.device)
+            att_data = proxy.read_attribute(self.name)
+            value = att_data.value
+            # value = '3.14'
+        except:
+            pass
+        return value
 
+    def resolve_quality(self, *args, **kwargs):
+        value = None
+        try:
+            proxy = proxies.get(self.device)
+            att_data = proxy.read_attribute(self.name)
+            value = att_data.quality.name
+        except:
+            pass
+        return value
+
+    def resolve_timestamp(self, *args, **kwargs):
+        value = None
+        try:
+            proxy = proxies.get(self.device)
+            att_data = proxy.read_attribute(self.name)
+            value = att_data.time.tv_sec
+        except:
+            pass
+        return value
 
 class Device(TangoSomething, Interface):
 
@@ -126,30 +146,21 @@ class Device(TangoSomething, Interface):
         props = db.get_device_property_list(self.name, pattern)
         return [DeviceProperty(name=p, device=self.name) for p in props]
 
-    def get_attribute_value(self, proxy, attribute_name):
-        value = None
-        try:
-            att_data = proxy.read_attribute(attribute_name)
-            value = {
-                'value': att_data.value,
-                'quality': att_data.quality.name,
-                'timestamp': att_data.time.tv_sec
-            }
-        except:
-            pass
-        return value
-
     def resolve_attributes(self, info, pattern="*"):
         print("resolving_attributes ", self.name, pattern)
         proxy = proxies.get(self.name)
         attr_infos = proxy.attribute_list_query()
         rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
+
         return [DeviceAttribute(
-            name=a.name, device=self.name, writable=a.writable,
+            name=a.name,
+            device=self.name,
+            writable=a.writable,
             datatype=PyTango.CmdArgType.values[a.data_type],
             dataformat=a.data_format,
-            value=self.get_attribute_value(proxy, a.name),
-            label=a.label, unit=a.unit, description=a.description)
+            label=a.label,
+            unit=a.unit,
+            description=a.description)
                 for a in sorted(attr_infos, key=attrgetter("name"))
                                 if rule.match(a.name)]
 
@@ -298,12 +309,15 @@ if __name__ == "__main__":
               name
               value
             }
-            attributes {
+            attributes(pattern: "*scalar*") {
               name
               label
               unit
               datatype
               dataformat
+              value
+              timestamp
+              quality
             }
         }
         # b: devices(pattern: "sys/database/*") {
