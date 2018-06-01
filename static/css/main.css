@@ -1,0 +1,40 @@
+html {
+    font-family: sans-serif;
+    height: 100%;
+}
+
+* {
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: -moz-none;
+    -o-user-select: none;
+    user-select: none;
+}
+
+#container {
+    height: 100%;
+}
+
+#inner {
+    height: 100%;
+}
+
+#main {
+    position: relative;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background-image: url(../images/MAX%20IV_ringar_gray.png);
+    background-repeat: no-repeat;
+    background-size: 100%;
+    opacity: 0.5;
+}
+
+#tree {
+    background: white;
+    overflow-y: scroll;
+    padding: 0 5px;
+    margin: 0;
+    max-height: 100%;
+}

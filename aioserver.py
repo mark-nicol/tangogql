@@ -170,6 +170,7 @@ if __name__ == "__main__":
 
     app.router.add_route('GET', '/socket', handle_websocket)
     app.router.add_route('POST', '/db', db_handler)
+    app.router.add_static('/', 'static')
 
     loop = asyncio.get_event_loop()
     handler = app.make_handler(debug=True)

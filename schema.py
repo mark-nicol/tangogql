@@ -58,8 +58,6 @@ class PutDeviceProperty(Mutation):
         # wait = not args.get("async")
         try:
             db.put_device_property(device, {name: value})
-            print(db.get_device_property(device, name))
-            print(device, name, value)
         except PyTango.DevFailed:
             return PutDeviceProperty(ok=False)
         return PutDeviceProperty(ok=True)
@@ -147,7 +145,6 @@ class Device(TangoSomething, Interface):
         return [DeviceProperty(name=p, device=self.name) for p in props]
 
     def resolve_attributes(self, info, pattern="*"):
-        print("resolving_attributes ", self.name, pattern)
         proxy = proxies.get(self.name)
         attr_infos = proxy.attribute_list_query()
         rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
@@ -170,9 +167,7 @@ class Device(TangoSomething, Interface):
     @property
     def info(self):
         if not hasattr(self, "_info"):
-            print("info", self.name)
             self._info = db.get_device_info(self.name)
-            print(self._info)
         return self._info
 
     

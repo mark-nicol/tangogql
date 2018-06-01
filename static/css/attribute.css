@@ -1,0 +1,160 @@
+body {
+    font-family: Helvetica, Arial, Sans-Serif;
+    background: #ddd;
+}
+
+.attribute-list {
+    width: 100%;
+    border-collapse: collapse;
+    overflow-x: hidden;
+}
+
+
+/* a trick to get an underline for all attributes, except the last one,
+BUT if there is only one attribute we still want it...*/
+/* table.attribute-list tbody:first-child:last-child tr.attribute { */
+/*     border-bottom: 1px solid #ccc; */
+/* } */
+
+table.attribute-list tbody tr.attribute {
+    border-bottom: 1px solid #ccc;
+}
+
+.attribute-list tbody:nth-child(even) tr {
+    background: #eee;
+}
+
+.attribute-list tr.attribute td {
+    width: 33%;
+    padding: 0 5px;       
+    /* vertical-align: bottom; */
+}                         
+
+
+.attribute-list .over td {
+    border-top: 1px solid black;
+}
+
+
+.attribute-list .attribute td.plot {
+    width: 100%;
+}
+
+.attribute-list .attribute .label {
+    width: 0%;
+    white-space: nowrap;
+    text-align: right;
+}
+
+/* usually, we right align values (e.g. numbers) */
+.attribute-list .attribute .value {
+    width: 100%;
+    text-align: right;
+    font-size: 20px;    
+}
+
+/* but we want to left align multiline text */
+.attribute-list .attribute .value.datatype-DevString div {
+    text-align: left;  
+    display: inline-block;  /* make it no wider than the text */
+}
+
+.attribute-list .attribute .unit {
+    width: 0;
+    white-space: nowrap;
+}
+
+.attribute-list .attribute.error {
+    color: red;
+}
+
+.attribute-list .attribute .name {
+    text-align: right;
+}
+
+.attribute-list .attribute .value span {
+    padding: 0 3px;
+}
+
+.attribute-list .attribute .value.number {
+    width: 100px;
+    text-align: right;
+}
+
+.attribute-list .attribute .value.state {
+    text-align: center;
+}
+
+/* .value.ATTR_VALID { */
+/*     border-bottom: 3px solid #0f0; */
+/* } */
+
+.attribute-list .attribute .value.qualuty-ATTR_INVALID span {
+    /* border-bottom: 3px solid red;     */
+    background-color: red;
+    color: white;
+}
+
+.attribute-list .attribute .value.quality-ATTR_ALARM span {
+    /* border-bottom: 3px solid yellow;     */
+    background-color: orange;
+    color: white;
+}
+
+.attribute-list .attribute .value.quality-ATTR_WARNING span {
+    /* border-bottom: 3px solid yellow;     */
+    background-color: yellow;
+}
+
+.attribute-list .attribute .value.quality-UNKNOWN span {
+    /* border-bottom: 3px solid #grey;     */
+    color: grey;
+}
+
+.attribute-list .attribute .value span {
+    /* background: white; */
+}
+
+input {
+    text-align: right;
+}
+
+input.applied:focus {
+    border: 2px solid black;
+    /* background: #afa; */
+}
+
+input.unapplied:focus {
+    border: 2px dashed black;
+    /* background: #faa; */
+}
+
+.attribute .plot-container {
+    width: 100%;
+}
+
+.attribute-list tbody {
+    position: relative;
+}
+
+button.remove-attribute {
+    border: 0;
+    background: white;
+    color: red;
+    display: none;
+    width: 16px;
+    height: 16px;
+    position: absolute;
+    padding: 0;
+    margin: 0;
+    top: 0;
+    right: 0;
+    opacity: 0.5;
+}    
+
+
+button.remove-attribute:hover {
+    background: red;
+    color: white;
+    opacity: 1;
+}  
