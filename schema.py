@@ -13,7 +13,6 @@ from graphene import (Boolean, Field, Float, Int, Interface, List, Mutation,
                       ObjectType, String)
 from tangodb import CachedDatabase, DeviceProxyCache
 
-
 db = CachedDatabase(ttl=10)
 proxies = DeviceProxyCache()
 
@@ -81,7 +80,6 @@ class DeleteDeviceProperty(Mutation):
             return DeleteDeviceProperty(ok=False)
         return DeleteDeviceProperty(ok=True)
 
-
 class DeviceAttribute(TangoSomething, Interface):
 
     name = String()
@@ -95,18 +93,20 @@ class DeviceAttribute(TangoSomething, Interface):
     value = String()
     quality = String()
     timestamp = Int()
-
+    
     def resolve_value(self, *args, **kwargs):
         value = None
         try:
             proxy = proxies.get(self.device)
             att_data = proxy.read_attribute(self.name)
-            value = att_data.value
-            # value = '3.14'
+            if att_data.data_format != 0: # SPECTRUM and IMAGE
+            	value = att_data.value.tolist()
+            else: # SCALAR
+	            value = att_data.value
         except:
             pass
         return value
-
+	
     def resolve_quality(self, *args, **kwargs):
         value = None
         try:
