@@ -18,6 +18,7 @@ from weakref import WeakSet, WeakValueDictionary
 
 import aiohttp
 from aiohttp import web
+import aiohttp_cors
 import asyncio
 from asyncio import Queue, QueueEmpty
 import PyTango
@@ -167,9 +168,18 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
     app = aiohttp.web.Application(debug=True)
+    cors = aiohttp_cors.setup(app, defaults={
+	"*": aiohttp_cors.ResourceOptions(
+		allow_credentials=True,
+		expose_headers="*",
+		allow_headers="*",
+	    )
+    })
+
+    resource = cors.add(app.router.add_resource("/db"))
+    cors.add(resource.add_route("POST", db_handler))
 
     app.router.add_route('GET', '/socket', handle_websocket)
-    app.router.add_route('POST', '/db', db_handler)
     app.router.add_static('/', 'static')
 
     loop = asyncio.get_event_loop()
