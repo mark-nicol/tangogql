@@ -37,29 +37,24 @@ class DeviceProperty(TangoSomething, Interface):
         value = db.get_device_property(device, name)
         if value:
             return [line for line in value[name]]
-
+            
 
 class PutDeviceProperty(Mutation):
-
-    ok = Boolean()
-
     class Arguments:
-        device = String()
-        name = String()
+        device = String(required=True)
+        name = String(required=True)
         value = List(String)
         # async = Boolean()
+    
+    ok = Boolean()
 
-    @classmethod
-    def mutate(cls, instance, args, info):
-        device = args["device"]
-        name = args["name"]
-        value = args.get("value")
+    def mutate(self,info, device,name,value):
         # wait = not args.get("async")
         try:
             db.put_device_property(device, {name: value})
+            return PutDeviceProperty( ok = True)
         except PyTango.DevFailed:
-            return PutDeviceProperty(ok=False)
-        return PutDeviceProperty(ok=True)
+            return PutDeviceProperty(ok = False)
 
 
 class DeleteDeviceProperty(Mutation):
@@ -67,18 +62,17 @@ class DeleteDeviceProperty(Mutation):
     ok = Boolean()
 
     class Arguments:
-        device = String()
-        name = String()
+        device = String(required=True)
+        name = String(required=True)
 
-    @classmethod
-    def mutate(cls, instance, args, info):
-        device = args["device"]
-        name = args["name"]
+    def mutate(self,info,device,name):
+        
         try:
             db.delete_device_property(device, name)
+            return DeleteDeviceProperty(ok=True)
+
         except PyTango.DevFailed:
             return DeleteDeviceProperty(ok=False)
-        return DeleteDeviceProperty(ok=True)
 
 class DeviceAttribute(TangoSomething, Interface):
 
@@ -284,9 +278,8 @@ class Query(ObjectType):
 
 
 class DatabaseMutations(ObjectType):
-    put_device_property = Field(PutDeviceProperty)
-    delete_device_property = Field(DeleteDeviceProperty)
-
+    put_device_property = PutDeviceProperty.Field()
+    delete_device_property = DeleteDeviceProperty.Field()
 
 tangoschema = graphene.Schema(query=Query, mutation=DatabaseMutations)
 
