@@ -6,6 +6,7 @@ import fnmatch
 import re
 from collections import defaultdict
 from operator import attrgetter
+import json
 
 import PyTango
 import graphene
@@ -37,7 +38,7 @@ class DeviceProperty(TangoSomething, Interface):
         value = db.get_device_property(device, name)
         if value:
             return [line for line in value[name]]
-            
+
 
 class PutDeviceProperty(Mutation):
     class Arguments:
@@ -45,7 +46,7 @@ class PutDeviceProperty(Mutation):
         name = String(required=True)
         value = List(String)
         # async = Boolean()
-    
+
     ok = Boolean()
 
     def mutate(self,info, device,name,value):
@@ -66,7 +67,7 @@ class DeleteDeviceProperty(Mutation):
         name = String(required=True)
 
     def mutate(self,info,device,name):
-        
+
         try:
             db.delete_device_property(device, name)
             return DeleteDeviceProperty(ok=True)
@@ -87,7 +88,7 @@ class DeviceAttribute(TangoSomething, Interface):
     value = String()
     quality = String()
     timestamp = Int()
-    
+
     def resolve_value(self, *args, **kwargs):
         value = None
         try:
@@ -99,8 +100,8 @@ class DeviceAttribute(TangoSomething, Interface):
 	            value = att_data.value
         except:
             pass
-        return value
-	
+        return json.dumps(value)
+
     def resolve_quality(self, *args, **kwargs):
         value = None
         try:
@@ -164,7 +165,7 @@ class Device(TangoSomething, Interface):
             self._info = db.get_device_info(self.name)
         return self._info
 
-    
+
 class Member(Device):
 
     domain = String()
