@@ -122,11 +122,22 @@ class DeviceAttribute(TangoSomething, Interface):
             pass
         return value
 
+class DeviceCommand(TangoSomething, Interface):
+    name = String()
+    tag = Int()
+    displevel = String()
+    intype = String()
+    intypedesc = String()
+    outtype = String()
+    outtypedesc = String()
+
+
 class Device(TangoSomething, Interface):
 
     name = String()
     properties = List(DeviceProperty, pattern=String())
     attributes = List(DeviceAttribute, pattern=String())
+    commands = List(DeviceCommand, pattern=String())
 
     device_class = String()
     server = String()
@@ -155,6 +166,23 @@ class Device(TangoSomething, Interface):
             description=a.description)
                 for a in sorted(attr_infos, key=attrgetter("name"))
                                 if rule.match(a.name)]
+
+    def resolve_commands(self, info, pattern="*"):
+        proxy = proxies.get(self.name)
+        cmd_infos = proxy.command_list_query()
+        print (cmd_infos)
+        rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
+
+        return [DeviceCommand(
+            name=a.cmd_name,
+            tag=a.cmd_tag,
+            displevel=a.disp_level,
+            intype=a.in_type,
+            intypedesc=a.in_type_desc,
+            outtype=a.out_type,
+            outtypedesc=a.out_type_desc)
+                for a in sorted(cmd_infos, key=attrgetter("cmd_name"))
+                                if rule.match(a.cmd_name)]
 
     def resolve_exported(self, info):
         return self.info.exported
