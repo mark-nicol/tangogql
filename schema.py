@@ -7,6 +7,7 @@ import fnmatch
 import re
 from collections import defaultdict
 from operator import attrgetter
+import json
 
 import PyTango
 import graphene
@@ -38,6 +39,7 @@ class DeviceProperty(TangoSomething, Interface):
         value = db.get_device_property(device, name)
         if value:
             return [line for line in value[name]]
+
 class ScalarTypes(Scalar):
     '''The ScalarTypes represents a geneneric scalar value that could be:
     Int, String, Boolean, Float, List'''
@@ -116,16 +118,14 @@ class SetAttributeValue(Mutation):
             return SetAttributeValue(ok = False,message = [e.desc,e.reason])
         except Exception as e:
             return SetAttributeValue(ok= False, message = [str(e)])
-        
-            
-
+          
 class PutDeviceProperty(Mutation):
     class Arguments:
         device = String(required=True)
         name = String(required=True)
         value = List(String)
         # async = Boolean()
-    
+
     ok = Boolean()
 
     def mutate(self,info, device,name,value =""):
@@ -146,7 +146,7 @@ class DeleteDeviceProperty(Mutation):
         name = String(required=True)
 
     def mutate(self,info,device,name):
-        
+
         try:
             db.delete_device_property(device, name)
             return DeleteDeviceProperty(ok=True)
@@ -167,7 +167,7 @@ class DeviceAttribute(TangoSomething, Interface):
     value = ScalarTypes()
     quality = String()
     timestamp = Int()
-    
+
     def resolve_value(self, *args, **kwargs):
         value = None
         try:
@@ -179,8 +179,8 @@ class DeviceAttribute(TangoSomething, Interface):
                 value = att_data.value
         except:
             pass
-        return value
-	
+        return json.dumps(value)
+
     def resolve_quality(self, *args, **kwargs):
         value = None
         try:
@@ -201,11 +201,22 @@ class DeviceAttribute(TangoSomething, Interface):
             pass
         return value
 
+class DeviceCommand(TangoSomething, Interface):
+    name = String()
+    tag = Int()
+    displevel = String()
+    intype = String()
+    intypedesc = String()
+    outtype = String()
+    outtypedesc = String()
+
+
 class Device(TangoSomething, Interface):
 
     name = String()
     properties = List(DeviceProperty, pattern=String())
     attributes = List(DeviceAttribute, pattern=String())
+    commands = List(DeviceCommand, pattern=String())
 
     device_class = String()
     server = String()
@@ -235,6 +246,22 @@ class Device(TangoSomething, Interface):
                 for a in sorted(attr_infos, key=attrgetter("name"))
                                 if rule.match(a.name)]
 
+    def resolve_commands(self, info, pattern="*"):
+        proxy = proxies.get(self.name)
+        cmd_infos = proxy.command_list_query()
+        rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
+
+        return [DeviceCommand(
+            name=a.cmd_name,
+            tag=a.cmd_tag,
+            displevel=a.disp_level,
+            intype=a.in_type,
+            intypedesc=a.in_type_desc,
+            outtype=a.out_type,
+            outtypedesc=a.out_type_desc)
+                for a in sorted(cmd_infos, key=attrgetter("cmd_name"))
+                                if rule.match(a.cmd_name)]
+
     def resolve_exported(self, info):
         return self.info.exported
 
@@ -244,7 +271,7 @@ class Device(TangoSomething, Interface):
             self._info = db.get_device_info(self.name)
         return self._info
 
-    
+
 class Member(Device):
 
     domain = String()
