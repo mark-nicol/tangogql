@@ -170,7 +170,6 @@ class Device(TangoSomething, Interface):
     def resolve_commands(self, info, pattern="*"):
         proxy = proxies.get(self.name)
         cmd_infos = proxy.command_list_query()
-        print (cmd_infos)
         rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
 
         return [DeviceCommand(
