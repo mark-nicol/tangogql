@@ -63,7 +63,11 @@ query = 'mutation{putDeviceProperty(device:"sys/tg_test/1", name: "Hej", value: 
   ok}}'
 #Delete device property return ok = True if success
 query = 'mutation{deleteDeviceProperty(device:"sys/tg_test/1",name:"Hej"){ok}}' 
-
+#Set value for an attribute return ok = True if success and error message if not
+mutation{SetAttributeValue(device:"sys/tg_test/1", name: "double_scalar",value: 2){
+ok,
+message
+}}
 resp = requests.post('http://w-v-kitslab-web-0:5005/db', json={'query': query})
 print(resp.json())
 ```

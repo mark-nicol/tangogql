@@ -1,7 +1,8 @@
 """
 A GraphQL schema for TANGO.
 """
-
+from graphene.types.scalars import MIN_INT, MAX_INT
+import six
 import fnmatch
 import re
 from collections import defaultdict
@@ -10,9 +11,10 @@ from operator import attrgetter
 import PyTango
 import graphene
 from graphene import (Boolean, Field, Float, Int, Interface, List, Mutation,
-                      ObjectType, String)
+                      ObjectType, String, Union,Scalar)
 from tangodb import CachedDatabase, DeviceProxyCache
-
+from graphene.types import Scalar
+from graphql.language import ast
 db = CachedDatabase(ttl=10)
 proxies = DeviceProxyCache()
 
@@ -23,7 +25,6 @@ class TangoSomething(ObjectType):
 
     def resolve_nodetype(self, info):
         return type(self).__name__.lower()
-
 
 class DeviceProperty(TangoSomething, Interface):
 
@@ -37,6 +38,85 @@ class DeviceProperty(TangoSomething, Interface):
         value = db.get_device_property(device, name)
         if value:
             return [line for line in value[name]]
+class ScalarTypes(Scalar):
+    '''The ScalarTypes represents a geneneric scalar value that could be:
+    Int, String, Boolean, Float, List'''
+    @staticmethod
+    def coerce_type(value):
+        if isinstance(value, int):
+            try:
+                num = int(value)
+            except ValueError:
+                try:
+                    num = int(float(value))
+                except ValueError as e:
+                    return e
+            if MIN_INT <= num <= MAX_INT:
+                return num
+        elif isinstance(value, float):
+            try:
+                return float(value)
+            except ValueError as e:
+                return e
+        elif isinstance(value, bool):
+            try:
+                return bool(value)
+            except ValueError as e:
+                return e
+        elif isinstance(value, str):
+            if isinstance(value, bool):
+                return u'true' if value else u'false'
+            return six.text_type(value)
+        elif isinstance(value,list):
+            # Is an image value or spectrum value
+            try:
+                return [ScalarTypes.coerce_type(v) for v in value]
+            except ValueError as e:
+                return e
+    @staticmethod
+    def serialize(value):
+        return ScalarTypes.coerce_type(value)
+    @staticmethod
+    def parse_value(value):
+        return ScalarTypes.coerce_type(value)
+    #Called for the input
+    @staticmethod
+    def parse_literal(node):
+        try:
+            if isinstance(node, ast.IntValue):
+                return int(node.value)
+            elif isinstance(node,ast.FloatValue):
+                return float(node.value)
+            elif isinstance(node, ast.BooleanValue):
+                return node.value
+            elif isinstance(node, ast.ListValue):
+                return [ScalarTypes.parse_literal(value) for value in node.values]
+            else:
+                raise ValueError('The input value is not of acceptable types')
+        except Exception as e:
+            return e
+
+class SetAttributeValue(Mutation):
+    
+    class Arguments:
+        device = String(required = True)
+        name = String (required = True)
+        value = ScalarTypes(required = True)
+    ok = Boolean()
+    message = List(String)
+    def mutate(self, info, device, name,value):
+        if type(value) is ValueError:
+            return SetAttributeValue(ok= False, message = [str(value)])
+        try:
+            proxy = proxies.get(device)
+            proxy.write_attribute(name,value)
+            return SetAttributeValue(ok=True, message = ["Success"])
+        except PyTango.DevFailed or PyTango.ConnectionFailed or PyTango.CommunicationFailed or PyTango.DeviceUnlocked as error:
+            e = error.args[0]
+            return SetAttributeValue(ok = False,message = [e.desc,e.reason])
+        except Exception as e:
+            return SetAttributeValue(ok= False, message = [str(e)])
+        
             
 
 class PutDeviceProperty(Mutation):
@@ -48,7 +128,7 @@ class PutDeviceProperty(Mutation):
     
     ok = Boolean()
 
-    def mutate(self,info, device,name,value):
+    def mutate(self,info, device,name,value =""):
         # wait = not args.get("async")
         try:
             db.put_device_property(device, {name: value})
@@ -84,7 +164,7 @@ class DeviceAttribute(TangoSomething, Interface):
     label = String()
     unit = String()
     description = String()
-    value = String()
+    value = ScalarTypes()
     quality = String()
     timestamp = Int()
     
@@ -94,9 +174,9 @@ class DeviceAttribute(TangoSomething, Interface):
             proxy = proxies.get(self.device)
             att_data = proxy.read_attribute(self.name)
             if att_data.data_format != 0: # SPECTRUM and IMAGE
-            	value = att_data.value.tolist()
+                value = att_data.value.tolist()
             else: # SCALAR
-	            value = att_data.value
+                value = att_data.value
         except:
             pass
         return value
@@ -280,6 +360,7 @@ class Query(ObjectType):
 class DatabaseMutations(ObjectType):
     put_device_property = PutDeviceProperty.Field()
     delete_device_property = DeleteDeviceProperty.Field()
+    SetAttributeValue = SetAttributeValue.Field()
 
 tangoschema = graphene.Schema(query=Query, mutation=DatabaseMutations)
 
