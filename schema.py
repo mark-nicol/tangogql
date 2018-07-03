@@ -8,7 +8,6 @@ import re
 from collections import defaultdict
 from operator import attrgetter
 import json
-
 import PyTango
 import graphene
 from graphene import (Boolean, Field, Float, Int, Interface, List, Mutation,
@@ -45,36 +44,10 @@ class ScalarTypes(Scalar):
     Int, String, Boolean, Float, List'''
     @staticmethod
     def coerce_type(value):
-        if isinstance(value, int):
-            try:
-                num = int(value)
-            except ValueError:
-                try:
-                    num = int(float(value))
-                except ValueError as e:
-                    return e
-            if MIN_INT <= num <= MAX_INT:
-                return num
-        elif isinstance(value, float):
-            try:
-                return float(value)
-            except ValueError as e:
-                return e
-        elif isinstance(value, bool):
-            try:
-                return bool(value)
-            except ValueError as e:
-                return e
-        elif isinstance(value, str):
-            if isinstance(value, bool):
-                return u'true' if value else u'false'
-            return six.text_type(value)
-        elif isinstance(value,list):
-            # Is an image value or spectrum value
-            try:
-                return [ScalarTypes.coerce_type(v) for v in value]
-            except ValueError as e:
-                return e
+        #value of type DevState should return as string 
+        if type(value).__name__ == "DevState":
+            return str(value)
+        return value
     @staticmethod
     def serialize(value):
         return ScalarTypes.coerce_type(value)
@@ -174,12 +147,19 @@ class DeviceAttribute(TangoSomething, Interface):
             proxy = proxies.get(self.device)
             att_data = proxy.read_attribute(self.name)
             if att_data.data_format != 0: # SPECTRUM and IMAGE
-                value = att_data.value.tolist()
+                temp_val = att_data.value
+                if isinstance(temp_val, tuple):
+                    value = list(temp_val)
+                else:
+                    value = att_data.value.tolist()
             else: # SCALAR
                 value = att_data.value
-        except:
-            pass
-        return json.dumps(value)
+        except PyTango.DevFailed or PyTango.ConnectionFailed or PyTango.CommunicationFailed or PyTango.DeviceUnlocked as error:
+            e = error.args[0]
+            return [e.desc,e.reason]
+        except Exception as e:
+            return str(e) 
+        return value
 
     def resolve_quality(self, *args, **kwargs):
         value = None
