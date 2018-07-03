@@ -52,10 +52,10 @@ q = 'query{\
 			quality,\
 			timestamp\
 		}\
-    server{\
-      id,\
-      host\
-    }\
+        server{\
+          id,\
+          host\
+        }\
 	}\
 }'
 
