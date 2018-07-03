@@ -131,16 +131,20 @@ class DeviceCommand(TangoSomething, Interface):
     outtype = String()
     outtypedesc = String()
 
+class DeviceInfo(TangoSomething, Interface):
+    id = String()       #server id
+    host = String()     #server host
+
 
 class Device(TangoSomething, Interface):
-
     name = String()
     properties = List(DeviceProperty, pattern=String())
     attributes = List(DeviceAttribute, pattern=String())
     commands = List(DeviceCommand, pattern=String())
+    server = List(DeviceInfo)
 
     device_class = String()
-    server = String()
+    #server = String()
     pid = Int()
     started_date = Float()
     stopped_date = Float()
@@ -182,6 +186,14 @@ class Device(TangoSomething, Interface):
             outtypedesc=a.out_type_desc)
                 for a in sorted(cmd_infos, key=attrgetter("cmd_name"))
                                 if rule.match(a.cmd_name)]
+
+    def resolve_server(self, info):
+        proxy = proxies.get(self.name)
+        dev_info = proxy.info()
+
+        return [DeviceInfo(
+            id=dev_info.server_id,
+            host=dev_info.server_host)]
 
     def resolve_exported(self, info):
         return self.info.exported
