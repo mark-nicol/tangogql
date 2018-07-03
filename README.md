@@ -52,6 +52,10 @@ q = 'query{\
 			quality,\
 			timestamp\
 		}\
+        server{\
+          id,\
+          host\
+        }\
 	}\
 }'
 # Delete device property return ok = True if success
@@ -71,5 +75,3 @@ message
 resp = requests.post('http://w-v-kitslab-web-0:5005/db', json={'query': query})
 print(resp.json())
 ```
-
-
