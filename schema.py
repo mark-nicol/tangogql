@@ -66,10 +66,36 @@ class ScalarTypes(Scalar):
                 return node.value
             elif isinstance(node, ast.ListValue):
                 return [ScalarTypes.parse_literal(value) for value in node.values]
+            elif isinstance(node,ast.StringValue):
+                return str(node.value)
             else:
                 raise ValueError('The input value is not of acceptable types')
         except Exception as e:
             return e
+
+class ExecuteDeviceCommand(Mutation):
+
+    class Arguments:
+        device = String(required = True)
+        command = String(required = True)
+        argin = ScalarTypes(required = True)
+
+    ok = Boolean()
+    message = List(String)
+    output = ScalarTypes()
+
+    def mutate(self, info, device, command,argin):
+        if type(argin) is ValueError:
+            return SetAttributeValue(ok= False, message = [str(argin)])
+        try:
+            proxy = proxies.get(device)
+            result = proxy.command_inout(command,argin)
+            return ExecuteDeviceCommand(ok = True, message = ["Success"], output = result)
+        except PyTango.DevFailed or PyTango.ConnectionFailed or PyTango.CommunicationFailed or PyTango.DeviceUnlocked as error:
+            e = error.args[0]
+            return ExecuteDeviceCommand(ok = False, message = [e.desc,e.reason])
+        except Exception as e:
+            return ExecuteDeviceCommand(ok = False, message = [str(e)]) 
 
 class SetAttributeValue(Mutation):
     
@@ -77,8 +103,10 @@ class SetAttributeValue(Mutation):
         device = String(required = True)
         name = String (required = True)
         value = ScalarTypes(required = True)
+
     ok = Boolean()
     message = List(String)
+
     def mutate(self, info, device, name,value):
         if type(value) is ValueError:
             return SetAttributeValue(ok= False, message = [str(value)])
@@ -93,6 +121,7 @@ class SetAttributeValue(Mutation):
             return SetAttributeValue(ok= False, message = [str(e)])
           
 class PutDeviceProperty(Mutation):
+
     class Arguments:
         device = String(required=True)
         name = String(required=True)
@@ -100,14 +129,17 @@ class PutDeviceProperty(Mutation):
         # async = Boolean()
 
     ok = Boolean()
-
+    message = List(String)
     def mutate(self,info, device,name,value =""):
         # wait = not args.get("async")
         try:
             db.put_device_property(device, {name: value})
             return PutDeviceProperty( ok = True)
-        except PyTango.DevFailed:
-            return PutDeviceProperty(ok = False)
+        except PyTango.DevFailed or PyTango.ConnectionFailed or PyTango.CommunicationFailed or PyTango.DeviceUnlocked as error:
+            e = error.args[0]
+            return SetAttributeValue(ok = False,message = [e.desc,e.reason])
+        except Exception as e:
+            return SetAttributeValue(ok= False, message = [str(e)])
 
 
 class DeleteDeviceProperty(Mutation):
@@ -382,6 +414,7 @@ class DatabaseMutations(ObjectType):
     put_device_property = PutDeviceProperty.Field()
     delete_device_property = DeleteDeviceProperty.Field()
     SetAttributeValue = SetAttributeValue.Field()
+    execute_command = ExecuteDeviceCommand.Field()
 
 tangoschema = graphene.Schema(query=Query, mutation=DatabaseMutations)
 
@@ -393,6 +426,7 @@ if __name__ == "__main__":
     q = """
     query Hejsan {
         a: devices(pattern: "sys/tg_test/1") {
+
             name
             exported
             properties {
