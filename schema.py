@@ -66,6 +66,8 @@ class ScalarTypes(Scalar):
                 return node.value
             elif isinstance(node, ast.ListValue):
                 return [ScalarTypes.parse_literal(value) for value in node.values]
+            elif isinstance(node,ast.StringValue):
+                return str(node.value)
             else:
                 raise ValueError('The input value is not of acceptable types')
         except Exception as e:
@@ -77,12 +79,14 @@ class ExecuteDeviceCommand(Mutation):
         device = String(required = True)
         command = String(required = True)
         argin = ScalarTypes(required = True)
-        
+
     ok = Boolean()
     message = List(String)
     output = ScalarTypes()
 
     def mutate(self, info, device, command,argin):
+        if type(value) is ValueError:
+            return SetAttributeValue(ok= False, message = [str(value)])
         try:
             proxy = proxies.get(device)
             result = proxy.command_inout(command,argin)
@@ -422,6 +426,7 @@ if __name__ == "__main__":
     q = """
     query Hejsan {
         a: devices(pattern: "sys/tg_test/1") {
+
             name
             exported
             properties {
