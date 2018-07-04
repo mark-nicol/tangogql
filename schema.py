@@ -197,6 +197,7 @@ class DeviceInfo(TangoSomething, Interface):
 
 class Device(TangoSomething, Interface):
     name = String()
+    state = String()
     properties = List(DeviceProperty, pattern=String())
     attributes = List(DeviceAttribute, pattern=String())
     commands = List(DeviceCommand, pattern=String())
@@ -208,7 +209,9 @@ class Device(TangoSomething, Interface):
     started_date = Float()
     stopped_date = Float()
     exported = Boolean()
-
+    def resolve_state(self,info):
+        proxy = proxies.get(self.name)
+        return proxy.state()
     def resolve_properties(self, info, pattern="*"):
         props = db.get_device_property_list(self.name, pattern)
         return [DeviceProperty(name=p, device=self.name) for p in props]
@@ -217,7 +220,6 @@ class Device(TangoSomething, Interface):
         proxy = proxies.get(self.name)
         attr_infos = proxy.attribute_list_query()
         rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
-
         return [DeviceAttribute(
             name=a.name,
             device=self.name,
