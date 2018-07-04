@@ -85,8 +85,8 @@ class ExecuteDeviceCommand(Mutation):
     output = ScalarTypes()
 
     def mutate(self, info, device, command,argin):
-        if type(value) is ValueError:
-            return SetAttributeValue(ok= False, message = [str(value)])
+        if type(argin) is ValueError:
+            return SetAttributeValue(ok= False, message = [str(argin)])
         try:
             proxy = proxies.get(device)
             result = proxy.command_inout(command,argin)
