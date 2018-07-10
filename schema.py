@@ -229,7 +229,7 @@ class PutDeviceProperty(Mutation):
         # wait = not args.get("async")
         try:
             db.put_device_property(device, {name: value})
-            return PutDeviceProperty( ok = True)
+            return PutDeviceProperty( ok = True, message = ["Success"])
         except PyTango.DevFailed or PyTango.ConnectionFailed or PyTango.CommunicationFailed or PyTango.DeviceUnlocked as error:
             e = error.args[0]
             return SetAttributeValue(ok = False,message = [e.desc,e.reason])
@@ -240,13 +240,13 @@ class PutDeviceProperty(Mutation):
 class DeleteDeviceProperty(Mutation):
     """This class represents mutation for deleting property of a device."""
 
-    ok = Boolean()
-
     class Arguments:
         device = String(required=True)
         name = String(required=True)
-
+    ok = Boolean()
+    message = List(String)
     def mutate(self,info,device,name):
+<<<<<<< HEAD
         """This method delete a property of a device.
 
         Args: 
@@ -258,12 +258,16 @@ class DeleteDeviceProperty(Mutation):
 
         """
 
+=======
+>>>>>>> origin/master
         try:
-            db.delete_device_property(device, name)
-            return DeleteDeviceProperty(ok=True)
-
-        except PyTango.DevFailed:
-            return DeleteDeviceProperty(ok=False)
+                db.delete_device_property(device, name)
+                return DeleteDeviceProperty( ok = True, message = ["Success"])
+        except PyTango.DevFailed or PyTango.ConnectionFailed or PyTango.CommunicationFailed or PyTango.DeviceUnlocked as error:
+            e = error.args[0]
+            return DeleteDeviceProperty(ok = False,message = [e.desc,e.reason])
+        except Exception as e:
+            return DeleteDeviceProperty(ok= False, message = [str(e)])
 
 class DeviceAttribute(TangoSomething, Interface):
 
@@ -482,6 +486,8 @@ class Device(TangoSomething, Interface):
         """
         
         return self.info.exported
+    def resolve_pid(self,info):
+        return self.info.pid
 
     @property
     def info(self):
@@ -698,7 +704,7 @@ class DatabaseMutations(ObjectType):
 
     put_device_property = PutDeviceProperty.Field()
     delete_device_property = DeleteDeviceProperty.Field()
-    SetAttributeValue = SetAttributeValue.Field()
+    setAttributeValue = SetAttributeValue.Field()
     execute_command = ExecuteDeviceCommand.Field()
 
 tangoschema = graphene.Schema(query=Query, mutation=DatabaseMutations)
@@ -751,5 +757,7 @@ if __name__ == "__main__":
     """
 
     result = tangoschema.execute(q)
+    if result.errors:
+        traceback.print_tb(result.errors[0].stack, limit=10, file=sys.stdout)
     import json
     print(json.dumps(result.data, indent=4))
