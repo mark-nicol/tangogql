@@ -78,13 +78,13 @@ class ExecuteDeviceCommand(Mutation):
     class Arguments:
         device = String(required = True)
         command = String(required = True)
-        argin = ScalarTypes(required = True)
+        argin = ScalarTypes()
 
     ok = Boolean()
     message = List(String)
     output = ScalarTypes()
 
-    def mutate(self, info, device, command,argin):
+    def mutate(self, info, device, command,argin = None):
         if type(argin) is ValueError:
             return ExecuteDeviceCommand(ok= False, message = [str(argin)])
         try:
