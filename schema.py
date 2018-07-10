@@ -246,7 +246,6 @@ class DeleteDeviceProperty(Mutation):
     ok = Boolean()
     message = List(String)
     def mutate(self,info,device,name):
-<<<<<<< HEAD
         """This method delete a property of a device.
 
         Args: 
@@ -258,8 +257,6 @@ class DeleteDeviceProperty(Mutation):
 
         """
 
-=======
->>>>>>> origin/master
         try:
                 db.delete_device_property(device, name)
                 return DeleteDeviceProperty( ok = True, message = ["Success"])
