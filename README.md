@@ -21,6 +21,34 @@ Once all is installed, start the server by doing:
 
 The requests are made to the url http://localhost:5004/db
 
+### Running unit testing
+run the test by doing:
+
+```
+  $ python test.py
+```
+Example of test result
+
+======================================================================
+FAIL: test_member_resolve_stoppedDate (__main__.TestMemberClass)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "test.py", line 196, in test_member_resolve_stoppedDate
+    assert (isinstance(result['stoppedDate'],float)) == True
+AssertionError
+
+======================================================================
+FAIL: test_putDeviceProperty_mutate (__main__.TestPutDevicePropertyClass)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "test.py", line 234, in test_putDeviceProperty_mutate
+    assert (("message"in result) and isinstance(result['message'],list))== True
+AssertionError
+
+----------------------------------------------------------------------
+Ran 28 tests in 1.344s
+
+
 #### Examples
 
 ```
