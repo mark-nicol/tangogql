@@ -1,8 +1,5 @@
-"""
-A GraphQL schema for TANGO.
-"""
-from graphene.types.scalars import MIN_INT, MAX_INT
-import six
+"""A GraphQL schema for TANGO."""
+
 import fnmatch
 import re
 from collections import defaultdict
@@ -20,30 +17,58 @@ proxies = DeviceProxyCache()
 
 
 class TangoSomething(ObjectType):
+    """ This class represents type of a node in Tango. """
 
     nodetype = String()
 
     def resolve_nodetype(self, info):
+        """ This method gets the type of the node in Tango. 
+        
+        Returns:
+            name(str): Name of the type.
+        
+        """
+
         return type(self).__name__.lower()
 
 class DeviceProperty(TangoSomething, Interface):
+    """ This class represents property of a device.  """
 
     name = String()
     device = String()
     value = List(String)
 
     def resolve_value(self, info):
+        """ This method fetch the value of the property by its name.
+            
+        Returns:
+            values[str]: A list of string contains the values corespond to the name of the property. 
+        
+        """
+
         device = self.device
         name = self.name
         value = db.get_device_property(device, name)
         if value:
             return [line for line in value[name]]
 
+# This class make it possible to have input and out of multiples different types
 class ScalarTypes(Scalar):
-    '''The ScalarTypes represents a geneneric scalar value that could be:
-    Int, String, Boolean, Float, List'''
+    """ The ScalarTypes represents a geneneric scalar value that could be:
+    Int, String, Boolean, Float, List. """
+    
     @staticmethod
     def coerce_type(value):
+        """ This method just return the input value.
+        
+        Args:
+            value(any)
+        
+        returns:
+            value(any)  
+        
+        """
+        
         #value of type DevState should return as string 
         if type(value).__name__ == "DevState":
             return str(value)
@@ -53,10 +78,31 @@ class ScalarTypes(Scalar):
         return ScalarTypes.coerce_type(value)
     @staticmethod
     def parse_value(value):
+        """ This method is called when an assigment is made.
+        
+        Args:
+            value(any)
+        
+        Returns:
+            value(any) 
+        
+        """
+        
         return ScalarTypes.coerce_type(value)
     #Called for the input
     @staticmethod
     def parse_literal(node):
+        """ This method is called when the value of type *ScalarTypes* is used as input.
+        
+        Args:
+            value(any)
+        
+        Returns:
+            value(bool or str or int or float or Exception): Return exception when it is not possible to parse the value 
+            to one of the scalar types. 
+        
+        """
+        
         try:
             if isinstance(node, ast.IntValue):
                 return int(node.value)
@@ -74,17 +120,37 @@ class ScalarTypes(Scalar):
             return e
 
 class ExecuteDeviceCommand(Mutation):
+    """ This class represent a mutation for executing a command. """
 
     class Arguments:
         device = String(required = True)
         command = String(required = True)
-        argin = ScalarTypes(required = True)
+        argin = ScalarTypes()
 
     ok = Boolean()
     message = List(String)
     output = ScalarTypes()
 
     def mutate(self, info, device, command,argin):
+        """ This method executes a command.
+        
+        Args:
+            device(str): Name of the device that the command will be executed.
+            
+            command(str): Name of the command.
+            
+            argin(str or int or bool or float): The input argument for the command.
+        
+        Returns:
+            value(ExecuteDeviceCommand): Return ok = True and message = Success 
+            if the command executes successfully,
+            False otherwise. When an input is not one of the scalar types 
+            or an exception has been raised while executing the command, it 
+            returns message = error_message.
+        
+        """
+
+    def mutate(self, info, device, command,argin = None):
         if type(argin) is ValueError:
             return ExecuteDeviceCommand(ok= False, message = [str(argin)])
         try:
@@ -98,6 +164,7 @@ class ExecuteDeviceCommand(Mutation):
             return ExecuteDeviceCommand(ok = False, message = [str(e)]) 
 
 class SetAttributeValue(Mutation):
+    """ This class reprensents the mutation for setting value to an attribute. """
     
     class Arguments:
         device = String(required = True)
@@ -108,6 +175,21 @@ class SetAttributeValue(Mutation):
     message = List(String)
 
     def mutate(self, info, device, name,value):
+        """ This method sets value to an attribute.
+        
+        Args:
+            device(str): Name of the device.
+            name(str): Name of the attribute.
+            value(int or str or bool or float): The value to set.
+        
+        Returns:
+            value(SetAttributeValue): return ok = True and message = Success if successful, 
+            False otherwise.When an input is not one the scalar types 
+            or an exception has been raised while setting the value 
+            returns message = error_message.
+        
+        """
+
         if type(value) is ValueError:
             return SetAttributeValue(ok= False, message = [str(value)])
         try:
@@ -121,6 +203,7 @@ class SetAttributeValue(Mutation):
             return SetAttributeValue(ok= False, message = [str(e)])
           
 class PutDeviceProperty(Mutation):
+    """ This class represents mutation for putting a device property. """
 
     class Arguments:
         device = String(required=True)
@@ -131,6 +214,19 @@ class PutDeviceProperty(Mutation):
     ok = Boolean()
     message = List(String)
     def mutate(self,info, device,name,value =""):
+        """ This method adds property to a device.
+        
+        Args:
+            device(str): Name of a device.
+            name(str):  Name of the property.
+            value([str]): Value of the property.
+        
+        Returns:
+            value(PutDeviceProperty):Returns ok = True and message = Success if successful, False otherwise.
+            If an exception has been raised returns message = error_message.   
+        
+        """
+
         # wait = not args.get("async")
         try:
             db.put_device_property(device, {name: value})
@@ -143,6 +239,7 @@ class PutDeviceProperty(Mutation):
 
 
 class DeleteDeviceProperty(Mutation):
+    """This class represents mutation for deleting property of a device."""
 
     class Arguments:
         device = String(required=True)
@@ -150,6 +247,17 @@ class DeleteDeviceProperty(Mutation):
     ok = Boolean()
     message = List(String)
     def mutate(self,info,device,name):
+        """This method delete a property of a device.
+
+        Args: 
+            device(str): name of the device.
+            name(str): name of the property.
+        Returns:
+            value(DeleteDeviceProperty):Returns ok = True and message = Success if successful,
+            ok = False otherwise.If exception has been raised returns message = error_message.
+
+        """
+
         try:
                 db.delete_device_property(device, name)
                 return DeleteDeviceProperty( ok = True, message = ["Success"])
@@ -160,6 +268,8 @@ class DeleteDeviceProperty(Mutation):
             return DeleteDeviceProperty(ok= False, message = [str(e)])
 
 class DeviceAttribute(TangoSomething, Interface):
+
+    """ This class represents an attribute of a device.  """
 
     name = String()
     device = String()
@@ -174,6 +284,14 @@ class DeviceAttribute(TangoSomething, Interface):
     timestamp = Int()
 
     def resolve_value(self, *args, **kwargs):
+
+        """ This method fetch the coresponding value of an attribute bases on its name.
+
+        Returns:
+            value(any): Value of the attribute.
+
+        """
+
         value = None
         try:
             proxy = proxies.get(self.device)
@@ -194,6 +312,14 @@ class DeviceAttribute(TangoSomething, Interface):
         return value
 
     def resolve_quality(self, *args, **kwargs):
+
+        """ This method fetch the coresponding quality of an attribute bases on its name.
+            
+        Returns
+            value(str): The quality of the attribute.
+
+        """
+
         value = None
         try:
             proxy = proxies.get(self.device)
@@ -204,6 +330,14 @@ class DeviceAttribute(TangoSomething, Interface):
         return value
 
     def resolve_timestamp(self, *args, **kwargs):
+
+        """This method fetch the timestamp value of an attribute bases on its name.
+        
+        Returns:
+            value(float): The timestamp value.
+        
+        """
+
         value = None
         try:
             proxy = proxies.get(self.device)
@@ -214,6 +348,8 @@ class DeviceAttribute(TangoSomething, Interface):
         return value
 
 class DeviceCommand(TangoSomething, Interface):
+    """ This class represents an command and its properties. """
+
     name = String()
     tag = Int()
     displevel = String()
@@ -223,11 +359,15 @@ class DeviceCommand(TangoSomething, Interface):
     outtypedesc = String()
 
 class DeviceInfo(TangoSomething, Interface):
+    """ This class represents info of a device.  """
+
     id = String()       #server id
     host = String()     #server host
 
 
 class Device(TangoSomething, Interface):
+    """ This class represent a device. """
+
     name = String()
     state = String()
     properties = List(DeviceProperty, pattern=String())
@@ -241,14 +381,44 @@ class Device(TangoSomething, Interface):
     started_date = Float()
     stopped_date = Float()
     exported = Boolean()
+
     def resolve_state(self,info):
+        """ This method fetch the state of the device.
+        
+        Return:
+            state(str): State of the device.
+        
+        """
+
         proxy = proxies.get(self.name)
         return proxy.state()
     def resolve_properties(self, info, pattern="*"):
+
+        """ This method fetch the properties of the device.
+        
+        Args:
+            pattern(str): Pattern for filtering the result. Returns only properties that matches the pattern.
+        
+        Returns:
+            properties([DeviceProperty]): List of properties for the device.
+        
+        """
+
         props = db.get_device_property_list(self.name, pattern)
         return [DeviceProperty(name=p, device=self.name) for p in props]
 
     def resolve_attributes(self, info, pattern="*"):
+
+        """ This method fetch all the attributes and its' properties of a device.
+        
+        Args:
+            pattern(str):  Pattern for filtering the result. Returns only properties that match the pattern.
+        
+        Returns:
+            attributes([DeviceAttribute]): List of attributes of the device.
+        
+        """
+
         proxy = proxies.get(self.name)
         attr_infos = proxy.attribute_list_query()
         rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
@@ -265,6 +435,16 @@ class Device(TangoSomething, Interface):
                                 if rule.match(a.name)]
 
     def resolve_commands(self, info, pattern="*"):
+        """ This method fetch all the commands of a device.
+        
+        Args:
+            pattern(str):  Pattern for filtering of the result. Returns only commands that match the pattern.
+        
+        Returns:
+            commands([DeviceCommand]): List of commands of the device.
+        
+        """
+
         proxy = proxies.get(self.name)
         cmd_infos = proxy.command_list_query()
         rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
@@ -281,6 +461,13 @@ class Device(TangoSomething, Interface):
                                 if rule.match(a.cmd_name)]
 
     def resolve_server(self, info):
+        """ This method fetch the server infomation of a device.
+         
+        Returns:
+            server([DeviceInfo]): List server info of a device.
+        
+        """
+
         proxy = proxies.get(self.name)
         dev_info = proxy.info()
 
@@ -289,12 +476,22 @@ class Device(TangoSomething, Interface):
             host=dev_info.server_host)]
 
     def resolve_exported(self, info):
+        """ This method fetch the infomation about the device if it is exported or not.
+        
+        Returns:
+            exported(bool): True if exported, False otherwise.
+        
+        """
+        
         return self.info.exported
     def resolve_pid(self,info):
         return self.info.pid
 
     @property
     def info(self):
+
+        """ This method fetch all the information of a device. """
+
         if not hasattr(self, "_info"):
             self._info = db.get_device_info(self.name)
         return self._info
@@ -302,11 +499,17 @@ class Device(TangoSomething, Interface):
 
 class Member(Device):
 
+    """ This class represent a member. """
+
+
     domain = String()
     family = String()
 
     @property
     def info(self):
+
+        """ This method fetch a member of the device using the name of the domain and family. """
+
         if not hasattr(self, "_info"):
             devicename = "%s/%s/%s" % (self.domain, self.family, self.name)
             self._info = db.get_device_info(devicename)
@@ -315,11 +518,23 @@ class Member(Device):
 
 class Family(TangoSomething, Interface):
 
+    """ This class represent a family. """
+
     name = String()
     domain = String()
     members = List(Member, pattern=String())
 
     def resolve_members(self, info, pattern="*"):
+        """ This method fetch members using the name of the domain and pattern.
+            
+        Args:
+            pattern(str): Pattern for filtering of the result. Returns only members that match the pattern.
+        
+        Returns:
+            members([Member]):List of members.
+        
+        """
+
         members = db.get_device_member(
             "%s/%s/%s" % (self.domain, self.name, pattern))
         return [
@@ -330,10 +545,22 @@ class Family(TangoSomething, Interface):
 
 class Domain(TangoSomething, Interface):
 
+    """ This class represent a domain. """
+
     name = String()
     families = List(Family, pattern=String())
 
     def resolve_families(self, info, pattern="*"):
+        """ This method fetch a list of families using pattern.
+            
+        Args:
+            pattern(str): Pattern for filtering of the result. Returns only families that match the pattern.
+        
+        Returns:
+            families([Family]):List of families.
+        
+        """
+
         families = db.get_device_family("%s/%s/*" % (self.name, pattern))
         return [Family(name=f, domain=self.name) for f in families]
 
@@ -347,6 +574,7 @@ class DeviceClass(TangoSomething, Interface):
 
 
 class ServerInstance(TangoSomething, Interface):
+    """ Not documented yet. """
 
     name = String()
     server = String()
@@ -365,11 +593,21 @@ class ServerInstance(TangoSomething, Interface):
 
 
 class Server(TangoSomething, Interface):
+    """ This class represents a query for server. """
 
     name = String()
     instances = List(ServerInstance, pattern=String())
 
     def resolve_instances(self, info, pattern="*"):
+        """ This method fetches all the intances using pattern.
+            
+            Args:
+                pattern(str): Pattern for filtering the result. Returns only properties that matches the pattern.
+
+            Returns:
+                intances[ServerIntance]: List of intances.
+
+        """
         instances = db.get_instance_name_list(self.name)
         rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
         return [ServerInstance(name=inst, server=self.name)
@@ -377,7 +615,7 @@ class Server(TangoSomething, Interface):
 
 
 class Query(ObjectType):
-
+    """ This class contains all the queries. """
     devices = List(Device, pattern=String())
     domains = List(Domain, pattern=String())
     families = List(Family, domain=String(), pattern=String())
@@ -388,23 +626,70 @@ class Query(ObjectType):
     classes = List(DeviceClass, pattern=String())
 
     def resolve_devices(self, info, pattern="*"):
+        """ This method fetches all the devices using the pattern.
+        
+        Args: 
+            pattern(str): Pattern for filtering the result. Returns only properties that matches the pattern.
+        
+        Returns:
+            devices([Device]): List of devices.
+    
+        """
         devices = db.get_device_exported(pattern)
         return [Device(name=d) for d in sorted(devices)]
 
     def resolve_domains(self, info, pattern="*"):
+        """ This method fetches all the domains using the pattern.
+        
+        Args: 
+            pattern(str): Pattern for filtering the result. Returns only properties that matches the pattern.
+        
+        Returns:
+            domains([Domain]): List of domains.
+    
+        """
         domains = db.get_device_domain("%s/*" % pattern)
         return [Domain(name=d) for d in sorted(domains)]
 
     def resolve_families(self, info, domain="*", pattern="*"):
+        """ This method fetches all the families using the pattern.
+        
+        Args: 
+            pattern(str): Pattern for filtering the result. Returns only properties that matches the pattern.
+        
+        Returns:
+            families([Family]): List of families.
+    
+        """
+        
         families = db.get_device_family("%s/%s/*" % (domain, pattern))
         return [Family(domain=domain, name=d) for d in sorted(families)]
 
     def resolve_members(self, info, domain="*", family="*", pattern="*"):
+        """ This method fetches all the members using the pattern.
+        
+        Args: 
+            pattern(str): Pattern for filtering the result. Returns only properties that matches the pattern.
+        
+        Returns:
+            members([Domain]): List of members.
+    
+        """
         members = db.get_device_member("%s/%s/%s" % (domain, family, pattern))
         return [Member(domain=domain, family=family, name=m)
                 for m in sorted(members)]
 
     def resolve_servers(self, info, pattern="*"):
+        """ This method fetches all the servers using the pattern.
+        
+        Args: 
+            pattern(str): Pattern for filtering the result. Returns only properties that matches the pattern.
+        
+        Returns:
+            servers([Domain]): List of servers.
+    
+        """
+
         servers = db.get_server_name_list()
         # The db service does not allow wildcard here, but it can still
         # useful to limit the number of children. Let's fake it!
@@ -413,6 +698,8 @@ class Query(ObjectType):
 
 
 class DatabaseMutations(ObjectType):
+    """ This class contains all the mutations. """
+
     put_device_property = PutDeviceProperty.Field()
     delete_device_property = DeleteDeviceProperty.Field()
     setAttributeValue = SetAttributeValue.Field()
