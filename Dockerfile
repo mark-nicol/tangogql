@@ -20,9 +20,12 @@ RUN git clone https://gitlab.maxiv.lu.se/vinmic/python3-taurus-core.git
 WORKDIR python3-taurus-core
 RUN  /bin/bash -c "source activate graphql && python setup.py install"
 
-WORKDIR /
-RUN git clone https://gitlab.maxiv.lu.se/kits-maxiv/web-maxiv-graphql.git
+# WORKDIR /
+# RUN git clone https://gitlab.maxiv.lu.se/kits-maxiv/web-maxiv-graphql.git
+# 
+# WORKDIR web-maxiv-graphql
 
+COPY . web-maxiv-graphql
 WORKDIR web-maxiv-graphql
 
 # run the web service
