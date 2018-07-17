@@ -389,9 +389,14 @@ class Device(TangoSomething, Interface):
             state(str): State of the device.
         
         """
+        try:
+            proxy = proxies.get(self.name)
+            return proxy.state()
+        except PyTango.DevFailed or PyTango.ConnectionFailed or PyTango.CommunicationFailed or PyTango.DeviceUnlocked:
+            return "UNKNOWN"
+        except Exception as e:
+            return str(e)
 
-        proxy = proxies.get(self.name)
-        return proxy.state()
     def resolve_properties(self, info, pattern="*"):
 
         """ This method fetch the properties of the device.
