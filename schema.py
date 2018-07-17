@@ -375,11 +375,11 @@ class Device(TangoSomething, Interface):
     commands = List(DeviceCommand, pattern=String())
     server = List(DeviceInfo)
 
-    device_class = String()
+    #device_class = String()
     #server = String()
     pid = Int()
-    started_date = Float()
-    stopped_date = Float()
+    started_date = String()
+    stopped_date = String()
     exported = Boolean()
 
     def resolve_state(self,info):
@@ -491,6 +491,10 @@ class Device(TangoSomething, Interface):
         return self.info.exported
     def resolve_pid(self,info):
         return self.info.pid
+    def resolve_started_date(self,info):
+        return self.info.started_date
+    def resolve_stopped_date(self,info):
+        return self.info.stopped_date
 
     @property
     def info(self):
