@@ -398,8 +398,8 @@ class Device(TangoSomething, Interface):
             proxy = proxies.get(self.name)
             return proxy.state()
         except PyTango.DevFailed or PyTango.ConnectionFailed or PyTango.CommunicationFailed or PyTango.DeviceUnlocked as error:
-            e = error.args[0]
-            return  [e.desc,e.reason]
+            #e = error.args[0]
+            return "UNKNOWN"
         except Exception as e:
             return str(e)
 

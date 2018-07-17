@@ -64,7 +64,6 @@ class DeviceProxyCache(object):
         # Unknown device; let's create a new proxy
         proxy = PyTango.DeviceProxy(devname)
         if len(self._device_proxies) == self.max_proxies:
-            oldest = self._device_proxies.keys()[0]
-            del self._device_proxies[oldest]
+            oldest = self._device_proxies.popitem(last= False)
         self._device_proxies[devname] = proxy
         return proxy
