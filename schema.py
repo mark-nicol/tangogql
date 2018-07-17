@@ -8,12 +8,19 @@ import json
 import PyTango
 import graphene
 from graphene import (Boolean, Field, Float, Int, Interface, List, Mutation,
-                      ObjectType, String, Union,Scalar)
+                      ObjectType, String, Union,Scalar,Dynamic)
 from tangodb import CachedDatabase, DeviceProxyCache
 from graphene.types import Scalar
 from graphql.language import ast
+import asyncio
+from collections import OrderedDict
+from collections import defaultdict
+import time
+from listener import TaurusWebAttribute
+
 db = CachedDatabase(ttl=10)
 proxies = DeviceProxyCache()
+
 
 
 class TangoSomething(ObjectType):
@@ -237,7 +244,6 @@ class PutDeviceProperty(Mutation):
         except Exception as e:
             return SetAttributeValue(ok= False, message = [str(e)])
 
-
 class DeleteDeviceProperty(Mutation):
     """This class represents mutation for deleting property of a device."""
 
@@ -364,7 +370,6 @@ class DeviceInfo(TangoSomething, Interface):
     id = String()       #server id
     host = String()     #server host
 
-
 class Device(TangoSomething, Interface):
     """ This class represent a device. """
 
@@ -389,9 +394,15 @@ class Device(TangoSomething, Interface):
             state(str): State of the device.
         
         """
+        try:
+            proxy = proxies.get(self.name)
+            return proxy.state()
+        except PyTango.DevFailed or PyTango.ConnectionFailed or PyTango.CommunicationFailed or PyTango.DeviceUnlocked as error:
+            e = error.args[0]
+            return  [e.desc,e.reason]
+        except Exception as e:
+            return str(e)
 
-        proxy = proxies.get(self.name)
-        return proxy.state()
     def resolve_properties(self, info, pattern="*"):
 
         """ This method fetch the properties of the device.
@@ -496,7 +507,6 @@ class Device(TangoSomething, Interface):
             self._info = db.get_device_info(self.name)
         return self._info
 
-
 class Member(Device):
 
     """ This class represent a member. """
@@ -514,7 +524,6 @@ class Member(Device):
             devicename = "%s/%s/%s" % (self.domain, self.family, self.name)
             self._info = db.get_device_info(devicename)
         return self._info
-
 
 class Family(TangoSomething, Interface):
 
@@ -542,7 +551,6 @@ class Family(TangoSomething, Interface):
             for m in members
         ]
 
-
 class Domain(TangoSomething, Interface):
 
     """ This class represent a domain. """
@@ -564,14 +572,12 @@ class Domain(TangoSomething, Interface):
         families = db.get_device_family("%s/%s/*" % (self.name, pattern))
         return [Family(name=f, domain=self.name) for f in families]
 
-
 class DeviceClass(TangoSomething, Interface):
 
     name = String()
     server = String()
     instance = String()
     devices = List(Device)
-
 
 class ServerInstance(TangoSomething, Interface):
     """ Not documented yet. """
@@ -590,7 +596,6 @@ class ServerInstance(TangoSomething, Interface):
                             devices=devices)
                 for clss, devices in mapping.items()
                 if rule.match(clss)]
-
 
 class Server(TangoSomething, Interface):
     """ This class represents a query for server. """
@@ -612,7 +617,6 @@ class Server(TangoSomething, Interface):
         rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
         return [ServerInstance(name=inst, server=self.name)
                 for inst in instances if rule.match(inst)]
-
 
 class Query(ObjectType):
     """ This class contains all the queries. """
@@ -696,6 +700,8 @@ class Query(ObjectType):
         rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
         return [Server(name=srv) for srv in sorted(servers) if rule.match(srv)]
 
+    name = graphene.String()
+    age = graphene.Int()
 
 class DatabaseMutations(ObjectType):
     """ This class contains all the mutations. """
@@ -705,7 +711,147 @@ class DatabaseMutations(ObjectType):
     setAttributeValue = SetAttributeValue.Field()
     execute_command = ExecuteDeviceCommand.Field()
 
-tangoschema = graphene.Schema(query=Query, mutation=DatabaseMutations)
+class ChangeData(ObjectType):
+    value = ScalarTypes()
+    w_value = ScalarTypes()
+    quality = String()
+    time = Float()
+
+class ConfigData(ObjectType):
+    description = String()
+    label = String()
+    unit = String()
+    format = String()
+    data_format = String()
+    data_type = String()
+
+class Event(Interface):
+    event_type = String()
+    attribute = Field(DeviceAttribute)
+
+class ChangeEvent(ObjectType):
+    class Meta:
+        interfaces = (Event,)
+    data = Field(ChangeData)
+
+class ConfigEvent(ObjectType):
+    class Meta:
+        interfaces = (Event,)
+    data = Field(ConfigData)
+
+# Contains subscribed attributes
+change_listeners = {}
+config_listeners ={}
+
+class Subscription(ObjectType):
+    sub_change_event = Field(List(ChangeEvent),sub_list = List(String))
+    unsub_config_event = String(unsub_list = List(String))
+    unsub_change_event = String(unsub_list = List(String))
+    sub_config_event = Field(List(ConfigEvent),sub_list = List(String))
+    
+    async def resolve_sub_change_event(self,info,sub_list = []):
+        keeper = EventKeeper()
+        for attr in sub_list:
+            l = TaurusWebAttribute(attr, keeper)
+            change_listeners[attr] = l
+        i = 0
+        while change_listeners:
+            evt_list = []
+            events = keeper.get()
+            for event_type,data in events.items():
+                for attr_name, value in data.items():
+                    device,attr = attr_name.rsplit('/',1)
+                    if event_type == "CHANGE":
+                        data = ChangeData(value = value['value'],
+                                        w_value = value['w_value'],
+                                        quality = value['quality'],
+                                        time = value['time'])  
+                        event = ChangeEvent(event_type = event_type, 
+                                            attribute = DeviceAttribute(device = device,name = attr),
+                                            data = data)
+                        evt_list.append(event)  
+            if evt_list:
+                yield evt_list
+            await asyncio.sleep(1.0)
+
+    async def resolve_sub_config_event(self, info, sub_list = []):
+        keeper = EventKeeper()
+        for attr in sub_list:
+            l = TaurusWebAttribute(attr, keeper)
+            config_listeners[attr] = l
+        i = 0
+        while config_listeners:
+            evt_list = []
+            events = keeper.get()
+            for event_type,data in events.items():
+                for attr_name, value in data.items():
+                    device,attr = attr_name.rsplit('/',1)
+                    if event_type == "CONFIG":
+                        data = ConfigData(description = value['description'],
+                                        label = value['label'],
+                                        unit = value['unit'],
+                                        format = value['format'],
+                                        data_format = value['data_format'],
+                                        data_type = value['data_type']    
+                                    )
+                        event = ConfigEvent(event_type = event_type,
+                                            attribute = DeviceAttribute(device = device,name = attr),
+                                            data = data)
+                        evt_list.append(event)  
+            if evt_list:
+                yield evt_list
+            await asyncio.sleep(1.0)
+    async def resolve_unsub_change_event(self, info,unsub_list = []):
+        result = []
+        if change_listeners:
+            for attr in unsub_list:
+                listener = change_listeners[attr]
+                if listener:
+                    listener.clear()
+                    del change_listeners[attr]
+                    result.append(attr)
+            yield "Unsubscribed: " + ','.join(result)
+        else:
+            yield "No attribute to unsubscribe"
+        
+
+    async def resolve_unsub_config_event(self, info,unsub_list = []):
+        result = []
+        if config_listeners:
+            for attr in unsub_list:
+                listener = config_listeners[attr]
+                if listener:
+                    listener.clear()
+                    del config_listeners[attr]
+                    result.append(attr)
+            yield "Unsubscribed: " + ','.join(result)
+        else:
+            yield "No attribute to unsubscribe"
+
+# Help class
+class EventKeeper:
+
+    """A simple wrapper that keeps the latest event values for
+    each attribute"""
+
+    def __init__(self):
+        self._events = defaultdict(dict)
+        self._timestamps = defaultdict(dict)
+        self._latest = defaultdict(dict)
+
+    def put(self, model, action, value):
+        "Update a model"
+        self._events[action][model] = value
+        self._timestamps[action][model] = time.time()
+
+    def get(self):
+        "Returns the latest accumulated events"
+        tmp, self._events = self._events, defaultdict(dict)
+        for event_type, events in tmp.items():
+            self._latest[event_type].update(events)
+        return tmp
+
+tangoschema = graphene.Schema(query=Query, mutation=DatabaseMutations, subscription = Subscription)
 
 
 if __name__ == "__main__":

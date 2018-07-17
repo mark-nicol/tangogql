@@ -35,8 +35,8 @@ if __name__ == "__main__":
     app.router.add_static('/', 'static')
     loop = asyncio.get_event_loop()
     handler = app.make_handler(debug=True)
-    f = loop.create_server(handler, '0.0.0.0', 8000)
-    logging.info("Point your browser to http://w-v-kitslab-web-0:8000/graphiql")
+    f = loop.create_server(handler, '0.0.0.0', 5004)
+    logging.info("Point your browser to http://w-v-kitslab-web-0:5004/graphiql")
     srv = loop.run_until_complete(f)
     try:
         loop.run_forever()
