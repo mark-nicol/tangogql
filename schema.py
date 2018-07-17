@@ -700,9 +700,6 @@ class Query(ObjectType):
         rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
         return [Server(name=srv) for srv in sorted(servers) if rule.match(srv)]
 
-    name = graphene.String()
-    age = graphene.Int()
-
 class DatabaseMutations(ObjectType):
     """ This class contains all the mutations. """
 
