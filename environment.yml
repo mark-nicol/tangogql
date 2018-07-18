@@ -36,4 +36,4 @@ dependencies:
     - six==1.11.0
     - typing==3.6.4
     - yarl==1.2.4
-    - graphql-ws
+    - graphql-ws=0.2.0
