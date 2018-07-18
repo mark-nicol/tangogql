@@ -9,12 +9,12 @@ build_image:
   only:
     - master
 
-unit_test:
-  stage: test
-  script:
-    - docker run graphql-test   
-  only:
-    - master
+# unit_test:
+#   stage: test
+#   script:
+#     - docker run graphql-test   
+#   only:
+#     - master
 
 deploy_image:
   stage: deploy
