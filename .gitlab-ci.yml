@@ -1,6 +1,14 @@
 before_script:
   - docker info
 
+unit_test:
+  stage: test
+  script:
+    - python test.py
+  only:
+    - merge-requests
+  tags: [maxiv-centos7]
+
 build_image:
   stage: build
   script:
