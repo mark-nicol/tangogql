@@ -1,32 +1,25 @@
-unit_test:
-  before_script:
-    - apt-get update
-    - apt-get -y install build-essential
-    - conda env create --name graphql python=3.6 --file=environment.yml
-    - source activate graphql
-    - pip install git+https://gitlab.maxiv.lu.se/vinmic/python3-taurus-core.git
-  stage: test
-  script:
-    - python test.py
-  only:
-    - master
-  tags: [miniconda3]
+before_script:
+  - docker info
 
 build_image:
-  before_script:
-  - docker info
   stage: build
   script:
     - docker build . -t docker.maxiv.lu.se/graphql
-    - docker push docker.maxiv.lu.se/graphql
+    - docker build . --file Dockerfile-test -t graphql-test     
+  only:
+    - master
+
+unit_test:
+  stage: test
+  script:
+    - docker run graphql-test   
   only:
     - master
 
 deploy_image:
-  before_script:
-  - docker info
   stage: deploy
   script:
+  - docker push docker.maxiv.lu.se/graphql
   - "curl -H 'Authorization: Bearer gOj9o8s3RapHiThfNbImaFYMDoOKTG' -k --request POST https://ansible.maxiv.lu.se/api/v2/job_templates/6/launch/"
   only:
     - master
