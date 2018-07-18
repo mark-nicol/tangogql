@@ -1,6 +1,3 @@
-before_script:
-  - docker info
-
 unit_test:
   stage: test
   script:
@@ -10,6 +7,8 @@ unit_test:
   tags: [maxiv-centos7]
 
 build_image:
+  before_script:
+  - docker info
   stage: build
   script:
     - docker build . -t docker.maxiv.lu.se/graphql
@@ -18,6 +17,8 @@ build_image:
     - master
 
 deploy_image:
+  before_script:
+  - docker info
   stage: deploy
   script:
   - "curl -H 'Authorization: Bearer gOj9o8s3RapHiThfNbImaFYMDoOKTG' -k --request POST https://ansible.maxiv.lu.se/api/v2/job_templates/6/launch/"
