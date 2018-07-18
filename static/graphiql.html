@@ -8,79 +8,72 @@
 -->
 <!DOCTYPE html>
 <html>
-  <head>
-    <style>
-      html, body {
-        height: 100%;
-        margin: 0;
-        width: 100%;
-        overflow: hidden;
+<head>
+  <meta charset="utf-8" />
+  <title>GraphiQL</title>
+  <meta name="robots" content="noindex" />
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      width: 100%;
+    }
+  </style>
+  <link href="./css/graphiql.css" rel="stylesheet" />
+  <script src="./js/fetch.min.js"></script>
+  <script src="./js/react.min.js"></script>
+  <script src="./js/react-dom.min.js"></script>
+  <script src="./js/graphiql.min.js"></script>
+  <script src="./js/subscription-transport-ws.js"></script>
+  <script src="./js/graphql-subscriptions-fetcher.js"></script>
+</head>
+<body>
+  <script>
+    var subscriptionsEndpoint = "ws://w-v-kitslab-web-0:5004/socket" 
+    var endpointURL = '/db'
+    // Collect the URL parameters
+    var parameters = {};
+    window.location.search.substr(1).split('&').forEach(function (entry) {
+      var eq = entry.indexOf('=');
+      if (eq >= 0) {
+        parameters[decodeURIComponent(entry.slice(0, eq))] =
+          decodeURIComponent(entry.slice(eq + 1));
       }
-    </style>
-    <link rel="stylesheet" href="./css/graphiql.css" />
-    <script src="./js/react.min.js"></script>
-    <script src="./js/react-dom.min.js"></script>
-    <script src="./js/fetch.min.js"></script>
-    <script src="./js/graphiql.js"></script>
-  </head>
-  <body>
-    Loading...
-    <script>
-
-      /**
-       * This GraphiQL example illustrates how to use some of GraphiQL's props
-       * in order to enable reading and updating the URL parameters, making
-       * link sharing of queries a little bit easier.
-       *
-       * This is only one example of this kind of feature, GraphiQL exposes
-       * various React params to enable interesting integrations.
-       */
-
-      // Parse the search string to get url parameters.
-      var search = window.location.search;
-      var parameters = {};
-      search.substr(1).split('&').forEach(function (entry) {
-        var eq = entry.indexOf('=');
-        if (eq >= 0) {
-          parameters[decodeURIComponent(entry.slice(0, eq))] =
-            decodeURIComponent(entry.slice(eq + 1));
-        }
+    });
+    // Produce a Location query string from a parameter object.
+    function locationQuery(params, location) {
+      return (location ? location: '') + '?' + Object.keys(params).map(function (key) {
+        return encodeURIComponent(key) + '=' +
+          encodeURIComponent(params[key]);
+      }).join('&');
+    }
+    // Derive a fetch URL from the current URL, sans the GraphQL parameters.
+    var graphqlParamNames = {
+      query: true,
+      variables: true,
+      operationName: true
+    };
+    var otherParams = {};
+    for (var k in parameters) {
+      if (parameters.hasOwnProperty(k) && graphqlParamNames[k] !== true) {
+        otherParams[k] = parameters[k];
+      }
+    }
+    var fetcher;
+    if (true) {
+      var subscriptionsClient = new window.SubscriptionsTransportWs.SubscriptionClient(subscriptionsEndpoint, {
+        reconnect: true
       });
-
-      // if variables was provided, try to format it.
-      if (parameters.variables) {
-        try {
-          parameters.variables =
-            JSON.stringify(JSON.parse(parameters.variables), null, 2);
-        } catch (e) {
-          // Do nothing, we want to display the invalid JSON as a string, rather
-          // than present an error.
-        }
-      }
-
-      // When the query and variables string is edited, update the URL bar so
-      // that it can be easily shared
-      function onEditQuery(newQuery) {
-        parameters.query = newQuery;
-        updateURL();
-      }
-
-      function onEditVariables(newVariables) {
-        parameters.variables = newVariables;
-        updateURL();
-      }
-
-      function updateURL() {
-        var newSearch = '?' + Object.keys(parameters).map(function (key) {
-          return encodeURIComponent(key) + '=' +
-            encodeURIComponent(parameters[key]);
-        }).join('&');
-        history.replaceState(null, null, newSearch);
-      }
-
-      // Defines a GraphQL fetcher using the fetch API.
-      function graphQLFetcher(graphQLParams) {
-        return fetch(window.location.origin + '/db', {
+      fetcher = window.GraphiQLSubscriptionsFetcher.graphQLFetcher(subscriptionsClient, graphQLFetcher);
+    } else {
+      fetcher = graphQLFetcher;
+    }
+    // We don't use safe-serialize for location, because it's not client input.
+    var fetchURL = locationQuery(otherParams, endpointURL);
+    // Defines a GraphQL fetcher using the fetch API.
+    function graphQLFetcher(graphQLParams) {
+        return fetch(fetchURL, {
           method: 'post',
           headers: {
             'Accept': 'application/json',
@@ -89,21 +82,43 @@
           body: JSON.stringify(graphQLParams),
           credentials: 'include',
         }).then(function (response) {
-          return response.json();
+          return response.text();
+        }).then(function (responseBody) {
+          try {
+            return JSON.parse(responseBody);
+          } catch (error) {
+            return responseBody;
+          }
         });
-      }
+    }
+    // When the query and variables string is edited, update the URL bar so
+    // that it can be easily shared.
+    function onEditQuery(newQuery) {
+      parameters.query = newQuery;
+      updateURL();
+    }
+    function onEditVariables(newVariables) {
+      parameters.variables = newVariables;
+      updateURL();
+    }
+    function onEditOperationName(newOperationName) {
+      parameters.operationName = newOperationName;
+      updateURL();
+    }
+    function updateURL() {
+      history.replaceState(null, null, locationQuery(parameters) + window.location.hash);
+    }
+    // Render <GraphiQL /> into the body.
+    ReactDOM.render(
+      React.createElement(GraphiQL, {
+        fetcher: fetcher,
+        onEditQuery: onEditQuery,
+        onEditVariables: onEditVariables,
+        onEditOperationName: onEditOperationName,
+      }),
+      document.body
+    );
+  </script>
 
-      // Render <GraphiQL /> into the body.
-      ReactDOM.render(
-        React.createElement(GraphiQL, {
-          fetcher: graphQLFetcher,
-          query: parameters.query,
-          variables: parameters.variables,
-          onEditQuery: onEditQuery,
-          onEditVariables: onEditVariables
-        }),
-        document.body
-      );
-    </script>
-  </body>
+</body>
 </html>
