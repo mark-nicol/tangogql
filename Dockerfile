@@ -14,7 +14,7 @@ FROM continuumio/miniconda3
 RUN apt-get update
 RUN apt-get -y install build-essential
 ADD environment.yml /tmp/environment.yml
-RUN conda env create --name graphql python=3.5 --file=/tmp/environment.yml
+RUN conda env create --name graphql python=3.6 --file=/tmp/environment.yml
 
 RUN git clone https://gitlab.maxiv.lu.se/vinmic/python3-taurus-core.git
 WORKDIR python3-taurus-core
