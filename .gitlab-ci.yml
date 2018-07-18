@@ -1,10 +1,16 @@
 unit_test:
+  before_script:
+    - apt-get update
+    - apt-get -y install build-essential
+    - conda env create --name graphql python=3.6 --file=environment.yml
+    - conda activate graphql
+    - pip install git+https://gitlab.maxiv.lu.se/vinmic/python3-taurus-core.git
   stage: test
   script:
     - python test.py
   only:
     - master
-  tags: [maxiv-centos7]
+  tags: [miniconda3]
 
 build_image:
   before_script:
