@@ -103,19 +103,3 @@ setAttributeValue_none_exist_device = """mutation{setAttributeValue(device : "sy
   message,
 
 }} """
-
-subscription_sub_change_event = """ subscription{
-                                      subChangeEvent(subList:["sys/tg_test/1/ampli"]){
-                                        eventType,
-                                        attribute {
-                                          name
-                                          device
-                                        },
-                                        data {
-                                          value
-                                          wValue
-                                          quality
-                                          time
-                                        }
-                                      }
-                                    } """
