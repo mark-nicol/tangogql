@@ -3,7 +3,7 @@ unit_test:
     - apt-get update
     - apt-get -y install build-essential
     - conda env create --name graphql python=3.6 --file=environment.yml
-    - conda activate graphql
+    - source activate graphql
     - pip install git+https://gitlab.maxiv.lu.se/vinmic/python3-taurus-core.git
   stage: test
   script:
