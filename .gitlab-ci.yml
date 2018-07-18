@@ -6,7 +6,7 @@ unit_test:
   script:
     - python test.py
   only:
-    - merge-requests
+    - master
   tags: [maxiv-centos7]
 
 build_image:
