@@ -380,11 +380,11 @@ class Device(TangoSomething, Interface):
     commands = List(DeviceCommand, pattern=String())
     server = List(DeviceInfo)
 
-    device_class = String()
+    #device_class = String()
     #server = String()
     pid = Int()
-    started_date = Float()
-    stopped_date = Float()
+    started_date = String()
+    stopped_date = String()
     exported = Boolean()
 
     def resolve_state(self,info):
@@ -397,8 +397,7 @@ class Device(TangoSomething, Interface):
         try:
             proxy = proxies.get(self.name)
             return proxy.state()
-        except PyTango.DevFailed or PyTango.ConnectionFailed or PyTango.CommunicationFailed or PyTango.DeviceUnlocked as error:
-            #e = error.args[0]
+        except PyTango.DevFailed or PyTango.ConnectionFailed or PyTango.CommunicationFailed or PyTango.DeviceUnlocked:
             return "UNKNOWN"
         except Exception as e:
             return str(e)
@@ -497,6 +496,10 @@ class Device(TangoSomething, Interface):
         return self.info.exported
     def resolve_pid(self,info):
         return self.info.pid
+    def resolve_started_date(self,info):
+        return self.info.started_date
+    def resolve_stopped_date(self,info):
+        return self.info.stopped_date
 
     @property
     def info(self):
@@ -699,9 +702,6 @@ class Query(ObjectType):
         # useful to limit the number of children. Let's fake it!
         rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
         return [Server(name=srv) for srv in sorted(servers) if rule.match(srv)]
-
-    name = graphene.String()
-    age = graphene.Int()
 
 class DatabaseMutations(ObjectType):
     """ This class contains all the mutations. """

@@ -5,13 +5,21 @@ build_image:
   stage: build
   script:
     - docker build . -t docker.maxiv.lu.se/graphql
-    - docker push docker.maxiv.lu.se/graphql
+    - docker build . --file Dockerfile-test -t graphql-test     
   only:
     - master
+
+# unit_test:
+#   stage: test
+#   script:
+#     - docker run graphql-test   
+#   only:
+#     - master
 
 deploy_image:
   stage: deploy
   script:
+  - docker push docker.maxiv.lu.se/graphql
   - "curl -H 'Authorization: Bearer gOj9o8s3RapHiThfNbImaFYMDoOKTG' -k --request POST https://ansible.maxiv.lu.se/api/v2/job_templates/6/launch/"
   only:
     - master
