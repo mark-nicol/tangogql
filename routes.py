@@ -16,7 +16,7 @@ async def graphiql(request):
 async def db_handler(request):
     "serve GraphQL queries"
     payload = await request.json()
-    response = await tangoschema. execute(payload.get('query',''),return_promise = True)
+    response = await tangoschema. execute(payload.get('query'),variable_values=payload.get('variables'),return_promise = True)
     data = {}
     if response.errors:
         data['errors'] = [format_error(e) for e in response.errors]
