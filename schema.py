@@ -17,7 +17,6 @@ from collections import OrderedDict
 from collections import defaultdict
 import time
 from listener import TaurusWebAttribute
-#from directives import GraphQLUnlessDirective
 
 db = CachedDatabase(ttl=10)
 proxies = DeviceProxyCache()
