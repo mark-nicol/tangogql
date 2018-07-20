@@ -17,7 +17,6 @@ from collections import OrderedDict
 from collections import defaultdict
 import time
 from listener import TaurusWebAttribute
-#from directives import GraphQLUnlessDirective
 
 db = CachedDatabase(ttl=10)
 proxies = DeviceProxyCache()
@@ -299,7 +298,7 @@ class DeviceAttribute(Interface):
 
         """
 
-        #value = None
+        value = None
         try:
             proxy = proxies.get(self.device)
             att_data = proxy.read_attribute(self.name)
@@ -450,7 +449,7 @@ class Device(TangoSomething, Interface):
         for a in sorted_info:
             if rule.match(a.name):
                 if str(a.data_format) =="SCALAR":
-                    result.append(ScalarAttribute(
+                    result.append(ScalarDeviceAttribute(
                         name=a.name,
                         device=self.name,
                         writable=a.writable,
@@ -460,7 +459,7 @@ class Device(TangoSomething, Interface):
                         unit=a.unit,
                         description=a.description))
                 if str(a.data_format) =="SPECTRUM":
-                    result.append(SpectrumAttribute(
+                    result.append(SpectrumDeviceAttribute(
                         name=a.name,
                         device=self.name,
                         writable=a.writable,
@@ -470,7 +469,7 @@ class Device(TangoSomething, Interface):
                         unit=a.unit,
                         description=a.description))
                 if str(a.data_format) =="IMAGE":
-                    result.append(ImageAttribute(
+                    result.append(ImageDeviceAttribute(
                         name=a.name,
                         device=self.name,
                         writable=a.writable,
