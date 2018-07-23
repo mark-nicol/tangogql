@@ -17,7 +17,7 @@ from collections import OrderedDict
 from collections import defaultdict
 import time
 from listener import TaurusWebAttribute
-
+import math
 db = CachedDatabase(ttl=10)
 proxies = DeviceProxyCache()
 
@@ -79,6 +79,10 @@ class ScalarTypes(Scalar):
         #value of type DevState should return as string 
         if type(value).__name__ == "DevState":
             return str(value)
+        # json don't have support on infinity
+        elif isinstance(value,float):
+            if math.isinf(value):
+                return str(value)
         return value
     @staticmethod
     def serialize(value):
