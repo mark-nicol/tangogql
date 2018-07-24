@@ -44,7 +44,6 @@ domain_families = """query{domains(pattern: "sys"){
             members(pattern:"*"){
                 name,
             state,
-            deviceClass,
             pid,
             startedDate,
             stoppedDate,
@@ -55,19 +54,19 @@ domain_families = """query{domains(pattern: "sys"){
         }
     }}"""
 
-member_name = """ query{members(pattern:"0"){name}}"""
+member_name = """ query{members(domain:"sys" family:"tg_test"){name}}"""
 
-member_state = """ query{members(pattern:"0"){state}}"""
-member_deviceClass = """ query{members(pattern:"0"){deviceClass}}"""
-member_pid = """ query{members(pattern:"0"){pid}}"""
-member_startedDate = """ query{members(pattern:"0"){startedDate}}"""
-member_stoppedDate = """ query{members(pattern:"0"){stoppedDate} }"""
-member_exported = """ query{members(pattern:"0"){stoppedDate} }"""
-member_domain = """ query{members(pattern:"0"){domain}}"""
-member_family = """ query{members(pattern:"0"){family}}"""
+member_state = """ query{members(domain:"sys" family:"tg_test"){state}}"""
+#member_deviceClass = """ query{members(domain:"sys" family:"tg_test"){deviceClass}}"""
+member_pid = """ query{members(domain:"sys" family:"tg_test"){pid}}"""
+member_startedDate = """ query{members(domain:"sys" family:"tg_test"){startedDate}}"""
+member_stoppedDate = """ query{members(domain:"sys" family:"tg_test"){stoppedDate} }"""
+member_exported = """ query{members(domain:"sys" family:"tg_test"){exported} }"""
+member_domain = """ query{members(domain:"sys" family:"tg_test"){domain}}"""
+member_family = """ query{members(domain:"sys" family:"tg_test"){family}}"""
 # mutations
 putDeviceProperty = """mutation{putDeviceProperty(device : "sys/tg_test/1" name: "sommar" value: "solig"){ok,message}}"""
-deleteDeviceProperty = """mutation{deleteDeviceProperty(device : "Hej" name: "sommar"){ok,message}}"""
+deleteDeviceProperty = """mutation{deleteDeviceProperty(device : "sys/tg_test/1" name: "sommar"){ok,message}}"""
 executeDeviceCommand = """mutation{executeCommand(device : "sys/tg_test/1" command: "DevBoolean" argin: 1){ok,message,output}}"""
 
 executeDeviceCommand_wrong_input_type = """ mutation{executeCommand(device : "sys/tg_test/1" command: "DevBoolean" argin: sdfsdf){

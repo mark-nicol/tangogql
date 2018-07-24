@@ -25,4 +25,6 @@ WORKDIR web-maxiv-graphql
 
 # run the web service
 EXPOSE 5004
-CMD  /bin/bash -c "source activate graphql && TANGO_HOST=w-v-kitslab-csdb-0:10000 python test.py"
+
+ENV TANGO_HOST w-v-kitslab-csdb-0:10000
+CMD  /bin/bash -c "source activate graphql && python test.py"

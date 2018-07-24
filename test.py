@@ -98,13 +98,13 @@ class TestDeviceClass(unittest.TestCase):
         result = self.execute(queries.device_startedDate)
         assert ('devices' in result) == True 
         result = result['devices'][0]
-        assert isinstance(result['startedDate'],float) == True
+        assert isinstance(result['startedDate'],str) == True
 
     def test_device_resolve_stoppedDate(self):
         result = self.execute(queries.device_stoppedDate)
         assert ('devices' in result) == True 
         result = result['devices'][0]
-        assert isinstance(result['stoppedDate'],float) == True
+        assert isinstance(result['stoppedDate'],str) == True
     
 class TestDomainClass(unittest.TestCase):
     def setUp(self):
@@ -137,11 +137,9 @@ class TestDomainClass(unittest.TestCase):
         result = result['members'][0]
         assert (("name" in result) == True and isinstance(result['name'], str) == True)
         assert (("state" in result) == True and isinstance(result['state'], str) == True)
-        assert (("devicesClass" in result) == True and isinstance(result['deviceClass'], str) == True)
         assert (("pid" in result) == True and isinstance(result['pid'], int) == True)
-        assert (("startedDate" in result) == True and isinstance(result['startedDate'], float)== True)
-        assert (("startedDate" in result) == True and isinstance(result['startedDate'], float)== True)
-        assert (("stoppedDate" in result) == True and isinstance(result['stoppedDate'], float)== True)
+        assert (("startedDate" in result) == True and isinstance(result['startedDate'], str)== True)
+        assert (("stoppedDate" in result) == True and isinstance(result['stoppedDate'], str)== True)
         assert (("exported" in result) == True and isinstance(result['exported'], bool)== True)
         assert (("domain" in result) == True and isinstance(result['domain'], str)== True)
         assert (("family" in result) == True and isinstance(result['family'], str)== True)
@@ -167,12 +165,12 @@ class TestMemberClass(unittest.TestCase):
         assert ('state' in result) == True
         assert (isinstance(result['state'],str)) == True
     
-    def test_member_resolve_deviceClass(self):
+    """ def test_member_resolve_deviceClass(self):
         result = self.execute(queries.member_deviceClass)
         assert ('members' in result) == True
         result = result['members'][0]
         assert ('deviceClass' in result) == True
-        assert (isinstance(result['deviceClass'],str)) == True
+        assert (isinstance(result['deviceClass'],str)) == True """
 
     def test_member_resolve_pid(self):
         result = self.execute(queries.member_pid)
@@ -185,15 +183,15 @@ class TestMemberClass(unittest.TestCase):
         result = self.execute(queries.member_startedDate)
         assert ('members' in result) == True
         result = result['members'][0]
-        assert ('startDate' in result) == True
-        assert (isinstance(result['startDate'],float)) == True
+        assert ('startedDate' in result) == True
+        assert (isinstance(result['startedDate'],str)) == True
 
     def test_member_resolve_stoppedDate(self):
             result = self.execute(queries.member_stoppedDate)
             assert ('members' in result) == True
             result = result['members'][0]
             assert ('stoppedDate' in result) == True
-            assert (isinstance(result['stoppedDate'],float)) == True
+            assert (isinstance(result['stoppedDate'],str)) == True
     
     def test_member_resolve_exported(self):
             result = self.execute(queries.member_exported)
@@ -213,8 +211,8 @@ class TestMemberClass(unittest.TestCase):
         result = self.execute(queries.member_family)
         assert ('members' in result) == True
         result = result['members'][0]
-        assert ('families' in result) == True
-        assert (isinstance(result['families'],str)) == True
+        assert ('family' in result) == True
+        assert (isinstance(result['family'],str)) == True
     
 # Test of mutation classes
 
@@ -304,6 +302,16 @@ class TestSetAttributeValueClass(unittest.TestCase):
 
     def execute(self,query):
         return  (self.client.execute(query))['data']
+        
+    def test_setAttributeValue_mutate_none_exist_attr(self):
+        result = self.execute(queries.setAttributeValue_none_exist_attr)
+        assert ("setAttributeValue" in result) == True
+        result = result['setAttributeValue']
+        assert ("ok" in result) and isinstance(result['ok'], bool) == True 
+        assert result['ok'] == False
+        assert (("message"in result) and isinstance(result['message'],list))== True
+        for m in result['message']:
+            assert (isinstance(m, str)  == True)
 
     def test_setAttributeValue_mutate(self):
         result = self.execute(queries.setAttributeValue)
@@ -314,8 +322,8 @@ class TestSetAttributeValueClass(unittest.TestCase):
         assert (("message"in result) and isinstance(result['message'],list))== True
         for m in result['message']:
             assert (isinstance(m, str)  == True) 
-        assert result["message"][0] == "Success"
-
+        assert result["message"][0] == "Success" 
+ 
     def test_setAttributeValue_mutate_wrong_input_type(self):
             result = self.execute(queries.setAttributeValue_wrong_input_type)
             assert ("setAttributeValue" in result) == True
@@ -325,16 +333,6 @@ class TestSetAttributeValueClass(unittest.TestCase):
             assert (("message"in result) and isinstance(result['message'],list))== True
             for m in result['message']:
                 assert (isinstance(m, str)  == True) 
-    
-    def test_setAttributeValue_mutate_none_exist_attr(self):
-        result = self.execute(queries.setAttributeValue_none_exist_attr)
-        assert ("setAttributeValue" in result) == True
-        result = result['setAttributeValue']
-        assert ("ok" in result) and isinstance(result['ok'], bool) == True 
-        assert result['ok'] == False
-        assert (("message"in result) and isinstance(result['message'],list))== True
-        for m in result['message']:
-            assert (isinstance(m, str)  == True) 
 
 if __name__=='__main__':
     unittest.main()

@@ -1,20 +1,29 @@
 before_script:
   - docker info
 
+# unit_test:
+#   stage: test
+#   script:
+#      - python test.py
+#   only:
+#     - merge-requests
+#   tags: [maxiv-centos7]
+
+
 build_image:
   stage: build
   script:
     - docker build . -t docker.maxiv.lu.se/graphql
-    - docker build . --file Dockerfile-test -t graphql-test     
   only:
     - master
 
-# unit_test:
-#   stage: test
-#   script:
-#     - docker run graphql-test   
-#   only:
-#     - master
+unit_test:
+  stage: test
+  script:
+    - docker build . -f Dockerfile-test -t graphql-test
+    - docker run graphql-test
+  only:
+    - master
 
 deploy_image:
   stage: deploy
