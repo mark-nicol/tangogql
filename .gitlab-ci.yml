@@ -17,13 +17,13 @@ build_image:
   only:
     - master
 
-unit_test:
-  stage: test
-  script:
-    - docker build . -f Dockerfile-test -t graphql-test
-    - docker run graphql-test
-  only:
-    - master
+# unit_test:
+#  stage: test
+#  script:
+#    - docker build . -f Dockerfile-test -t graphql-test
+#    - docker run graphql-test
+#  only:
+#    - master
 
 deploy_image:
   stage: deploy
