@@ -273,7 +273,7 @@ class DeleteDeviceProperty(Mutation):
         except Exception as e:
             return DeleteDeviceProperty(ok= False, message = [str(e)])
 
-class DeviceAttribute(TangoSomething, Interface):
+class DeviceAttribute(Interface):
 
     """ This class represents an attribute of a device.  """
 
@@ -288,7 +288,7 @@ class DeviceAttribute(TangoSomething, Interface):
     value = ScalarTypes()
     quality = String()
     timestamp = Int()
-
+        
     def resolve_value(self, *args, **kwargs):
 
         """ This method fetch the coresponding value of an attribute bases on its name.
@@ -298,7 +298,7 @@ class DeviceAttribute(TangoSomething, Interface):
 
         """
 
-        value = None
+        #value = None
         try:
             proxy = proxies.get(self.device)
             att_data = proxy.read_attribute(self.name)
@@ -309,12 +309,12 @@ class DeviceAttribute(TangoSomething, Interface):
                 else:
                     value = att_data.value.tolist()
             else: # SCALAR
-                value = att_data.value
+                    value = att_data.value 
         except PyTango.DevFailed or PyTango.ConnectionFailed or PyTango.CommunicationFailed or PyTango.DeviceUnlocked as error:
             e = error.args[0]
             return [e.desc,e.reason]
         except Exception as e:
-            return str(e) 
+            return str(e)
         return value
 
     def resolve_quality(self, *args, **kwargs):
@@ -352,6 +352,18 @@ class DeviceAttribute(TangoSomething, Interface):
         except:
             pass
         return value
+
+class ScalarDeviceAttribute(TangoSomething,ObjectType):
+    class Meta:
+        interfaces = (DeviceAttribute,)
+
+class ImageDeviceAttribute(TangoSomething,ObjectType):
+    class Meta:
+        interfaces = (DeviceAttribute,)
+
+class SpectrumDeviceAttribute(TangoSomething,ObjectType):
+    class Meta: 
+        interfaces = (DeviceAttribute,)
 
 class DeviceCommand(TangoSomething, Interface):
     """ This class represents an command and its properties. """
@@ -432,17 +444,41 @@ class Device(TangoSomething, Interface):
         proxy = proxies.get(self.name)
         attr_infos = proxy.attribute_list_query()
         rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
-        return [DeviceAttribute(
-            name=a.name,
-            device=self.name,
-            writable=a.writable,
-            datatype=PyTango.CmdArgType.values[a.data_type],
-            dataformat=a.data_format,
-            label=a.label,
-            unit=a.unit,
-            description=a.description)
-                for a in sorted(attr_infos, key=attrgetter("name"))
-                                if rule.match(a.name)]
+        sorted_info = sorted(attr_infos,key=attrgetter("name"))
+        result = []
+        for a in sorted_info:
+            if rule.match(a.name):
+                if str(a.data_format) =="SCALAR":
+                    result.append(ScalarDeviceAttribute(
+                        name=a.name,
+                        device=self.name,
+                        writable=a.writable,
+                        datatype=PyTango.CmdArgType.values[a.data_type],
+                        dataformat=a.data_format,
+                        label=a.label,
+                        unit=a.unit,
+                        description=a.description))
+                if str(a.data_format) =="SPECTRUM":
+                    result.append(SpectrumDeviceAttribute(
+                        name=a.name,
+                        device=self.name,
+                        writable=a.writable,
+                        datatype=PyTango.CmdArgType.values[a.data_type],
+                        dataformat=a.data_format,
+                        label=a.label,
+                        unit=a.unit,
+                        description=a.description))
+                if str(a.data_format) =="IMAGE":
+                    result.append(ImageDeviceAttribute(
+                        name=a.name,
+                        device=self.name,
+                        writable=a.writable,
+                        datatype=PyTango.CmdArgType.values[a.data_type],
+                        dataformat=a.data_format,
+                        label=a.label,
+                        unit=a.unit,
+                        description=a.description))
+        return result
 
     def resolve_commands(self, info, pattern="*"):
         """ This method fetch all the commands of a device.
@@ -851,9 +887,11 @@ class EventKeeper:
             self._latest[event_type].update(events)
         return tmp
 
-tangoschema = graphene.Schema(query=Query, mutation=DatabaseMutations, subscription = Subscription)
-
-
+tangoschema = graphene.Schema(query=Query, mutation=DatabaseMutations, subscription = Subscription, 
+                            types = [ScalarDeviceAttribute,
+                                    ImageDeviceAttribute,
+                                    SpectrumDeviceAttribute,
+                                    DeviceAttribute])
 if __name__ == "__main__":
 
     # test/example
