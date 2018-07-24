@@ -17,7 +17,7 @@ from collections import OrderedDict
 from collections import defaultdict
 import time
 from listener import TaurusWebAttribute
-
+import math
 db = CachedDatabase(ttl=10)
 proxies = DeviceProxyCache()
 
@@ -79,6 +79,10 @@ class ScalarTypes(Scalar):
         #value of type DevState should return as string 
         if type(value).__name__ == "DevState":
             return str(value)
+        # json don't have support on infinity
+        elif isinstance(value,float):
+            if math.isinf(value):
+                return str(value)
         return value
     @staticmethod
     def serialize(value):
@@ -298,7 +302,7 @@ class DeviceAttribute(Interface):
 
         """
 
-        #value = None
+        value = None
         try:
             proxy = proxies.get(self.device)
             att_data = proxy.read_attribute(self.name)
@@ -353,17 +357,14 @@ class DeviceAttribute(Interface):
             pass
         return value
 
-class ScalarDeviceAttribute(TangoSomething,ObjectType):
-    class Meta:
-        interfaces = (DeviceAttribute,)
+class ScalarDeviceAttribute(TangoSomething,interfaces = [DeviceAttribute]):
+    pass
+    
+class ImageDeviceAttribute(TangoSomething,interfaces = [DeviceAttribute]):
+    pass
 
-class ImageDeviceAttribute(TangoSomething,ObjectType):
-    class Meta:
-        interfaces = (DeviceAttribute,)
-
-class SpectrumDeviceAttribute(TangoSomething,ObjectType):
-    class Meta: 
-        interfaces = (DeviceAttribute,)
+class SpectrumDeviceAttribute(TangoSomething,interfaces = [DeviceAttribute]):
+    pass
 
 class DeviceCommand(TangoSomething, Interface):
     """ This class represents an command and its properties. """
@@ -763,16 +764,13 @@ class ConfigData(ObjectType):
 
 class Event(Interface):
     event_type = String()
-    attribute = Field(DeviceAttribute)
+    device = String()
+    name = String()
 
-class ChangeEvent(ObjectType):
-    class Meta:
-        interfaces = (Event,)
+class ChangeEvent(ObjectType,interfaces = [Event]):
     data = Field(ChangeData)
 
-class ConfigEvent(ObjectType):
-    class Meta:
-        interfaces = (Event,)
+class ConfigEvent(ObjectType, interfaces = [Event]):
     data = Field(ConfigData)
 
 # Contains subscribed attributes
@@ -780,14 +778,15 @@ change_listeners = {}
 config_listeners ={}
 
 class Subscription(ObjectType):
-    sub_change_event = Field(List(ChangeEvent),sub_list = List(String))
-    unsub_config_event = String(unsub_list = List(String))
-    unsub_change_event = String(unsub_list = List(String))
-    sub_config_event = Field(List(ConfigEvent),sub_list = List(String))
+    change_event = List(ChangeEvent,models = List(String))
+    config_event = List(ConfigEvent,models = List(String))
+    unsub_config_event = String(models = List(String))
+    unsub_change_event = String(models = List(String))
     
-    async def resolve_sub_change_event(self,info,sub_list = []):
+    async def resolve_change_event(self,info,models = []):
+        
         keeper = EventKeeper()
-        for attr in sub_list:
+        for attr in models:
             l = TaurusWebAttribute(attr, keeper)
             change_listeners[attr] = l
         i = 0
@@ -801,18 +800,20 @@ class Subscription(ObjectType):
                         data = ChangeData(value = value['value'],
                                         w_value = value['w_value'],
                                         quality = value['quality'],
-                                        time = value['time'])  
+                                        time = value['time']) 
                         event = ChangeEvent(event_type = event_type, 
-                                            attribute = DeviceAttribute(device = device,name = attr),
+                                            device = device,
+                                            name = attr,
                                             data = data)
                         evt_list.append(event)  
             if evt_list:
                 yield evt_list
             await asyncio.sleep(1.0)
+        
 
-    async def resolve_sub_config_event(self, info, sub_list = []):
+    async def resolve_config_event(self, info, models = []):
         keeper = EventKeeper()
-        for attr in sub_list:
+        for attr in models:
             l = TaurusWebAttribute(attr, keeper)
             config_listeners[attr] = l
         i = 0
@@ -831,16 +832,17 @@ class Subscription(ObjectType):
                                         data_type = value['data_type']    
                                     )
                         event = ConfigEvent(event_type = event_type,
-                                            attribute = DeviceAttribute(device = device,name = attr),
+                                            device = device,
+                                            name = attr,
                                             data = data)
                         evt_list.append(event)  
             if evt_list:
                 yield evt_list
             await asyncio.sleep(1.0)
-    async def resolve_unsub_change_event(self, info,unsub_list = []):
+    async def resolve_unsub_change_event(self, info,models = []):
         result = []
         if change_listeners:
-            for attr in unsub_list:
+            for attr in models:
                 listener = change_listeners[attr]
                 if listener:
                     listener.clear()
@@ -851,10 +853,10 @@ class Subscription(ObjectType):
             yield "No attribute to unsubscribe"
         
 
-    async def resolve_unsub_config_event(self, info,unsub_list = []):
+    async def resolve_unsub_config_event(self, info,models = []):
         result = []
         if config_listeners:
-            for attr in unsub_list:
+            for attr in models:
                 listener = config_listeners[attr]
                 if listener:
                     listener.clear()
@@ -887,11 +889,14 @@ class EventKeeper:
             self._latest[event_type].update(events)
         return tmp
 
-tangoschema = graphene.Schema(query=Query, mutation=DatabaseMutations, subscription = Subscription, 
-                            types = [ScalarDeviceAttribute,
-                                    ImageDeviceAttribute,
-                                    SpectrumDeviceAttribute,
-                                    DeviceAttribute])
+
+
+tangoschema = graphene.Schema(query=Query, mutation=DatabaseMutations, subscription = Subscription,
+                               types = [ScalarDeviceAttribute,
+                                        ImageDeviceAttribute,
+                                        SpectrumDeviceAttribute] 
+                            )
+
 if __name__ == "__main__":
 
     # test/example
