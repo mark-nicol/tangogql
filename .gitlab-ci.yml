@@ -14,14 +14,14 @@ build_image:
   stage: build
   script:
     - docker build . -t docker.maxiv.lu.se/graphql
-    - docker build . -f Dockerfile-test -t graphql-test     
   only:
     - master
 
 unit_test:
   stage: test
   script:
-    - docker run graphql-test   
+    - docker build . -f Dockerfile-test -t graphql-test
+    - docker run graphql-test
   only:
     - master
 
