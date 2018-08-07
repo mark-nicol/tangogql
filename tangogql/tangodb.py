@@ -6,7 +6,7 @@ from collections import OrderedDict
 
 import PyTango
 
-from ttldict import TTLDict
+from tangogql.ttldict import TTLDict
 
 
 class CachedMethod(object):

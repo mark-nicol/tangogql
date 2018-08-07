@@ -2,7 +2,7 @@
 
 ## General
 
-- [ ] Clean up the documentation files/folders generated from sphinx
+- [x] Clean up the documentation files/folders generated from sphinx
 - [ ] Move the tests to a test folder
 - [ ] Move the tests to use PyTests and Coverage
 - [ ] Create a module folder and move the source code there?
@@ -24,6 +24,7 @@
 ## aioserver.py
 
 - [ ] Clean imports
+- [ ] Correct the info about the hostname
 
 ## Dockerfile
 
@@ -50,6 +51,7 @@
 - [ ] Re-estructure it a bit, following the template
 - [ ] Move unnecessary explanations to the documentation
 - [ ] Improve the format
+- [ ] Correct the URL shown at starting the server. (maybe localhost)
 
 ## requirements.txt
 

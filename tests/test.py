@@ -1,6 +1,6 @@
 import unittest
 from graphene.test import Client
-from schema import tangoschema
+from tangogql.schema import tangoschema
 import queries
 class TestDeviceClass(unittest.TestCase):
     def setUp(self):

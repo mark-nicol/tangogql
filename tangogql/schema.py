@@ -1,23 +1,27 @@
 """A GraphQL schema for TANGO."""
 
+import math
 import fnmatch
 import re
 from collections import defaultdict
 from operator import attrgetter
 import json
+
 import PyTango
+
 import graphene
 from graphene import (Boolean, Field, Float, Int, Interface, List, Mutation,
                       ObjectType, String, Union,Scalar,Dynamic)
-from tangodb import CachedDatabase, DeviceProxyCache
 from graphene.types import Scalar
 from graphql.language import ast
 import asyncio
 from collections import OrderedDict
 from collections import defaultdict
 import time
-from listener import TaurusWebAttribute
-import math
+
+from tangogql.listener import TaurusWebAttribute
+from tangogql.tangodb import CachedDatabase, DeviceProxyCache
+
 db = CachedDatabase(ttl=10)
 proxies = DeviceProxyCache()
 
