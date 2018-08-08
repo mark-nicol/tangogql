@@ -3,9 +3,9 @@
 ## General
 
 - [x] Clean up the documentation files/folders generated from sphinx
-- [ ] Move the tests to a test folder
+- [x] Move the tests to a test folder
 - [ ] Move the tests to use PyTests and Coverage
-- [ ] Create a module folder and move the source code there?
+- [x] Create a module folder and move the source code there?
 - [ ] Missing setup.py (and maybe .cfg is needed for packaging)
 - [ ] Missing LICENSE file
 - [ ] Can we remove the static folder?
@@ -90,7 +90,7 @@ https://www.tutorialspoint.com/python3/python_exceptions.htm
 
 ## test.py
 
-- [ ] Move tests to pytest
+- [x] Move tests to pytest - Not really needed, they can be ran with pytest anyway.
 - [ ] Don't use more than one assert per test, like this we can remove a lot of duplications
 - [ ] Split (if possible) the different classes in different modules
 - [ ] Use fixtures
@@ -99,3 +99,24 @@ https://www.tutorialspoint.com/python3/python_exceptions.htm
 
 - [ ] Remove duplication of ```if now is None ...```
 - [ ] in __setitem__ we can improve the performance is we make the if ... is not None
+
+
+## General Notes While Refactoring
+
+To run the tests with pytest:
+
+```
+pytest --cov=tangogql tests/test.py
+```
+
+You need to have installed:
+
+- pytest
+- coverage
+- pytest-cov
+
+To test adding an html report:
+
+```
+pytest --cov-report term-missing --cov-report html --cov=tangogql tests/test.py
+```
