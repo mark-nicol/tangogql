@@ -1,5 +1,5 @@
 Documentation for the Code
 **************************
 
-.. automodule:: schema
+.. automodule:: tangogql.schema
    :members:

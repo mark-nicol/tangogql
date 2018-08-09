@@ -42,445 +42,710 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="module-schema">
-<span id="documentation-for-the-code"></span><h1>Documentation for the Code<a class="headerlink" href="#module-schema" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-tangogql.schema">
+<span id="documentation-for-the-code"></span><h1>Documentation for the Code<a class="headerlink" href="#module-tangogql.schema" title="Permalink to this headline">¶</a></h1>
 <p>A GraphQL schema for TANGO.</p>
 <dl class="class">
-<dt id="schema.DatabaseMutations">
-<em class="property">class </em><code class="descclassname">schema.</code><code class="descname">DatabaseMutations</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#DatabaseMutations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.DatabaseMutations" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.ChangeData">
+<em class="property">class </em><code class="descclassname">tangogql.schema.</code><code class="descname">ChangeData</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#ChangeData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.ChangeData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="tangogql.schema.ChangeEvent">
+<em class="property">class </em><code class="descclassname">tangogql.schema.</code><code class="descname">ChangeEvent</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#ChangeEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.ChangeEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="tangogql.schema.ConfigData">
+<em class="property">class </em><code class="descclassname">tangogql.schema.</code><code class="descname">ConfigData</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#ConfigData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.ConfigData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="tangogql.schema.ConfigEvent">
+<em class="property">class </em><code class="descclassname">tangogql.schema.</code><code class="descname">ConfigEvent</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#ConfigEvent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.ConfigEvent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="tangogql.schema.DatabaseMutations">
+<em class="property">class </em><code class="descclassname">tangogql.schema.</code><code class="descname">DatabaseMutations</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#DatabaseMutations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.DatabaseMutations" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class contains all the mutations.</p>
 </dd></dl>
 
 <dl class="class">
-<dt id="schema.DeleteDeviceProperty">
-<em class="property">class </em><code class="descclassname">schema.</code><code class="descname">DeleteDeviceProperty</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#DeleteDeviceProperty"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.DeleteDeviceProperty" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.DeleteDeviceProperty">
+<em class="property">class </em><code class="descclassname">tangogql.schema.</code><code class="descname">DeleteDeviceProperty</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#DeleteDeviceProperty"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.DeleteDeviceProperty" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class represents mutation for deleting property of a device.</p>
 <dl class="method">
-<dt id="schema.DeleteDeviceProperty.mutate">
-<code class="descname">mutate</code><span class="sig-paren">(</span><em>info</em>, <em>device</em>, <em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#DeleteDeviceProperty.mutate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.DeleteDeviceProperty.mutate" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.DeleteDeviceProperty.mutate">
+<code class="descname">mutate</code><span class="sig-paren">(</span><em>info</em>, <em>device</em>, <em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#DeleteDeviceProperty.mutate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.DeleteDeviceProperty.mutate" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method delete a property of a device.</p>
-<dl class="docutils">
-<dt>Args: </dt>
-<dd>device(str): name of the device.
-name(str): name of the property.</dd>
-<dt>Returns:</dt>
-<dd>value(DeleteDeviceProperty):Returns ok = True and message = Success if successful,
-ok = False otherwise.If exception has been raised returns message = error_message.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>device</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Name of the device</li>
+<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Name of the property</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Returns ok = True and message = Success if successful,
+ok = False otherwise.
+If exception has been raised returns message = error_message.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#tangogql.schema.DeleteDeviceProperty" title="tangogql.schema.DeleteDeviceProperty">DeleteDeviceProperty</a></p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="schema.Device">
-<em class="property">class </em><code class="descclassname">schema.</code><code class="descname">Device</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#Device"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.Device" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.Device">
+<em class="property">class </em><code class="descclassname">tangogql.schema.</code><code class="descname">Device</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#Device"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.Device" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class represent a device.</p>
 <dl class="attribute">
-<dt id="schema.Device.info">
-<code class="descname">info</code><a class="headerlink" href="#schema.Device.info" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.Device.info">
+<code class="descname">info</code><a class="headerlink" href="#tangogql.schema.Device.info" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method fetch all the information of a device.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="schema.Device.resolve_attributes">
-<code class="descname">resolve_attributes</code><span class="sig-paren">(</span><em>info</em>, <em>pattern='*'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#Device.resolve_attributes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.Device.resolve_attributes" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.Device.resolve_attributes">
+<code class="descname">resolve_attributes</code><span class="sig-paren">(</span><em>info</em>, <em>pattern='*'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#Device.resolve_attributes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.Device.resolve_attributes" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method fetch all the attributes and its’ properties of a device.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd>pattern(str):  Pattern for filtering the result. Returns only properties that match the pattern.</dd>
-<dt>Returns:</dt>
-<dd>attributes([DeviceAttribute]): List of attributes of the device.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pattern</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Pattern for filtering the result.
+Returns only properties that match the pattern.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of attributes of the device.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">List of DeviceAttribute</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
-<dt id="schema.Device.resolve_commands">
-<code class="descname">resolve_commands</code><span class="sig-paren">(</span><em>info</em>, <em>pattern='*'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#Device.resolve_commands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.Device.resolve_commands" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.Device.resolve_commands">
+<code class="descname">resolve_commands</code><span class="sig-paren">(</span><em>info</em>, <em>pattern='*'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#Device.resolve_commands"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.Device.resolve_commands" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method fetch all the commands of a device.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd>pattern(str):  Pattern for filtering of the result. Returns only commands that match the pattern.</dd>
-<dt>Returns:</dt>
-<dd>commands([DeviceCommand]): List of commands of the device.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pattern</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Pattern for filtering of the result.
+Returns only commands that match the pattern.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of commands of the device.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">List of DeviceCommand</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
-<dt id="schema.Device.resolve_exported">
-<code class="descname">resolve_exported</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#Device.resolve_exported"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.Device.resolve_exported" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.Device.resolve_exported">
+<code class="descname">resolve_exported</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#Device.resolve_exported"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.Device.resolve_exported" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method fetch the infomation about the device if it is exported or not.</p>
-<dl class="docutils">
-<dt>Returns:</dt>
-<dd>exported(bool): True if exported, False otherwise.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if exported, False otherwise.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)">bool</a></td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
-<dt id="schema.Device.resolve_properties">
-<code class="descname">resolve_properties</code><span class="sig-paren">(</span><em>info</em>, <em>pattern='*'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#Device.resolve_properties"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.Device.resolve_properties" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.Device.resolve_properties">
+<code class="descname">resolve_properties</code><span class="sig-paren">(</span><em>info</em>, <em>pattern='*'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#Device.resolve_properties"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.Device.resolve_properties" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method fetch the properties of the device.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd>pattern(str): Pattern for filtering the result. Returns only properties that matches the pattern.</dd>
-<dt>Returns:</dt>
-<dd>properties([DeviceProperty]): List of properties for the device.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pattern</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Pattern for filtering the result. 
+Returns only properties that matches the pattern.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of properties for the device.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">List of DeviceProperty</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
-<dt id="schema.Device.resolve_server">
-<code class="descname">resolve_server</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#Device.resolve_server"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.Device.resolve_server" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.Device.resolve_server">
+<code class="descname">resolve_server</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#Device.resolve_server"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.Device.resolve_server" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method fetch the server infomation of a device.</p>
-<dl class="docutils">
-<dt>Returns:</dt>
-<dd>server([DeviceInfo]): List server info of a device.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">List server info of a device.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">List of DeviceInfo</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
-<dt id="schema.Device.resolve_state">
-<code class="descname">resolve_state</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#Device.resolve_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.Device.resolve_state" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.Device.resolve_state">
+<code class="descname">resolve_state</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#Device.resolve_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.Device.resolve_state" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method fetch the state of the device.</p>
-<dl class="docutils">
-<dt>Return:</dt>
-<dd>state(str): State of the device.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">State of the device.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a></td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="schema.DeviceAttribute">
-<em class="property">class </em><code class="descclassname">schema.</code><code class="descname">DeviceAttribute</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#DeviceAttribute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.DeviceAttribute" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.DeviceAttribute">
+<em class="property">class </em><code class="descclassname">tangogql.schema.</code><code class="descname">DeviceAttribute</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#DeviceAttribute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.DeviceAttribute" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class represents an attribute of a device.</p>
 <dl class="method">
-<dt id="schema.DeviceAttribute.resolve_quality">
-<code class="descname">resolve_quality</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#DeviceAttribute.resolve_quality"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.DeviceAttribute.resolve_quality" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.DeviceAttribute.resolve_quality">
+<code class="descname">resolve_quality</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#DeviceAttribute.resolve_quality"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.DeviceAttribute.resolve_quality" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method fetch the coresponding quality of an attribute bases on its name.</p>
-<dl class="docutils">
-<dt>Returns</dt>
-<dd>value(str): The quality of the attribute.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The quality of the attribute.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a></td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
-<dt id="schema.DeviceAttribute.resolve_timestamp">
-<code class="descname">resolve_timestamp</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#DeviceAttribute.resolve_timestamp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.DeviceAttribute.resolve_timestamp" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.DeviceAttribute.resolve_timestamp">
+<code class="descname">resolve_timestamp</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#DeviceAttribute.resolve_timestamp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.DeviceAttribute.resolve_timestamp" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method fetch the timestamp value of an attribute bases on its name.</p>
-<dl class="docutils">
-<dt>Returns:</dt>
-<dd>value(float): The timestamp value.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The timestamp value</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)">float</a></td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
-<dt id="schema.DeviceAttribute.resolve_value">
-<code class="descname">resolve_value</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#DeviceAttribute.resolve_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.DeviceAttribute.resolve_value" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.DeviceAttribute.resolve_value">
+<code class="descname">resolve_value</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#DeviceAttribute.resolve_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.DeviceAttribute.resolve_value" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method fetch the coresponding value of an attribute bases on its name.</p>
-<dl class="docutils">
-<dt>Returns:</dt>
-<dd>value(any): Value of the attribute.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Value of the attribute.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">Any</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="schema.DeviceClass">
-<em class="property">class </em><code class="descclassname">schema.</code><code class="descname">DeviceClass</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#DeviceClass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.DeviceClass" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.DeviceClass">
+<em class="property">class </em><code class="descclassname">tangogql.schema.</code><code class="descname">DeviceClass</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#DeviceClass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.DeviceClass" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="class">
-<dt id="schema.DeviceCommand">
-<em class="property">class </em><code class="descclassname">schema.</code><code class="descname">DeviceCommand</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#DeviceCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.DeviceCommand" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.DeviceCommand">
+<em class="property">class </em><code class="descclassname">tangogql.schema.</code><code class="descname">DeviceCommand</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#DeviceCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.DeviceCommand" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class represents an command and its properties.</p>
 </dd></dl>
 
 <dl class="class">
-<dt id="schema.DeviceInfo">
-<em class="property">class </em><code class="descclassname">schema.</code><code class="descname">DeviceInfo</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#DeviceInfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.DeviceInfo" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.DeviceInfo">
+<em class="property">class </em><code class="descclassname">tangogql.schema.</code><code class="descname">DeviceInfo</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#DeviceInfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.DeviceInfo" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class represents info of a device.</p>
 </dd></dl>
 
 <dl class="class">
-<dt id="schema.DeviceProperty">
-<em class="property">class </em><code class="descclassname">schema.</code><code class="descname">DeviceProperty</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#DeviceProperty"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.DeviceProperty" title="Permalink to this definition">¶</a></dt>
-<dd><p>This class represents property of a device.</p>
+<dt id="tangogql.schema.DeviceProperty">
+<em class="property">class </em><code class="descclassname">tangogql.schema.</code><code class="descname">DeviceProperty</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#DeviceProperty"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.DeviceProperty" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class represents a property of a device.</p>
 <dl class="method">
-<dt id="schema.DeviceProperty.resolve_value">
-<code class="descname">resolve_value</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#DeviceProperty.resolve_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.DeviceProperty.resolve_value" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.DeviceProperty.resolve_value">
+<code class="descname">resolve_value</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#DeviceProperty.resolve_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.DeviceProperty.resolve_value" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method fetch the value of the property by its name.</p>
-<dl class="docutils">
-<dt>Returns:</dt>
-<dd>values[str]: A list of string contains the values corespond to the name of the property.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list of string contains the values corespond to the name of
+the property.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a></td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="schema.Domain">
-<em class="property">class </em><code class="descclassname">schema.</code><code class="descname">Domain</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#Domain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.Domain" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.Domain">
+<em class="property">class </em><code class="descclassname">tangogql.schema.</code><code class="descname">Domain</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#Domain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.Domain" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class represent a domain.</p>
 <dl class="method">
-<dt id="schema.Domain.resolve_families">
-<code class="descname">resolve_families</code><span class="sig-paren">(</span><em>info</em>, <em>pattern='*'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#Domain.resolve_families"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.Domain.resolve_families" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.Domain.resolve_families">
+<code class="descname">resolve_families</code><span class="sig-paren">(</span><em>info</em>, <em>pattern='*'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#Domain.resolve_families"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.Domain.resolve_families" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method fetch a list of families using pattern.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd>pattern(str): Pattern for filtering of the result. Returns only families that match the pattern.</dd>
-<dt>Returns:</dt>
-<dd>families([Family]):List of families.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pattern</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Pattern for filtering of the result.
+Returns only families that match the pattern.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">families([Family]):List of families.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="schema.ExecuteDeviceCommand">
-<em class="property">class </em><code class="descclassname">schema.</code><code class="descname">ExecuteDeviceCommand</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#ExecuteDeviceCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.ExecuteDeviceCommand" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.Event">
+<em class="property">class </em><code class="descclassname">tangogql.schema.</code><code class="descname">Event</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#Event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.Event" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="tangogql.schema.EventKeeper">
+<em class="property">class </em><code class="descclassname">tangogql.schema.</code><code class="descname">EventKeeper</code><a class="reference internal" href="_modules/tangogql/schema.html#EventKeeper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.EventKeeper" title="Permalink to this definition">¶</a></dt>
+<dd><p>A simple wrapper that keeps the latest event values for
+each attribute.</p>
+<dl class="method">
+<dt id="tangogql.schema.EventKeeper.get">
+<code class="descname">get</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#EventKeeper.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.EventKeeper.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the latest accumulated events</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tangogql.schema.EventKeeper.put">
+<code class="descname">put</code><span class="sig-paren">(</span><em>model</em>, <em>action</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#EventKeeper.put"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.EventKeeper.put" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update a model</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tangogql.schema.ExecuteDeviceCommand">
+<em class="property">class </em><code class="descclassname">tangogql.schema.</code><code class="descname">ExecuteDeviceCommand</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#ExecuteDeviceCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.ExecuteDeviceCommand" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class represent a mutation for executing a command.</p>
 <dl class="method">
-<dt id="schema.ExecuteDeviceCommand.mutate">
-<code class="descname">mutate</code><span class="sig-paren">(</span><em>info</em>, <em>device</em>, <em>command</em>, <em>argin</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#ExecuteDeviceCommand.mutate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.ExecuteDeviceCommand.mutate" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.ExecuteDeviceCommand.mutate">
+<code class="descname">mutate</code><span class="sig-paren">(</span><em>info</em>, <em>device</em>, <em>command</em>, <em>argin=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#ExecuteDeviceCommand.mutate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.ExecuteDeviceCommand.mutate" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method executes a command.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd><p class="first">device(str): Name of the device that the command will be executed.</p>
-<p>command(str): Name of the command.</p>
-<p class="last">argin(str or int or bool or float): The input argument for the command.</p>
-</dd>
-<dt>Returns:</dt>
-<dd>value(ExecuteDeviceCommand): Return ok = True and message = Success 
-if the command executes successfully,
-False otherwise. When an input is not one of the scalar types 
-or an exception has been raised while executing the command, it 
-returns message = error_message.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>device</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Name of the device that the command will be executed.</li>
+<li><strong>command</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Name of the command</li>
+<li><strong>argin</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – The input argument for the command</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Return ok = True and message = Success
+if the command executes successfully, False otherwise.
+When an input is not one of the scalar types or an exception
+has been raised while executing the command, it returns
+message = error_message.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#tangogql.schema.ExecuteDeviceCommand" title="tangogql.schema.ExecuteDeviceCommand">ExecuteDeviceCommand</a></p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="schema.Family">
-<em class="property">class </em><code class="descclassname">schema.</code><code class="descname">Family</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#Family"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.Family" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.Family">
+<em class="property">class </em><code class="descclassname">tangogql.schema.</code><code class="descname">Family</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#Family"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.Family" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class represent a family.</p>
 <dl class="method">
-<dt id="schema.Family.resolve_members">
-<code class="descname">resolve_members</code><span class="sig-paren">(</span><em>info</em>, <em>pattern='*'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#Family.resolve_members"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.Family.resolve_members" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.Family.resolve_members">
+<code class="descname">resolve_members</code><span class="sig-paren">(</span><em>info</em>, <em>pattern='*'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#Family.resolve_members"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.Family.resolve_members" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method fetch members using the name of the domain and pattern.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd>pattern(str): Pattern for filtering of the result. Returns only members that match the pattern.</dd>
-<dt>Returns:</dt>
-<dd>members([Member]):List of members.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pattern</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Pattern for filtering of the result.
+Returns only members that match the pattern.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of members.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">List of Member</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="schema.Member">
-<em class="property">class </em><code class="descclassname">schema.</code><code class="descname">Member</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#Member"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.Member" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.ImageDeviceAttribute">
+<em class="property">class </em><code class="descclassname">tangogql.schema.</code><code class="descname">ImageDeviceAttribute</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#ImageDeviceAttribute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.ImageDeviceAttribute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="tangogql.schema.Member">
+<em class="property">class </em><code class="descclassname">tangogql.schema.</code><code class="descname">Member</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#Member"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.Member" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class represent a member.</p>
 <dl class="attribute">
-<dt id="schema.Member.info">
-<code class="descname">info</code><a class="headerlink" href="#schema.Member.info" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method fetch a member of the device using the name of the domain and family.</p>
+<dt id="tangogql.schema.Member.info">
+<code class="descname">info</code><a class="headerlink" href="#tangogql.schema.Member.info" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method fetch a member of the device using the name of the
+domain and family.</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="schema.PutDeviceProperty">
-<em class="property">class </em><code class="descclassname">schema.</code><code class="descname">PutDeviceProperty</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#PutDeviceProperty"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.PutDeviceProperty" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.PutDeviceProperty">
+<em class="property">class </em><code class="descclassname">tangogql.schema.</code><code class="descname">PutDeviceProperty</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#PutDeviceProperty"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.PutDeviceProperty" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class represents mutation for putting a device property.</p>
 <dl class="method">
-<dt id="schema.PutDeviceProperty.mutate">
-<code class="descname">mutate</code><span class="sig-paren">(</span><em>info</em>, <em>device</em>, <em>name</em>, <em>value=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#PutDeviceProperty.mutate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.PutDeviceProperty.mutate" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.PutDeviceProperty.mutate">
+<code class="descname">mutate</code><span class="sig-paren">(</span><em>info</em>, <em>device</em>, <em>name</em>, <em>value=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#PutDeviceProperty.mutate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.PutDeviceProperty.mutate" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method adds property to a device.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd>device(str): Name of a device.
-name(str):  Name of the property.
-value([str]): Value of the property.</dd>
-<dt>Returns:</dt>
-<dd>value(PutDeviceProperty):Returns ok = True and message = Success if successful, False otherwise.
-If an exception has been raised returns message = error_message.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>device</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Name of a device</li>
+<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Name of the property</li>
+<li><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Value of the property</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Returns ok = True and message = Success if successful,
+False otherwise.
+If an exception has been raised returns 
+message = error_message.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#tangogql.schema.PutDeviceProperty" title="tangogql.schema.PutDeviceProperty">PutDeviceProperty</a></p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="schema.Query">
-<em class="property">class </em><code class="descclassname">schema.</code><code class="descname">Query</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#Query"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.Query" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.Query">
+<em class="property">class </em><code class="descclassname">tangogql.schema.</code><code class="descname">Query</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#Query"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.Query" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class contains all the queries.</p>
 <dl class="method">
-<dt id="schema.Query.resolve_devices">
-<code class="descname">resolve_devices</code><span class="sig-paren">(</span><em>info</em>, <em>pattern='*'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#Query.resolve_devices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.Query.resolve_devices" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.Query.resolve_devices">
+<code class="descname">resolve_devices</code><span class="sig-paren">(</span><em>info</em>, <em>pattern='*'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#Query.resolve_devices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.Query.resolve_devices" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method fetches all the devices using the pattern.</p>
-<dl class="docutils">
-<dt>Args: </dt>
-<dd>pattern(str): Pattern for filtering the result. Returns only properties that matches the pattern.</dd>
-<dt>Returns:</dt>
-<dd>devices([Device]): List of devices.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pattern</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Pattern for filtering the result.
+Returns only properties that matches the pattern.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of devices.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">List of Device</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
-<dt id="schema.Query.resolve_domains">
-<code class="descname">resolve_domains</code><span class="sig-paren">(</span><em>info</em>, <em>pattern='*'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#Query.resolve_domains"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.Query.resolve_domains" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.Query.resolve_domains">
+<code class="descname">resolve_domains</code><span class="sig-paren">(</span><em>info</em>, <em>pattern='*'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#Query.resolve_domains"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.Query.resolve_domains" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method fetches all the domains using the pattern.</p>
-<dl class="docutils">
-<dt>Args: </dt>
-<dd>pattern(str): Pattern for filtering the result. Returns only properties that matches the pattern.</dd>
-<dt>Returns:</dt>
-<dd>domains([Domain]): List of domains.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pattern</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Pattern for filtering the result.
+Returns only properties that matches the pattern.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of domains.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">List of Domain</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
-<dt id="schema.Query.resolve_families">
-<code class="descname">resolve_families</code><span class="sig-paren">(</span><em>info</em>, <em>domain='*'</em>, <em>pattern='*'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#Query.resolve_families"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.Query.resolve_families" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.Query.resolve_families">
+<code class="descname">resolve_families</code><span class="sig-paren">(</span><em>info</em>, <em>domain='*'</em>, <em>pattern='*'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#Query.resolve_families"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.Query.resolve_families" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method fetches all the families using the pattern.</p>
-<dl class="docutils">
-<dt>Args: </dt>
-<dd>pattern(str): Pattern for filtering the result. Returns only properties that matches the pattern.</dd>
-<dt>Returns:</dt>
-<dd>families([Family]): List of families.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>domain</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Domain for filtering the result.</li>
+<li><strong>pattern</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Pattern for filtering the result.
+Returns only properties that matches the pattern.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">List of families.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">List of Family</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
-<dt id="schema.Query.resolve_members">
-<code class="descname">resolve_members</code><span class="sig-paren">(</span><em>info</em>, <em>domain='*'</em>, <em>family='*'</em>, <em>pattern='*'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#Query.resolve_members"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.Query.resolve_members" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.Query.resolve_members">
+<code class="descname">resolve_members</code><span class="sig-paren">(</span><em>info</em>, <em>domain='*'</em>, <em>family='*'</em>, <em>pattern='*'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#Query.resolve_members"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.Query.resolve_members" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method fetches all the members using the pattern.</p>
-<dl class="docutils">
-<dt>Args: </dt>
-<dd>pattern(str): Pattern for filtering the result. Returns only properties that matches the pattern.</dd>
-<dt>Returns:</dt>
-<dd>members([Domain]): List of members.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>domain</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Domain for filtering the result.</li>
+<li><strong>family</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Family for filtering the result.</li>
+<li><strong>pattern</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Pattern for filtering the result.
+Returns only properties that matches the pattern.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">List of members.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">List of Domain</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
-<dt id="schema.Query.resolve_servers">
-<code class="descname">resolve_servers</code><span class="sig-paren">(</span><em>info</em>, <em>pattern='*'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#Query.resolve_servers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.Query.resolve_servers" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.Query.resolve_servers">
+<code class="descname">resolve_servers</code><span class="sig-paren">(</span><em>info</em>, <em>pattern='*'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#Query.resolve_servers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.Query.resolve_servers" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method fetches all the servers using the pattern.</p>
-<dl class="docutils">
-<dt>Args: </dt>
-<dd>pattern(str): Pattern for filtering the result. Returns only properties that matches the pattern.</dd>
-<dt>Returns:</dt>
-<dd>servers([Domain]): List of servers.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pattern</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Pattern for filtering the result.
+Returns only properties that matches the pattern.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of servers.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">List of Server.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="schema.ScalarTypes">
-<em class="property">class </em><code class="descclassname">schema.</code><code class="descname">ScalarTypes</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#ScalarTypes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.ScalarTypes" title="Permalink to this definition">¶</a></dt>
-<dd><p>The ScalarTypes represents a geneneric scalar value that could be:
+<dt id="tangogql.schema.ScalarDeviceAttribute">
+<em class="property">class </em><code class="descclassname">tangogql.schema.</code><code class="descname">ScalarDeviceAttribute</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#ScalarDeviceAttribute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.ScalarDeviceAttribute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="tangogql.schema.ScalarTypes">
+<em class="property">class </em><code class="descclassname">tangogql.schema.</code><code class="descname">ScalarTypes</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#ScalarTypes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.ScalarTypes" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class makes it possible to have input and output of different types.</p>
+<p>The ScalarTypes represents a generic scalar value that could be:
 Int, String, Boolean, Float, List.</p>
 <dl class="staticmethod">
-<dt id="schema.ScalarTypes.coerce_type">
-<em class="property">static </em><code class="descname">coerce_type</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#ScalarTypes.coerce_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.ScalarTypes.coerce_type" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.ScalarTypes.coerce_type">
+<em class="property">static </em><code class="descname">coerce_type</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#ScalarTypes.coerce_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.ScalarTypes.coerce_type" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method just return the input value.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd>value(any)</dd>
-<dt>returns:</dt>
-<dd>value(any)</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> – Any</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Value (any)</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="schema.ScalarTypes.parse_literal">
-<em class="property">static </em><code class="descname">parse_literal</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#ScalarTypes.parse_literal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.ScalarTypes.parse_literal" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method is called when the value of type <em>ScalarTypes</em> is used as input.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd>value(any)</dd>
-<dt>Returns:</dt>
-<dd>value(bool or str or int or float or Exception): Return exception when it is not possible to parse the value 
-to one of the scalar types.</dd>
-</dl>
+<dt id="tangogql.schema.ScalarTypes.parse_literal">
+<em class="property">static </em><code class="descname">parse_literal</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#ScalarTypes.parse_literal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.ScalarTypes.parse_literal" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is called when the value of type <em>ScalarTypes</em> is used
+as input.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> – value(any)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Return an exception when it is not possible to parse the value
+to one of the scalar types.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)">bool</a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)">int</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)">float</a> or <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.7)">Exception</a></td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="schema.ScalarTypes.parse_value">
-<em class="property">static </em><code class="descname">parse_value</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#ScalarTypes.parse_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.ScalarTypes.parse_value" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method is called when an assigment is made.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd>value(any)</dd>
-<dt>Returns:</dt>
-<dd>value(any)</dd>
-</dl>
+<dt id="tangogql.schema.ScalarTypes.parse_value">
+<em class="property">static </em><code class="descname">parse_value</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#ScalarTypes.parse_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.ScalarTypes.parse_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is called when an assignment is made.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> – value(any)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">value(any)</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="schema.Server">
-<em class="property">class </em><code class="descclassname">schema.</code><code class="descname">Server</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#Server"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.Server" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.Server">
+<em class="property">class </em><code class="descclassname">tangogql.schema.</code><code class="descname">Server</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#Server"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.Server" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class represents a query for server.</p>
 <dl class="method">
-<dt id="schema.Server.resolve_instances">
-<code class="descname">resolve_instances</code><span class="sig-paren">(</span><em>info</em>, <em>pattern='*'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#Server.resolve_instances"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.Server.resolve_instances" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.Server.resolve_instances">
+<code class="descname">resolve_instances</code><span class="sig-paren">(</span><em>info</em>, <em>pattern='*'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#Server.resolve_instances"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.Server.resolve_instances" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method fetches all the intances using pattern.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd>pattern(str): Pattern for filtering the result. Returns only properties that matches the pattern.</dd>
-<dt>Returns:</dt>
-<dd>intances[ServerIntance]: List of intances.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pattern</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Pattern for filtering the result.
+Returns only properties that matches the pattern.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of intances.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">List of ServerIntance</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="schema.ServerInstance">
-<em class="property">class </em><code class="descclassname">schema.</code><code class="descname">ServerInstance</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#ServerInstance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.ServerInstance" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.ServerInstance">
+<em class="property">class </em><code class="descclassname">tangogql.schema.</code><code class="descname">ServerInstance</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#ServerInstance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.ServerInstance" title="Permalink to this definition">¶</a></dt>
 <dd><p>Not documented yet.</p>
 </dd></dl>
 
 <dl class="class">
-<dt id="schema.SetAttributeValue">
-<em class="property">class </em><code class="descclassname">schema.</code><code class="descname">SetAttributeValue</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#SetAttributeValue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.SetAttributeValue" title="Permalink to this definition">¶</a></dt>
-<dd><p>This class reprensents the mutation for setting value to an attribute.</p>
+<dt id="tangogql.schema.SetAttributeValue">
+<em class="property">class </em><code class="descclassname">tangogql.schema.</code><code class="descname">SetAttributeValue</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#SetAttributeValue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.SetAttributeValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class represents the mutation for setting value to an attribute.</p>
 <dl class="method">
-<dt id="schema.SetAttributeValue.mutate">
-<code class="descname">mutate</code><span class="sig-paren">(</span><em>info</em>, <em>device</em>, <em>name</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#SetAttributeValue.mutate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.SetAttributeValue.mutate" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.SetAttributeValue.mutate">
+<code class="descname">mutate</code><span class="sig-paren">(</span><em>info</em>, <em>device</em>, <em>name</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#SetAttributeValue.mutate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.SetAttributeValue.mutate" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method sets value to an attribute.</p>
-<dl class="docutils">
-<dt>Args:</dt>
-<dd>device(str): Name of the device.
-name(str): Name of the attribute.
-value(int or str or bool or float): The value to set.</dd>
-<dt>Returns:</dt>
-<dd>value(SetAttributeValue): return ok = True and message = Success if successful, 
-False otherwise.When an input is not one the scalar types 
-or an exception has been raised while setting the value 
-returns message = error_message.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>device</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Name of the device</li>
+<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – Name of the attribute</li>
+<li><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – The value to be set</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Return ok = True and message = Success if successful,
+False otherwise.
+When an input is not one the scalar types or an exception has
+been raised while setting the value returns 
+message = error_message.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#tangogql.schema.SetAttributeValue" title="tangogql.schema.SetAttributeValue">SetAttributeValue</a></p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="schema.TangoSomething">
-<em class="property">class </em><code class="descclassname">schema.</code><code class="descname">TangoSomething</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#TangoSomething"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.TangoSomething" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.SpectrumDeviceAttribute">
+<em class="property">class </em><code class="descclassname">tangogql.schema.</code><code class="descname">SpectrumDeviceAttribute</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#SpectrumDeviceAttribute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.SpectrumDeviceAttribute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="tangogql.schema.Subscription">
+<em class="property">class </em><code class="descclassname">tangogql.schema.</code><code class="descname">Subscription</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#Subscription"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.Subscription" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="tangogql.schema.TangoNodeType">
+<em class="property">class </em><code class="descclassname">tangogql.schema.</code><code class="descname">TangoNodeType</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#TangoNodeType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.TangoNodeType" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class represents type of a node in Tango.</p>
 <dl class="method">
-<dt id="schema.TangoSomething.resolve_nodetype">
-<code class="descname">resolve_nodetype</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/schema.html#TangoSomething.resolve_nodetype"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#schema.TangoSomething.resolve_nodetype" title="Permalink to this definition">¶</a></dt>
+<dt id="tangogql.schema.TangoNodeType.resolve_nodetype">
+<code class="descname">resolve_nodetype</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tangogql/schema.html#TangoNodeType.resolve_nodetype"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tangogql.schema.TangoNodeType.resolve_nodetype" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method gets the type of the node in Tango.</p>
-<dl class="docutils">
-<dt>Returns:</dt>
-<dd>name(str): Name of the type.</dd>
-</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Name of the type.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)">str</a></td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
@@ -542,7 +807,7 @@ returns message = error_message.</dd>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, linngu.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.5.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.6.
     </div>
   </body>
 </html>
