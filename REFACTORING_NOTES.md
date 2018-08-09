@@ -4,15 +4,16 @@
 
 - [x] Clean up the documentation files/folders generated from sphinx
 - [x] Move the tests to a test folder
-- [ ] Move the tests to use PyTests and Coverage
+- [x] Move the tests to use PyTests and Coverage
 - [x] Create a module folder and move the source code there?
 - [ ] Missing setup.py (and maybe .cfg is needed for packaging)
 - [ ] Missing LICENSE file
 - [ ] Can we remove the static folder?
 - [ ] Run PEP8 or Flake8 on the project
 - [ ] Document the different modules
-- [ ] Check the coverage
 - [ ] Use the new formating system for the strings
+- [ ] Add pytest.ini or tox.ini or setup.cfg
+- [ ] Add config.py
 
 ## Documentation
 
@@ -90,10 +91,11 @@ https://www.tutorialspoint.com/python3/python_exceptions.htm
 
 ## test.py
 
-- [x] Move tests to pytest - Not really needed, they can be ran with pytest anyway.
+- [x] Move tests to pytest - Not really needed, they can be ran with pytest, but anyway ...
 - [ ] Don't use more than one assert per test, like this we can remove a lot of duplications
 - [ ] Split (if possible) the different classes in different modules
 - [ ] Use fixtures
+- [ ] Split tests in functional and unit tests.
 
 ## ttldict.py
 
