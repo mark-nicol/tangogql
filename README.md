@@ -19,7 +19,7 @@ If preferred, a Dockerfile is provided and can be used to run the server.
 If the intention is to run it manually, once all the dependencies are installed, you can start the server by doing:
 
 ```shell
-$ python aioserver.py
+$ python -m tangogql
 ```
 
 The requests are made to the url: http://localhost:5004/db

@@ -19,8 +19,11 @@ import asyncio
 
 from tangogql.routes import routes
 
-if __name__ == "__main__":
 
+__all__ = ['run']
+
+
+def run():
     logging.basicConfig(level=logging.DEBUG)
 
     app = aiohttp.web.Application(debug=True)
@@ -41,7 +44,8 @@ if __name__ == "__main__":
     f = loop.create_server(handler, '0.0.0.0', 5004)
 
     # TODO: Get this value from an environment variable
-    hostname = "http://w-v-kitslab-web-0:5004/graphiql"
+    # hostname = "http://w-v-kitslab-web-0:5004/graphiql"
+    hostname = "http://localhost:5004/graphiql"
 
     logging.info(f"Point your browser to {hostname}")
     srv = loop.run_until_complete(f)
@@ -55,3 +59,7 @@ if __name__ == "__main__":
         loop.run_until_complete(srv.wait_closed())
         loop.run_until_complete(app.cleanup())
     loop.close()
+
+
+if __name__ == "__main__":
+    run()

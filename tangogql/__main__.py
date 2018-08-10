@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
-"""Tango GraphQL package."""
-
-__all__ = ['run']
+"""Main executable."""
 
 from tangogql.aioserver import run
+run()

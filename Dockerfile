@@ -33,4 +33,4 @@ WORKDIR web-maxiv-graphql
 
 # run the web service
 EXPOSE 5004
-CMD  /bin/bash -c "source activate graphql && python aioserver.py"
+CMD  /bin/bash -c "source activate graphql && python -m tangogql"
