@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 TTL dictionary
 
@@ -26,7 +28,10 @@ class TTLDict(MutableMapping):
         self.update(*args, **kwargs)
 
     def __repr__(self):
-        return '<TTLDict@%#08x; ttl=%r, v=%r;>' % (id(self), self._default_ttl, self._values)
+        return f""
+        return '<TTLDict@%#08x; ttl=%r, v=%r;>' % (id(self),
+                                                   self._default_ttl,
+                                                   self._values)
 
     def set_ttl(self, key, ttl, now=None):
         """ Set TTL for the given key """

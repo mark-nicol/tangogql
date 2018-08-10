@@ -1,6 +1,8 @@
+#!/usr/bin/env python3
+
 from asyncio import QueueFull
 import numpy as np
-from taurus import Attribute, Manager
+from taurus import Attribute
 from taurus.core.taurusbasetypes import TaurusEventType
 import PyTango
 
@@ -9,8 +11,8 @@ import PyTango
 
 def error_str(err):
     if isinstance(err, PyTango.DevFailed):
-        #err = err[0]
-        #return "[{0}] {1}".format(err.reason, err.desc)
+        # err = err[0]
+        # return "[{0}] {1}".format(err.reason, err.desc)
         return str(err)
     return str(err)
 

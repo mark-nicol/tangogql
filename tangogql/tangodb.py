@@ -1,5 +1,7 @@
+#!/usr/bin/env python3
+
 """
-A simple caching layer on top of a TANGO database
+A simple caching layer on top of a TANGO database.
 """
 
 from collections import OrderedDict
@@ -10,7 +12,6 @@ from tangogql.ttldict import TTLDict
 
 
 class CachedMethod(object):
-
     """A cached wrapper for a DB method."""
 
     def __init__(self, method, ttl=10):
@@ -26,8 +27,7 @@ class CachedMethod(object):
 
 
 class CachedDatabase(object):
-
-    """A TANGO database wrapper that caches 'get' methods"""
+    """A TANGO database wrapper that caches 'get' methods."""
 
     _db = PyTango.Database()
     _methods = {}
@@ -47,7 +47,7 @@ class CachedDatabase(object):
 
 
 class DeviceProxyCache(object):
-    "Keep a limited cache of device proxies that are reused"
+    """Keep a limited cache of device proxies that are reused."""
     # TODO: does this actually work? Are the proxies really cleaned up
     # by PyTango after they are deleted?
 
@@ -65,6 +65,6 @@ class DeviceProxyCache(object):
         proxy = PyTango.DeviceProxy(devname)
         if len(self._device_proxies) == self.max_proxies:
             # delete the oldest proxy last = False means FIFO
-            self._device_proxies.popitem(last = False)
+            self._device_proxies.popitem(last=False)
         self._device_proxies[devname] = proxy
         return proxy

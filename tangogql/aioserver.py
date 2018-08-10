@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """A simple http backend for communicating with a TANGO control system
 
 The idea is that each client establishes a websocket connection with
@@ -12,7 +14,6 @@ There is also a GraphQL endpoint (/db) for querying the TANGO database.
 
 import logging
 import aiohttp
-from aiohttp import web
 import aiohttp_cors
 import asyncio
 from routes import routes
@@ -22,13 +23,14 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
     app = aiohttp.web.Application(debug=True)
-    cors = aiohttp_cors.setup(app, defaults={
-	"*": aiohttp_cors.ResourceOptions(
-		allow_credentials=True,
-		expose_headers="*",
-		allow_headers="*",
-	    )
-    })
+
+    defaults_dict = {"*": aiohttp_cors.ResourceOptions(
+                                            allow_credentials=True,
+                                            expose_headers="*",
+                                            allow_headers="*")
+                     }
+
+    cors = aiohttp_cors.setup(app, defaults=defaults_dict)
     app.router.add_routes(routes)
     for r in list(app.router.routes()):
         cors.add(r)
@@ -36,7 +38,11 @@ if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     handler = app.make_handler(debug=True)
     f = loop.create_server(handler, '0.0.0.0', 5004)
-    logging.info("Point your browser to http://w-v-kitslab-web-0:5004/graphiql")
+
+    # TODO: Get this value from an environment variable
+    hostname = "http://w-v-kitslab-web-0:5004/graphiql"
+
+    logging.info(f"Point your browser to {hostname}")
     srv = loop.run_until_complete(f)
     try:
         loop.run_forever()
