@@ -6,10 +6,10 @@ Contents:
 .. toctree::
     :maxdepth: 2
 
-    aioserver
-    listener
-    routes
-    schema
-    tangodb
-    ttldict
+    aioserver <api/aioserver>
+    listener <api/listener>
+    routes <api/routes>
+    schema <api/schema>
+    tangodb <api/tangodb>
+    ttldict <api/ttldict>
 
