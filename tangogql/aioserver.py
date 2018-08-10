@@ -16,7 +16,8 @@ import logging
 import aiohttp
 import aiohttp_cors
 import asyncio
-from routes import routes
+
+from tangogql.routes import routes
 
 if __name__ == "__main__":
 

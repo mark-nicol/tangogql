@@ -3,16 +3,17 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Graphql  project's documentation!
-============================================
-This is the description of the project
+Welcome to Tango GraphQL  project's documentation!
+==================================================
+
+A GraphQL implementation for Tango.
 
 Contents:
 
 .. toctree::
    :maxdepth: 2
 
-   code
+   api
    examples
 
 
