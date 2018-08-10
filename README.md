@@ -10,9 +10,9 @@ This is an attempt at using "modern" web standards to make a TANGO web service. 
 
 The server is written in Python and currently requires python 3.6 or later.
 
-It uses Taurus, which is not officially supporting python 3 yet, but Vincent Michel has made a port of the "core" part of Taurus (e.g. minus the Qt parts) which can be found at `https://gitlab.maxiv.lu.se/vinmic/python3-taurus-core`
+It uses Taurus, which is not officially supporting python 3 yet, but Vincent Michel has made a port of the "core" part of Taurus (e.g. minus the Qt parts) which can be found at: https://gitlab.maxiv.lu.se/vinmic/python3-taurus-core
 
-"aiohttp" is used for the web server part, "graphite" for the GraphQL part. "requirements.txt" should list the necessary libraries, which can be installed using "pip". Also, a Conda environment can be created using the `environment.yml`.
+__aiohttp__ is used for the web server part, "graphite" for the GraphQL part. "requirements.txt" should list the necessary libraries, which can be installed using "pip". Also, a Conda environment can be created using the *_environment.yml*_.
 
 If preferred, a Dockerfile is provided and can be used to run the server.
 
@@ -22,7 +22,7 @@ If the intention is to run it manually, once all the dependencies are installed,
 $ python aioserver.py
 ```
 
-The requests are made to the url http://localhost:5004/db
+The requests are made to the url: http://localhost:5004/db
 
 ## Installation
 
