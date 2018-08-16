@@ -11,7 +11,7 @@ A GraphQL implementation for Tango.
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    api
    examples
