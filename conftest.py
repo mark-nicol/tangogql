@@ -10,7 +10,7 @@ from graphene.test import Client
 # changes to the path ...
 
 # project modules
-from tangogql.schema import tangoschema
+from tangogql.schema.tango import tangoschema
 # import queries
 
 __author__ = "antmil"

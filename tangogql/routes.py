@@ -7,7 +7,7 @@ import json
 from graphql_ws.aiohttp import AiohttpSubscriptionServer
 from graphql import format_error
 
-from tangogql.schema import tangoschema
+from tangogql.schema.tango import tangoschema
 
 subscription_server = AiohttpSubscriptionServer(tangoschema)
 routes = web.RouteTableDef()
