@@ -3,7 +3,7 @@
 """Functional tests for the schema."""
 
 import pytest
-import queries
+from tests.unit import queries
 
 __author__ = "antmil, Linh Nguyen"
 __docformat__ = "restructuredtext"
