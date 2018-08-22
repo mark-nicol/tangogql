@@ -22,6 +22,10 @@ class DeviceAttribute(Interface):
     value = ScalarTypes()
     quality = String()
     timestamp = Int()
+    minvalue = ScalarTypes()
+    maxvalue = ScalarTypes()
+    minalarm = ScalarTypes()
+    maxalarm = ScalarTypes()
 
     def resolve_value(self, *args, **kwargs):
         """This method fetch the coresponding value of an attribute bases on its name.
