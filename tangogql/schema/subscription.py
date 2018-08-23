@@ -10,8 +10,6 @@ from tangogql.schema.types import ScalarTypes
 from tangogql.listener import TaurusWebAttribute
 
 from PyTango import AttributeProxy, EventType
-import logging
-from graphql_ws.base import ConnectionClosedException
 
 class ChangeData(ObjectType):
     value = ScalarTypes()
