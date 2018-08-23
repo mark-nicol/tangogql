@@ -16,6 +16,10 @@ device_attributes = """ query{devices(pattern: "sys/tg_test/1"){attributes(patte
                                     description,
                                     value,
                                     quality,
+                                    minvalue,
+                                    maxvalue,
+                                    minalarm,
+                                    maxalarm
                                     }}}"""
                                     
 device_commands = """ query{devices(pattern: "sys/tg_test/1"){commands(pattern:"DevBoolean"){

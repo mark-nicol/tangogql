@@ -131,7 +131,12 @@ class Device(TangoNodeType, Interface):
                           dataformat=attr_info.data_format,
                           label=attr_info.label,
                           unit=attr_info.unit,
-                          description=attr_info.description)
+                          description=attr_info.description,
+                          minvalue=attr_info.min_value,
+                          maxvalue=attr_info.max_value,
+                          minalarm=attr_info.min_alarm,
+                          maxalarm=attr_info.max_alarm
+                          )
                           )
 
         for attr_info in sorted_info:

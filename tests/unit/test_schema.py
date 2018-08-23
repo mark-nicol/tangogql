@@ -53,6 +53,10 @@ class TestDeviceClass(object):
         assert "description" in result
         assert "value" in result
         assert "quality" in result
+        assert "minvalue" in result
+        assert "maxvalue" in result
+        assert "minalarm" in result
+        assert "maxalarm" in result
         for key, value in result.items():
             if key != 'value':
                 assert isinstance(value, str)
