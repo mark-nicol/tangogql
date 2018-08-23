@@ -123,7 +123,7 @@ class Device(TangoNodeType, Interface):
         #       arguments copy or pointer ...? Tests are passing ...
         def append_to_result(result, klass, attr_info):
             if attr_info.writable == PyTango._tango.AttrWriteType.WT_UNKNOWN:
-                wt = 'READ_WRITE'
+                wt = 'READ_WITH_WRITE'
             else:
                 wt = attr_info.writable
             result.append(klass(
