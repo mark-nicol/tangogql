@@ -122,10 +122,14 @@ class Device(TangoNodeType, Interface):
         # TODO: Ensure that result is passed properly, refresh mutable
         #       arguments copy or pointer ...? Tests are passing ...
         def append_to_result(result, klass, attr_info):
+            if attr_info.writable == PyTango._tango.AttrWriteType.WT_UNKNOWN:
+                wt = 'READ_WRITE'
+            else:
+                wt = attr_info.writable
             result.append(klass(
                           name=attr_info.name,
                           device=self.name,
-                          writable=attr_info.writable,
+                          writable=wt,
                           datatype=PyTango.CmdArgType.values[
                                    attr_info.data_type],
                           dataformat=attr_info.data_format,
