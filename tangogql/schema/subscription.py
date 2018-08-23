@@ -9,6 +9,9 @@ from graphene import ObjectType, String, Float, Interface, Field, List
 from tangogql.schema.types import ScalarTypes
 from tangogql.listener import TaurusWebAttribute
 
+from PyTango import AttributeProxy, EventType
+import logging
+from graphql_ws.base import ConnectionClosedException
 
 class ChangeData(ObjectType):
     value = ScalarTypes()
@@ -47,38 +50,68 @@ config_listeners = {}
 
 
 class Subscription(ObjectType):
-    change_event = List(ChangeEvent, models=List(String))
-    config_event = List(ConfigEvent, models=List(String))
+    change_event = Field(ChangeEvent, models=List(String))
+    config_event = Field(ConfigEvent)
+    
     unsub_config_event = String(models=List(String))
     unsub_change_event = String(models=List(String))
 
     # TODO: documentation missing
     async def resolve_change_event(self, info, models=[]):
+        subs = []
+        for model in models:
+            proxy = AttributeProxy(model)
+            event_id = proxy.subscribe_event(EventType.CHANGE_EVENT, 1)
+            subs.append((proxy, event_id))
 
-        keeper = EventKeeper()
-        for attr in models:
-            taurus_attr = TaurusWebAttribute(attr, keeper)
-            change_listeners[attr] = taurus_attr
+        try:
+            while True:
+                for proxy, event_id in subs:
+                    for event in proxy.get_events(event_id):
+                        value = event.attr_value
+                        device = event.device
+                        
+                        data = ChangeData(
+                            value=value.value,
+                            w_value=value.w_value,
+                            quality=value.quality,
+                            time=value.time.totime(),
+                        )
 
-        while change_listeners:
-            evt_list = []
-            events = keeper.get()
-            for event_type, data in events.items():
-                for attr_name, value in data.items():
-                    device, attr = attr_name.rsplit('/', 1)
-                    if event_type == "CHANGE":
-                        data = ChangeData(value=value['value'],
-                                          w_value=value['w_value'],
-                                          quality=value['quality'],
-                                          time=value['time'])
-                        event = ChangeEvent(event_type=event_type, 
-                                            device=device,
-                                            name=attr,
-                                            data=data)
-                        evt_list.append(event)
-            if evt_list:
-                yield evt_list
-            await asyncio.sleep(1.0)
+                        yield ChangeEvent(
+                            event_type=event.event,
+                            device=device.name(),
+                            name=value.name,
+                            data=data,
+                        )
+                
+                await asyncio.sleep(1.0)
+
+        except StopAsyncIteration:
+            for proxy, event_id in subs:
+                proxy.unsubscribe_event(event_id)
+
+        # Old implementation:
+        #
+        # while change_listeners:
+        #     evt_list = []
+        #     events = keeper.get()
+        #     for event_type, data in events.items():
+        #         for attr_name, value in data.items():
+        #             device, attr = attr_name.rsplit('/', 1)
+        #             if event_type == "CHANGE":
+        #                 data = ChangeData(value=value['value'],
+        #                                   w_value=value['w_value'],
+        #                                   quality=value['quality'],
+        #                                   time=value['time'])
+        #                 event = ChangeEvent(event_type=event_type, 
+        #                                     device=device,
+        #                                     name=attr,
+        #                                     data=data)
+        #                 evt_list.append(event)
+        #     if evt_list:
+        #         yield evt_list
+        #     await asyncio.sleep(1.0)
 
     async def resolve_config_event(self, info, models=[]):
         keeper = EventKeeper()
