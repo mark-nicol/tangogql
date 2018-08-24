@@ -87,9 +87,8 @@ class TestDeviceClass(object):
         result = client.execute(queries.device_server)
         assert 'devices' in result
         result = result['devices'][0]
-        assert isinstance(result['server'], list)
-        result = result['server'][0]
-        assert isinstance(result, dict)
+        assert isinstance(result['server'], dict)
+        result = result['server']
         assert "id" in result
         assert "host" in result
         for key, value in result.items():

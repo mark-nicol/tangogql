@@ -5,7 +5,7 @@ import fnmatch
 import PyTango
 from operator import attrgetter
 
-from graphene import Interface, String, Int, List, Boolean
+from graphene import Interface, String, Int, List, Boolean, Field
 
 from tangogql.schema.base import db, proxies
 from tangogql.schema.types import TangoNodeType
@@ -64,7 +64,7 @@ class Device(TangoNodeType, Interface):
     properties = List(DeviceProperty, pattern=String())
     attributes = List(DeviceAttribute, pattern=String())
     commands = List(DeviceCommand, pattern=String())
-    server = List(DeviceInfo)
+    server = Field(DeviceInfo)
 
     # device_class = String()
     # server = String()
@@ -198,8 +198,8 @@ class Device(TangoNodeType, Interface):
         proxy = proxies.get(self.name)
         dev_info = proxy.info()
 
-        return [DeviceInfo(id=dev_info.server_id,
-                           host=dev_info.server_host)]
+        return DeviceInfo(id=dev_info.server_id,
+                           host=dev_info.server_host)
 
     def resolve_exported(self, info):
         """ This method fetch the infomation about the device if it is exported or not.
