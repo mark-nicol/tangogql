@@ -9,7 +9,7 @@ from graphene import ObjectType, String, Float, Interface, Field, List
 from tangogql.schema.types import ScalarTypes
 from tangogql.listener import TaurusWebAttribute
 
-from PyTango import AttributeProxy, EventType
+from PyTango import AttributeProxy, EventType, DevFailed
 
 class ChangeData(ObjectType):
     value = ScalarTypes()
@@ -28,7 +28,6 @@ class ConfigData(ObjectType):
 
 
 class Event(Interface):
-    event_type = String()
     device = String()
     name = String()
 
@@ -56,60 +55,49 @@ class Subscription(ObjectType):
 
     # TODO: documentation missing
     async def resolve_change_event(self, info, models=[]):
-        subs = []
+        def change_event_from(attr_proxy, value):
+            device_proxy = attr_proxy.get_device_proxy()
+
+            data = ChangeData(
+                value=value.value,
+                w_value=value.w_value,
+                quality=value.quality,
+                time=value.time.totime(),
+            )
+
+            return ChangeEvent(
+                device=device_proxy.name(),
+                name=attr_proxy.name(),
+                data=data,
+            )
+
+        subs = [] # For attributes where subscriptions is enabled
+        poll = [] # For attributes which have to be explicitly read
+
         for model in models:
             proxy = AttributeProxy(model)
-            event_id = proxy.subscribe_event(EventType.CHANGE_EVENT, 1)
-            subs.append((proxy, event_id))
+            try:
+                event_id = proxy.subscribe_event(EventType.CHANGE_EVENT, 1)
+                subs.append((proxy, event_id))
+            except DevFailed:
+                poll.append(proxy)
 
         try:
             while True:
                 for proxy, event_id in subs:
                     for event in proxy.get_events(event_id):
                         value = event.attr_value
-                        device = event.device
-                        
-                        data = ChangeData(
-                            value=value.value,
-                            w_value=value.w_value,
-                            quality=value.quality,
-                            time=value.time.totime(),
-                        )
+                        yield change_event_from(proxy, value)
 
-                        yield ChangeEvent(
-                            event_type=event.event,
-                            device=device.name(),
-                            name=value.name,
-                            data=data,
-                        )
-                
+                for proxy in poll:
+                    value = proxy.read()
+                    yield change_event_from(proxy, value)
+
                 await asyncio.sleep(1.0)
 
         except StopAsyncIteration:
             for proxy, event_id in subs:
                 proxy.unsubscribe_event(event_id)
-
-        # Old implementation:
-        #
-        # while change_listeners:
-        #     evt_list = []
-        #     events = keeper.get()
-        #     for event_type, data in events.items():
-        #         for attr_name, value in data.items():
-        #             device, attr = attr_name.rsplit('/', 1)
-        #             if event_type == "CHANGE":
-        #                 data = ChangeData(value=value['value'],
-        #                                   w_value=value['w_value'],
-        #                                   quality=value['quality'],
-        #                                   time=value['time'])
-        #                 event = ChangeEvent(event_type=event_type, 
-        #                                     device=device,
-        #                                     name=attr,
-        #                                     data=data)
-        #                 evt_list.append(event)
-        #     if evt_list:
-        #         yield evt_list
-        #     await asyncio.sleep(1.0)
 
     async def resolve_config_event(self, info, models=[]):
         keeper = EventKeeper()
