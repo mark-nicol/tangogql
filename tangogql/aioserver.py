@@ -41,7 +41,7 @@ def run():
     app.router.add_static('/', 'static')
     loop = asyncio.get_event_loop()
     handler = app.make_handler(debug=True)
-    f = loop.create_server(handler, '0.0.0.0', 5004)
+    f = loop.create_server(handler, '0.0.0.0', 5015)
 
     # TODO: Get this value from an environment variable
     # hostname = "http://w-v-kitslab-web-0:5004/graphiql"
