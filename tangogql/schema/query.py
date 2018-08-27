@@ -5,7 +5,7 @@ import fnmatch
 
 from collections import defaultdict
 
-from graphene import Interface, ObjectType, String, List
+from graphene import Interface, ObjectType, String, List, Field
 
 from tangogql.schema.base import db
 from tangogql.schema.device import Device
@@ -134,6 +134,7 @@ class Query(ObjectType):
     """This class contains all the queries."""
 
     devices = List(Device, pattern=String())
+    device = Field(Device, name=String(required=True))
     domains = List(Domain, pattern=String())
     families = List(Family, domain=String(), pattern=String())
     members = List(Member, domain=String(), family=String(), pattern=String())
@@ -141,6 +142,21 @@ class Query(ObjectType):
     servers = List(Server, pattern=String())
     instances = List(ServerInstance, server=String(), pattern=String())
     classes = List(DeviceClass, pattern=String())
+
+    def resolve_device(self, info, name=None):
+        """ This method fetches the device using the name.
+
+        :param name: Name of the device.
+        :type name: str
+
+        :return:  Device.
+        :rtype: Device    
+        """
+        devices = db.get_device_exported(name)
+        if len(devices) == 1:
+            return Device(name=devices[0])
+        else:
+            return None
 
     def resolve_devices(self, info, pattern="*"):
         """ This method fetches all the devices using the pattern.
