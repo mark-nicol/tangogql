@@ -1,5 +1,7 @@
 device_name = '''query{devices(pattern: "sys/tg_test/1"){name}}'''
 
+single_device_name = '''query{device(name: "sys/tg_test/1"){name}}'''
+
 device_state = """query{devices(pattern: "sys/tg_test/1"){state}}"""
 
 device_properties = """query{devices(pattern: "sys/tg_test/1"){properties(pattern:"Do_not_remove_this"){name,device,value}}}"""

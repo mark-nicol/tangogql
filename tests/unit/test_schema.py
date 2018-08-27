@@ -18,6 +18,12 @@ class TestDeviceClass(object):
         assert "name" in result['devices'][0]
         assert "sys/tg_test/1" == result['devices'][0]['name']
 
+    def test_device_resolve_single_name(self, client):
+        result = client.execute(queries.single_device_name)
+        assert 'device' in result
+        assert "name" in result['device']
+        assert "sys/tg_test/1" == result['device']['name']
+
     def test_device_resolve_state(self, client):
         result = client.execute(queries.device_state)
         assert 'devices' in result
