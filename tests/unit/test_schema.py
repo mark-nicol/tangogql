@@ -64,7 +64,12 @@ class TestDeviceClass(object):
         assert "minalarm" in result
         assert "maxalarm" in result
         for key, value in result.items():
-            if key != 'value':
+            if key in ['minvalue','maxvalue','minalarm','maxalarm']:
+                if value is None:
+                    assert value is None
+                else:
+                    assert isinstance(value, (int, float, str))
+            elif key != 'value':
                 assert isinstance(value, str)
             else:
                 assert isinstance(value, (int, float))
