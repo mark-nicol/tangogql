@@ -5,7 +5,7 @@ import fnmatch
 import PyTango
 from operator import attrgetter
 
-from graphene import Interface, String, Int, List, Boolean
+from graphene import Interface, String, Int, List, Boolean, Field
 
 from tangogql.schema.base import db, proxies
 from tangogql.schema.types import TangoNodeType
@@ -64,7 +64,7 @@ class Device(TangoNodeType, Interface):
     properties = List(DeviceProperty, pattern=String())
     attributes = List(DeviceAttribute, pattern=String())
     commands = List(DeviceCommand, pattern=String())
-    server = List(DeviceInfo)
+    server = Field(DeviceInfo)
 
     # device_class = String()
     # server = String()
@@ -122,16 +122,25 @@ class Device(TangoNodeType, Interface):
         # TODO: Ensure that result is passed properly, refresh mutable
         #       arguments copy or pointer ...? Tests are passing ...
         def append_to_result(result, klass, attr_info):
+            if attr_info.writable == PyTango._tango.AttrWriteType.WT_UNKNOWN:
+                wt = 'READ_WITH_WRITE'
+            else:
+                wt = attr_info.writable
             result.append(klass(
                           name=attr_info.name,
                           device=self.name,
-                          writable=attr_info.writable,
+                          writable=wt,
                           datatype=PyTango.CmdArgType.values[
                                    attr_info.data_type],
                           dataformat=attr_info.data_format,
                           label=attr_info.label,
                           unit=attr_info.unit,
-                          description=attr_info.description)
+                          description=attr_info.description,
+                          minvalue=None if attr_info.min_value  == "Not specified" else attr_info.min_value,
+                          maxvalue=None if attr_info.max_value  == "Not specified" else attr_info.max_value,
+                          minalarm=None if attr_info.min_alarm  == "Not specified" else attr_info.min_alarm,
+                          maxalarm=None if attr_info.max_alarm  == "Not specified" else attr_info.max_alarm
+                          )
                           )
 
         for attr_info in sorted_info:
@@ -189,8 +198,8 @@ class Device(TangoNodeType, Interface):
         proxy = proxies.get(self.name)
         dev_info = proxy.info()
 
-        return [DeviceInfo(id=dev_info.server_id,
-                           host=dev_info.server_host)]
+        return DeviceInfo(id=dev_info.server_id,
+                           host=dev_info.server_host)
 
     def resolve_exported(self, info):
         """ This method fetch the infomation about the device if it is exported or not.

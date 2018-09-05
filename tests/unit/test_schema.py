@@ -18,6 +18,12 @@ class TestDeviceClass(object):
         assert "name" in result['devices'][0]
         assert "sys/tg_test/1" == result['devices'][0]['name']
 
+    def test_device_resolve_single_name(self, client):
+        result = client.execute(queries.single_device_name)
+        assert 'device' in result
+        assert "name" in result['device']
+        assert "sys/tg_test/1" == result['device']['name']
+
     def test_device_resolve_state(self, client):
         result = client.execute(queries.device_state)
         assert 'devices' in result
@@ -53,8 +59,17 @@ class TestDeviceClass(object):
         assert "description" in result
         assert "value" in result
         assert "quality" in result
+        assert "minvalue" in result
+        assert "maxvalue" in result
+        assert "minalarm" in result
+        assert "maxalarm" in result
         for key, value in result.items():
-            if key != 'value':
+            if key in ['minvalue','maxvalue','minalarm','maxalarm']:
+                if value is None:
+                    assert value is None
+                else:
+                    assert isinstance(value, (int, float, str))
+            elif key != 'value':
                 assert isinstance(value, str)
             else:
                 assert isinstance(value, (int, float))
@@ -83,9 +98,8 @@ class TestDeviceClass(object):
         result = client.execute(queries.device_server)
         assert 'devices' in result
         result = result['devices'][0]
-        assert isinstance(result['server'], list)
-        result = result['server'][0]
-        assert isinstance(result, dict)
+        assert isinstance(result['server'], dict)
+        result = result['server']
         assert "id" in result
         assert "host" in result
         for key, value in result.items():
