@@ -48,7 +48,7 @@ source_suffix = '.rst'
 # The master toctree document.
 master_doc = 'index'
 # Mock
-autodoc_mock_imports = []
+autodoc_mock_imports = ["taurus", "PyTango"]
 
 # General information about the project.
 project = u'Tango GraphQL'
