@@ -57,6 +57,7 @@ class TestDeviceClass(object):
         assert "label" in result
         assert "unit" in result
         assert "description" in result
+        assert "displevel" in result
         assert "value" in result
         assert "quality" in result
         assert "minvalue" in result
