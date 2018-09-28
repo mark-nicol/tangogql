@@ -136,6 +136,7 @@ class Device(TangoNodeType, Interface):
                           label=attr_info.label,
                           unit=attr_info.unit,
                           description=attr_info.description,
+                          displevel=attr_info.disp_level,
                           minvalue=None if attr_info.min_value  == "Not specified" else attr_info.min_value,
                           maxvalue=None if attr_info.max_value  == "Not specified" else attr_info.max_value,
                           minalarm=None if attr_info.min_alarm  == "Not specified" else attr_info.min_alarm,

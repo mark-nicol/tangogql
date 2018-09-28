@@ -16,6 +16,7 @@ device_attributes = """ query{devices(pattern: "sys/tg_test/1"){attributes(patte
                                     label,
                                     unit,
                                     description,
+                                    displevel,
                                     value,
                                     quality,
                                     minvalue,

@@ -22,6 +22,7 @@ class DeviceAttribute(Interface):
     value = ScalarTypes()
     quality = String()
     timestamp = Int()
+    displevel= String()
     minvalue = ScalarTypes()
     maxvalue = ScalarTypes()
     minalarm = ScalarTypes()
