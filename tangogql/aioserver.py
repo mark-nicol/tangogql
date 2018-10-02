@@ -22,10 +22,8 @@ from tangogql.routes import routes
 
 __all__ = ['run']
 
-
-def run():
-    logging.basicConfig(level=logging.DEBUG)
-
+# A factory function is needed to use aiohttp-devtools for live reload functionality.
+def build_server():
     app = aiohttp.web.Application(debug=True)
 
     defaults_dict = {"*": aiohttp_cors.ResourceOptions(
@@ -39,6 +37,14 @@ def run():
     for r in list(app.router.routes()):
         cors.add(r)
     app.router.add_static('/', 'static')
+
+    return app
+
+def run():
+    logging.basicConfig(level=logging.DEBUG)
+
+    app = build_server()
+
     loop = asyncio.get_event_loop()
     handler = app.make_handler(debug=True)
     f = loop.create_server(handler, '0.0.0.0', 5004)

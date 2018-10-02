@@ -32,6 +32,12 @@ The requests are made to the url: http://localhost:5004/db
 
 At the moment of writing this, there is no packaging system ready, making the best deployment option the usage of the Docker Container.
 
+1. `cd` into the `web-maxiv-tangoql` directory and run `docker-compose up`.
+2. Wait
+3. Open your browser to [localhost:5004/graphiql](http://localhost:5004/graphiql) to verify that it works.
+
+A tool called [aiohttp-devtools](https://github.com/aio-libs/aiohttp-devtools) is used to auto-reload the server inside the Docker container whenever the code changes.
+
 ## License
 
 TangoGQL is released under the license that can be found in the LICENCE file in the root directory of the project.

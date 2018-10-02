@@ -33,4 +33,6 @@ WORKDIR web-maxiv-graphql
 
 # run the web service
 EXPOSE 5004
-CMD  /bin/bash -c "source activate graphql && python -m tangogql"
+
+# NOTE: The `adev` tool is for development. When deploying this (if deploying with Docker), the server should not depend on `adev`
+CMD /bin/bash -c "source activate graphql && adev runserver tangogql/aioserver.py --app-factory=build_server --port=5004"
