@@ -4,7 +4,7 @@ import time
 import asyncio
 from collections import defaultdict
 
-from graphene import ObjectType, String, Float, Interface, Field, List
+from graphene import ObjectType, String, Float, Interface, Field, List, Int
 
 from tangogql.schema.types import ScalarTypes
 from tangogql.listener import TaurusWebAttribute
@@ -44,23 +44,29 @@ class ConfigEvent(ObjectType, interfaces=[Event]):
 # Contains subscribed attributes
 change_listeners = {}
 config_listeners = {}
-
+clients = []
 
 class Subscription(ObjectType):
     change_event = List(ChangeEvent, models=List(String))
     config_event = List(ConfigEvent, models=List(String))
     unsub_config_event = String(models=List(String))
-    unsub_change_event = String(models=List(String))
+    unsub_change_event = String(client_id=Int())
 
     # TODO: documentation missing
     async def resolve_change_event(self, info, models=[]):
+        clients.append(True)
+        id = len(clients)-1
 
         keeper = EventKeeper()
         for attr in models:
-            taurus_attr = TaurusWebAttribute(attr, keeper)
-            change_listeners[attr] = taurus_attr
+            listener = change_listeners.get(attr)
+            if not listener:
+                l = TaurusWebAttribute(attr, keeper)
+                change_listeners[attr] = l
+            else:
+                change_listeners[attr].addKeeper(keeper)
 
-        while change_listeners:
+        while clients[id]:
             evt_list = []
             events = keeper.get()
             for event_type, data in events.items():
@@ -71,7 +77,7 @@ class Subscription(ObjectType):
                                           w_value=value['w_value'],
                                           quality=value['quality'],
                                           time=value['time'])
-                        event = ChangeEvent(event_type=event_type, 
+                        event = ChangeEvent(event_type=event_type,
                                             device=device,
                                             name=attr,
                                             data=data)
@@ -79,6 +85,16 @@ class Subscription(ObjectType):
             if evt_list:
                 yield evt_list
             await asyncio.sleep(1.0)
+
+        # unsubscribed
+        for attr in models:
+            l = change_listeners[attr]
+            l.removeKeeper(keeper)
+        if len(l.keepers) == 0:
+            l.clear
+            del change_listenere
+            del clients[id]
+
 
     async def resolve_config_event(self, info, models=[]):
         keeper = EventKeeper()
@@ -98,7 +114,7 @@ class Subscription(ObjectType):
                                           unit=value['unit'],
                                           format=value['format'],
                                           data_format=value['data_format'],
-                                          data_type=value['data_type']    
+                                          data_type=value['data_type']
                                     )
                         event = ConfigEvent(event_type=event_type,
                                             device=device,
@@ -110,18 +126,13 @@ class Subscription(ObjectType):
             await asyncio.sleep(1.0)
 
     # TODO: documentation missing
-    async def resolve_unsub_change_event(self, info, models=[]):
-        result = []
-        if change_listeners:
-            for attr in models:
-                listener = change_listeners[attr]
-                if listener:
-                    listener.clear()
-                    del change_listeners[attr]
-                    result.append(attr)
-            yield f"Unsubscribed: {result}"
+    async def resolve_unsub_change_event(self, info, client_id = -1):
+        if client_id in range(0,len(clients)):
+            if clients[client_id]:
+                clients[client_id]= False
+            yield "Unsubscribed"
         else:
-            yield "No attribute to unsubscribe"
+            yield "This clients_id is not registed"
 
     async def resolve_unsub_config_event(self, info, models=[]):
         result = []

@@ -52,7 +52,7 @@ class TaurusWebAttribute(object):
 
     def __init__(self, name, keeper):
         self.name = name
-        self.keeper = keeper
+        self.keepers = [keeper]
         self._last_time = 0
         self.last_value_event = None
         self.last_config_event = None
@@ -80,10 +80,17 @@ class TaurusWebAttribute(object):
         # self.callback(self.name, {"type": action, "data": {self.name: value}})
         # event = {"type": action, "data": value}
         try:
-            self.keeper.put(self.name, action, value)
+            for keeper in self.keepers:
+                keeper.put(self.name, action, value)
         except QueueFull:
             print("Queue full!")
         # print(event)
+
+    def addKeeper(self,keeper):
+        self.keepers.append(keeper)
+
+    def removeKeeper(self,keeper):
+        self.keepers.remove(keeper)
 
     def clear(self):
         self.attribute.removeListener(self)
