@@ -32,11 +32,15 @@ The requests are made to the url: http://localhost:5004/db
 
 At the moment of writing this, there is no packaging system ready, making the best deployment option the usage of the Docker Container.
 
+### For development
+
 1. `cd` into the `web-maxiv-tangoql` directory and run `docker-compose up`.
 2. Wait
 3. Open your browser to [localhost:5004/graphiql](http://localhost:5004/graphiql) to verify that it works.
 
 A tool called [aiohttp-devtools](https://github.com/aio-libs/aiohttp-devtools) is used to auto-reload the server inside the Docker container whenever the code changes.
+
+The docker-compose.yml file actually overwrites the start script in order to run the container with the aiohttp-devtools instead of a normal startup. This should only be used for development.
 
 ## License
 
