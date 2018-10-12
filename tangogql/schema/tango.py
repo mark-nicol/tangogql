@@ -16,9 +16,9 @@ from tangogql.schema.attribute import SpectrumDeviceAttribute
 MODE = bool(os.environ.get('READ_ONLY'))
 
 if MODE == True:
-    mutation=DatabaseMutations
-else:
     mutation=None
+else:
+    mutation=DatabaseMutations
 
 tangoschema = graphene.Schema(query=Query, mutation=mutation,
                               subscription=Subscription,
