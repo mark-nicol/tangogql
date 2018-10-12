@@ -2,6 +2,7 @@
 
 """A GraphQL schema for TANGO."""
 
+import os
 import graphene
 
 from tangogql.schema.query import Query
@@ -12,9 +13,16 @@ from tangogql.schema.attribute import ImageDeviceAttribute
 from tangogql.schema.attribute import SpectrumDeviceAttribute
 
 
-tangoschema = graphene.Schema(query=Query, mutation=DatabaseMutations,
+MODE = bool(os.environ.get('READ_ONLY'))
+
+if MODE == True:
+    mutation=DatabaseMutations
+else:
+    mutation=None
+
+tangoschema = graphene.Schema(query=Query, mutation=mutation,
                               subscription=Subscription,
                               types=[ScalarDeviceAttribute,
                                      ImageDeviceAttribute,
                                      SpectrumDeviceAttribute]
-                              )
+                             )
