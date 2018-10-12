@@ -27,6 +27,8 @@ If the intention is to run it manually, once all the dependencies are installed,
 $ python -m tangogql
 ```
 
+If you want to run the server in a read only mode, where the access to the control system is done in a read only way, you can use the environment variable: READ_ONLY, and set it to 1.
+
 The requests are made to the url: http://localhost:5004/db
 
 ## Installation
