@@ -1,34 +1,56 @@
-before_script:
-  - docker info
+# before_script:
+#   - docker info
 
-# unit_test:
-#   stage: test
+# # unit_test:
+# #   stage: test
+# #   script:
+# #      - python test.py
+# #   only:
+# #     - merge-requests
+# #   tags: [maxiv-centos7]
+
+
+# build_image:
+#   stage: build
 #   script:
-#      - python test.py
+#     - docker build . -t docker.maxiv.lu.se/graphql
 #   only:
-#     - merge-requests
-#   tags: [maxiv-centos7]
+#     - master
 
+# # unit_test:
+# #  stage: test
+# #  script:
+# #    - docker build . -f Dockerfile-test -t graphql-test
+# #    - docker run graphql-test
+# #  only:
+# #    - master
 
-build_image:
-  stage: build
+# deploy_image:
+#   stage: deploy
+#   script:
+#   - docker push docker.maxiv.lu.se/graphql
+#   - "curl -H 'Authorization: Bearer gOj9o8s3RapHiThfNbImaFYMDoOKTG' -k --request POST https://ansible.maxiv.lu.se/api/v2/job_templates/6/launch/"
+#   only:
+#     - master
+
+image: continuumio/miniconda3
+
+pages:
   script:
-    - docker build . -t docker.maxiv.lu.se/graphql
+  - apt-get update
+  - apt-get -y install build-essential
+  - conda update -n base conda
+  - conda env create --name tangogql python=3.6 --file=environment.yml
+  - source activate tangogql
+  - git clone https://gitlab.com/MaxIV/python3-taurus-core
+  - cd python3-taurus-core && python setup.py install
+  - pip install sphinx
+  - pip install sphinx_rtd_theme
+  - cd ../docs
+  - make html
+  - mv build/html/ ../public/
+  artifacts:
+    paths:
+    - public
   only:
-    - master
-
-# unit_test:
-#  stage: test
-#  script:
-#    - docker build . -f Dockerfile-test -t graphql-test
-#    - docker run graphql-test
-#  only:
-#    - master
-
-deploy_image:
-  stage: deploy
-  script:
-  - docker push docker.maxiv.lu.se/graphql
-  - "curl -H 'Authorization: Bearer gOj9o8s3RapHiThfNbImaFYMDoOKTG' -k --request POST https://ansible.maxiv.lu.se/api/v2/job_templates/6/launch/"
-  only:
-    - master
+  - master

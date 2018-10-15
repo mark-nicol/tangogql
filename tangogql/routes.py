@@ -45,6 +45,7 @@ async def db_handler(request):
     if response.data:
         data['data'] = response.data
     jsondata = json.dumps(data,)
+
     return web.Response(text=jsondata,
                         headers={'Content-Type': "application/json"})
 
