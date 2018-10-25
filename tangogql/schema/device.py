@@ -212,7 +212,6 @@ class Device(TangoNodeType, Interface):
         return self.info.exported
 
     def resolve_device_class(self, info):
-        print(info)
         return self.info.class_name
 
     def resolve_pid(self, info):
