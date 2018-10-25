@@ -66,7 +66,7 @@ class Device(TangoNodeType, Interface):
     commands = List(DeviceCommand, pattern=String())
     server = Field(DeviceInfo)
 
-    # device_class = String()
+    device_class = String()
     # server = String()
     pid = Int()
     started_date = String()
@@ -210,6 +210,10 @@ class Device(TangoNodeType, Interface):
         """
 
         return self.info.exported
+
+    def resolve_device_class(self, info):
+        print(info)
+        return self.info.class_name
 
     def resolve_pid(self, info):
         return self.info.pid
