@@ -1,0 +1,12 @@
+version: "3"
+services:
+  tangoql:
+    build: .
+    restart: always
+    command: /bin/bash -c "source activate graphql && adev runserver tangogql/aioserver.py --app-factory=build_server --port=5004"
+    ports:
+      - "5004:5004"
+    volumes:
+      - .:/python3-taurus-core/web-maxiv-graphql
+    environment:
+      - TANGO_HOST=w-v-kitslab-csdb-0:10000
