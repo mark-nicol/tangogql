@@ -81,10 +81,13 @@ class SetAttributeValue(Mutation):
         :return: Return ok = True and message = Success if successful,
                  False otherwise.
                  When an input is not one the scalar types or an exception has
-                 been raised while setting the value returns 
+                 been raised while setting the value returns
                  message = error_message.
         :rtype: SetAttributeValue
         """
+
+        print("Context!")
+        print(info.context, device, name, value)
 
         if type(value) is ValueError:
             return SetAttributeValue(ok=False, message=[str(value)])
@@ -124,7 +127,7 @@ class PutDeviceProperty(Mutation):
 
         :return: Returns ok = True and message = Success if successful,
                  False otherwise.
-                 If an exception has been raised returns 
+                 If an exception has been raised returns
                  message = error_message.
         :rtype: PutDeviceProperty
         """

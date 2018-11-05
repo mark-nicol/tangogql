@@ -10,3 +10,16 @@ services:
       - .:/python3-taurus-core/web-maxiv-graphql
     environment:
       - TANGO_HOST=w-v-kitslab-csdb-0:10000
+      - PYTHONUNBUFFERED=1
+  auth:
+    image: webjive-auth
+    ports:
+      - "8080:8080"
+    environment:
+      - "REDIS_HOST=redis"
+    volumes:
+      - "./.env:/var/app/.env"
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
