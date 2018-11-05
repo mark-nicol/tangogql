@@ -7,7 +7,6 @@ from graphene import ObjectType, Mutation, String, Boolean, List
 from tangogql.schema.base import db, proxies
 from tangogql.schema.types import ScalarTypes
 
-
 class ExecuteDeviceCommand(Mutation):
     """This class represent a mutation for executing a command."""
 
@@ -86,8 +85,11 @@ class SetAttributeValue(Mutation):
         :rtype: SetAttributeValue
         """
 
-        print("Context!")
-        print(info.context, device, name, value)
+        if info.context == None or "user" not in info.context or info.context["user"] == None:
+            return SetAttributeValue(ok=False, message=["User Unathorized"])
+
+        # Implement logging of info.context
+        # log(info.context["user"], device, name, value)
 
         if type(value) is ValueError:
             return SetAttributeValue(ok=False, message=[str(value)])

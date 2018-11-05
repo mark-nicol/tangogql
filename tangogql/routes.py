@@ -44,15 +44,18 @@ async def db_handler(request):
         token = request.cookies['webjive_token']
         user = str(r.get(token))
 
-    # For some reason, the redis module does not return a proper
-    # None value, but a string containing the value 'None'. Horrible,
-    # but what can I do?
-    if user == 'None':
-        return web.HTTPUnauthorized()
+        # For some reason, the redis module does not return a proper
+        # None value, but a string containing the value 'None'. Horrible.
+        if user == 'None':
+            user = None
+
+    context = {
+        "user": user
+    }
 
     response = await tangoschema.execute(query,
                                          variable_values=variables,
-                                         context_value=user,
+                                         context_value=context,
                                          return_promise=True)
     data = {}
     if response.errors:
