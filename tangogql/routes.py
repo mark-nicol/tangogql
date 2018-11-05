@@ -3,6 +3,7 @@
 from aiohttp import web
 
 import json
+import redis
 
 from graphql_ws.aiohttp import AiohttpSubscriptionServer
 from graphql import format_error
@@ -12,6 +13,7 @@ from tangogql.schema.tango import tangoschema
 subscription_server = AiohttpSubscriptionServer(tangoschema)
 routes = web.RouteTableDef()
 
+r = redis.StrictRedis(host='redis', port=6379)
 
 # FIXME: aiohttp doesn't support automatic serving of index files when serving
 #        directories statically, so we need to define a number of routes to
@@ -36,8 +38,15 @@ async def db_handler(request):
     payload = await request.json()
     query = payload.get('query')
     variables = payload.get('variables')
+
+    token = None
+    if 'token' in request.cookies:
+        token = request.cookies['token']
+        user = r.get(token)
+
     response = await tangoschema.execute(query,
                                          variable_values=variables,
+                                         context_value=user,
                                          return_promise=True)
     data = {}
     if response.errors:
