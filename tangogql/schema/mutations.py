@@ -88,8 +88,7 @@ class SetAttributeValue(Mutation):
         if info.context == None or "user" not in info.context or info.context["user"] == None:
             return SetAttributeValue(ok=False, message=["User Unathorized"])
 
-        # Implement logging of info.context
-        # log(info.context["user"], device, name, value)
+        print("MUTATION - SetAttributeValue - User: {}, Device: {}, Attribute: {}, Value: {}".format(info.context["user"], device, name, value))
 
         if type(value) is ValueError:
             return SetAttributeValue(ok=False, message=[str(value)])

@@ -11,6 +11,10 @@ services:
     environment:
       - TANGO_HOST=w-v-kitslab-csdb-0:10000
       - PYTHONUNBUFFERED=1
+    logging:
+      driver: "syslog"
+      options:
+        syslog-address: "tcp://w-v-log-0:5000"
   auth:
     image: webjive-auth
     ports:

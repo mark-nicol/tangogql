@@ -42,7 +42,7 @@ async def db_handler(request):
     user = None
     if 'webjive_token' in request.cookies:
         token = request.cookies['webjive_token']
-        user = str(r.get(token))
+        user = r.get(token).decode('UTF-8')
 
         # For some reason, the redis module does not return a proper
         # None value, but a string containing the value 'None'. Horrible.
