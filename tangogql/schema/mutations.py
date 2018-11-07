@@ -3,9 +3,25 @@
 import PyTango
 
 from graphene import ObjectType, Mutation, String, Boolean, List
+from graphql import GraphQLError
 
 from tangogql.schema.base import db, proxies
 from tangogql.schema.types import ScalarTypes
+
+def _is_authorized(info):
+    if info.context == None:
+        return False
+
+    if "user" not in info.context:
+        return False
+
+    if info.context["user"] == None:
+        return False
+
+    return True
+
+class UserUnauthorizedException(GraphQLError):
+    pass
 
 class ExecuteDeviceCommand(Mutation):
     """This class represent a mutation for executing a command."""
@@ -38,6 +54,11 @@ class ExecuteDeviceCommand(Mutation):
                  message = error_message.
         :rtype: ExecuteDeviceCommand
         """
+
+        if _is_authorized(info) == False:
+            return ExecuteDeviceCommand(ok=False, message=["User Unathorized"])
+
+        print("MUTATION - ExecuteDeviceCommand - User: {}, Device: {}, Command: {}, Argin: {}".format(info.context["user"], device, command, argin))
 
         if type(argin) is ValueError:
             return ExecuteDeviceCommand(ok=False, message=[str(argin)])
@@ -85,8 +106,9 @@ class SetAttributeValue(Mutation):
         :rtype: SetAttributeValue
         """
 
-        if info.context == None or "user" not in info.context or info.context["user"] == None:
-            return SetAttributeValue(ok=False, message=["User Unathorized"])
+        if _is_authorized(info) == False:
+            raise UserUnauthorizedException("User Unathorized")
+            # return SetAttributeValue(ok=False, message=["User Unathorized"])
 
         print("MUTATION - SetAttributeValue - User: {}, Device: {}, Attribute: {}, Value: {}".format(info.context["user"], device, name, value))
 
@@ -133,6 +155,11 @@ class PutDeviceProperty(Mutation):
         :rtype: PutDeviceProperty
         """
 
+        if _is_authorized(info) == False:
+            return PutDeviceProperty(ok=False, message=["User Unathorized"])
+
+        print("MUTATION - PutDeviceProperty - User: {}, Device: {}, Name: {}, Value: {}".format(info.context["user"], device, name, value))
+
         # wait = not args.get("async")
         try:
             db.put_device_property(device, {name: value})
@@ -168,6 +195,11 @@ class DeleteDeviceProperty(Mutation):
                  If exception has been raised returns message = error_message.
         :rtype: DeleteDeviceProperty
         """
+
+        if _is_authorized(info) == False:
+            return DeleteDeviceProperty(ok=False, message=["User Unathorized"])
+
+        print("MUTATION - DeleteDeviceProperty - User: {}, Device: {}, Name: {}".format(info.context["user"], device, name))
 
         try:
             db.delete_device_property(device, name)

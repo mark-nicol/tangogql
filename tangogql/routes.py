@@ -39,24 +39,13 @@ async def db_handler(request):
     query = payload.get('query')
     variables = payload.get('variables')
 
-    user = None
-    if 'webjive_token' in request.cookies:
-        token = request.cookies['webjive_token']
-        user = r.get(token).decode('UTF-8')
-
-        # For some reason, the redis module does not return a proper
-        # None value, but a string containing the value 'None'. Horrible.
-        if user == 'None':
-            user = None
-
-    context = {
-        "user": user
-    }
+    context = _build_context(request)
 
     response = await tangoschema.execute(query,
                                          variable_values=variables,
                                          context_value=context,
                                          return_promise=True)
+
     data = {}
     if response.errors:
         data['errors'] = [format_error(e) for e in response.errors]
@@ -74,3 +63,23 @@ async def socket_handler(request):
     await ws.prepare(request)
     await subscription_server.handle(ws)
     return ws
+
+
+
+def _build_context(request):
+    user = None
+    if 'webjive_token' in request.cookies:
+        token = request.cookies['webjive_token']
+
+        user = r.get(token)
+        if user != None:
+            user = user.decode('UTF-8')
+
+        # For some reason, the redis module does not always return a proper
+        # None value, but a string containing the value 'None'. Horrible.
+        if user == 'None':
+            user = None
+
+    return {
+        "user": user
+    }
