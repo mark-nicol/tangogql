@@ -1,12 +1,15 @@
 """Module containing the available mutations."""
 
 import PyTango
+import logging
 
 from graphene import ObjectType, Mutation, String, Boolean, List
 from graphql import GraphQLError
 
 from tangogql.schema.base import db, proxies
 from tangogql.schema.types import ScalarTypes
+
+logger = logging.getLogger('logger')
 
 def _is_authorized(info):
     if info.context == None:
@@ -58,7 +61,7 @@ class ExecuteDeviceCommand(Mutation):
         if _is_authorized(info) == False:
             raise UserUnauthorizedException("User Unathorized")
 
-        print("MUTATION - ExecuteDeviceCommand - User: {}, Device: {}, Command: {}, Argin: {}".format(info.context["user"], device, command, argin))
+        logger.info("MUTATION - ExecuteDeviceCommand - User: {}, Device: {}, Command: {}, Argin: {}".format(info.context["user"], device, command, argin))
 
         if type(argin) is ValueError:
             return ExecuteDeviceCommand(ok=False, message=[str(argin)])
@@ -109,7 +112,7 @@ class SetAttributeValue(Mutation):
         if _is_authorized(info) == False:
             raise UserUnauthorizedException("User Unathorized")
 
-        print("MUTATION - SetAttributeValue - User: {}, Device: {}, Attribute: {}, Value: {}".format(info.context["user"], device, name, value))
+        logger.info("MUTATION - SetAttributeValue - User: {}, Device: {}, Attribute: {}, Value: {}".format(info.context["user"], device, name, value))
 
         if type(value) is ValueError:
             return SetAttributeValue(ok=False, message=[str(value)])
@@ -157,7 +160,7 @@ class PutDeviceProperty(Mutation):
         if _is_authorized(info) == False:
             raise UserUnauthorizedException("User Unathorized")
 
-        print("MUTATION - PutDeviceProperty - User: {}, Device: {}, Name: {}, Value: {}".format(info.context["user"], device, name, value))
+        logger.info("MUTATION - PutDeviceProperty - User: {}, Device: {}, Name: {}, Value: {}".format(info.context["user"], device, name, value))
 
         # wait = not args.get("async")
         try:
@@ -198,7 +201,7 @@ class DeleteDeviceProperty(Mutation):
         if _is_authorized(info) == False:
             raise UserUnauthorizedException("User Unathorized")
 
-        print("MUTATION - DeleteDeviceProperty - User: {}, Device: {}, Name: {}".format(info.context["user"], device, name))
+        logger.info("MUTATION - DeleteDeviceProperty - User: {}, Device: {}, Name: {}".format(info.context["user"], device, name))
 
         try:
             db.delete_device_property(device, name)
