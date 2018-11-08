@@ -56,7 +56,7 @@ class ExecuteDeviceCommand(Mutation):
         """
 
         if _is_authorized(info) == False:
-            return ExecuteDeviceCommand(ok=False, message=["User Unathorized"])
+            raise UserUnauthorizedException("User Unathorized")
 
         print("MUTATION - ExecuteDeviceCommand - User: {}, Device: {}, Command: {}, Argin: {}".format(info.context["user"], device, command, argin))
 
@@ -108,7 +108,6 @@ class SetAttributeValue(Mutation):
 
         if _is_authorized(info) == False:
             raise UserUnauthorizedException("User Unathorized")
-            # return SetAttributeValue(ok=False, message=["User Unathorized"])
 
         print("MUTATION - SetAttributeValue - User: {}, Device: {}, Attribute: {}, Value: {}".format(info.context["user"], device, name, value))
 
@@ -156,7 +155,7 @@ class PutDeviceProperty(Mutation):
         """
 
         if _is_authorized(info) == False:
-            return PutDeviceProperty(ok=False, message=["User Unathorized"])
+            raise UserUnauthorizedException("User Unathorized")
 
         print("MUTATION - PutDeviceProperty - User: {}, Device: {}, Name: {}, Value: {}".format(info.context["user"], device, name, value))
 
@@ -197,7 +196,7 @@ class DeleteDeviceProperty(Mutation):
         """
 
         if _is_authorized(info) == False:
-            return DeleteDeviceProperty(ok=False, message=["User Unathorized"])
+            raise UserUnauthorizedException("User Unathorized")
 
         print("MUTATION - DeleteDeviceProperty - User: {}, Device: {}, Name: {}".format(info.context["user"], device, name))
 

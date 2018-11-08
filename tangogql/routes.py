@@ -9,6 +9,7 @@ from graphql_ws.aiohttp import AiohttpSubscriptionServer
 from graphql import format_error
 
 from tangogql.schema.tango import tangoschema
+from tangogql.schema.mutations import UserUnauthorizedException
 
 subscription_server = AiohttpSubscriptionServer(tangoschema)
 routes = web.RouteTableDef()
@@ -48,7 +49,10 @@ async def db_handler(request):
 
     data = {}
     if response.errors:
-        data['errors'] = [format_error(e) for e in response.errors]
+        if isinstance(response.errors[0].original_error, UserUnauthorizedException):
+            return web.HTTPUnauthorized()
+        else:
+            data['errors'] = [format_error(e) for e in response.errors]
     if response.data:
         data['data'] = response.data
     jsondata = json.dumps(data,)
