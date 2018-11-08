@@ -8,9 +8,10 @@ services:
       - "5004:5004"
     volumes:
       - .:/python3-taurus-core/web-maxiv-graphql
+      - ./logs:/var/log/tangogql
     environment:
       - TANGO_HOST=w-v-kitslab-csdb-0:10000
-
+      - LOG_PATH=/var/log/tangogql
       # If this is not set, the output of python is delayed and only shows when the docker container restarts
       - PYTHONUNBUFFERED=1
   auth:

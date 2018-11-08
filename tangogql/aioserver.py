@@ -62,6 +62,8 @@ def setup_logger(logfile):
     logger.addHandler(file_handler)
     logger.addHandler(stream_handler)
 
+    logger.debug("Logging setup done. Logfile: " + logfile)
+
     return logger
 
 def setup():
