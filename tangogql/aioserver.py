@@ -16,6 +16,8 @@ import logging
 import aiohttp
 import aiohttp_cors
 import asyncio
+import uuid
+import os
 
 from tangogql.routes import routes
 
@@ -23,7 +25,7 @@ from tangogql.routes import routes
 __all__ = ['run']
 
 # A factory function is needed to use aiohttp-devtools for live reload functionality.
-def build_server():
+def setup_server():
     app = aiohttp.web.Application(debug=True)
 
     defaults_dict = {"*": aiohttp_cors.ResourceOptions(
@@ -40,10 +42,57 @@ def build_server():
 
     return app
 
-def run():
-    logging.basicConfig(level=logging.DEBUG)
+def setup_logger(logfile):
+    logger = logging.getLogger('logger')
+    logger.setLevel(logging.DEBUG)
 
-    app = build_server()
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+
+    max_mega_bytes = 15
+    log_file_size_in_bytes = max_mega_bytes * (1024*1024)
+
+    file_handler = logging.handlers.RotatingFileHandler(logfile, maxBytes=log_file_size_in_bytes, backupCount=5)
+    file_handler.setLevel(logging.INFO)
+    file_handler.setFormatter(formatter)
+
+    stream_handler = logging.StreamHandler()
+    stream_handler.setLevel(logging.DEBUG)
+    stream_handler.setFormatter(formatter)
+
+    logger.addHandler(file_handler)
+    logger.addHandler(stream_handler)
+
+    logger.debug("Logging setup done. Logfile: " + logfile)
+
+    return logger
+
+def setup():
+    logfile = None
+    if os.environ.get("HOSTNAME"):
+        logfile = os.environ.get("HOSTNAME")
+    else:
+        logfile = uuid.uuid4().hex
+
+    if os.environ.get("LOG_PATH"):
+        logfile = os.environ.get("LOG_PATH") + "/" + logfile
+    else:
+        logfile = "/tmp/" + logfile
+
+    logfile = logfile + ".log"
+
+    return (
+        setup_server(),
+        setup_logger(logfile)
+    )
+
+# Called by aiohttp-devtools when restarting the dev server.
+# Not used in production
+def dev_run():
+    (app, _) = setup()
+    return app
+
+def run():
+    (app, logger) = setup()
 
     loop = asyncio.get_event_loop()
     handler = app.make_handler(debug=True)
@@ -53,7 +102,7 @@ def run():
     # hostname = "http://w-v-kitslab-web-0:5004/graphiql"
     hostname = "http://localhost:5004/graphiql"
 
-    logging.info(f"Point your browser to {hostname}")
+    logger.debug(f"Point your browser to {hostname}")
     srv = loop.run_until_complete(f)
     try:
         loop.run_forever()
