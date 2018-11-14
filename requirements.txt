@@ -1,5 +1,6 @@
 aiohttp==3.2.1
 aiohttp-cors==0.7.0
+aiohttp-devtools==0.10
 aniso8601==3.0.0
 async-timeout==3.0.0
 attrs==18.1.0
