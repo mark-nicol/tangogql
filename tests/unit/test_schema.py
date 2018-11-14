@@ -70,7 +70,7 @@ class TestDeviceClass(object):
                     assert value is None
                 else:
                     assert isinstance(value, (int, float, str))
-            elif key != 'value':
+            elif key not in ['value', 'writevalue'] :
                 assert isinstance(value, str)
             else:
                 assert isinstance(value, (int, float))
