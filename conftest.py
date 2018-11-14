@@ -13,6 +13,9 @@ from graphene.test import Client
 from tangogql.schema.tango import tangoschema
 # import queries
 
+import asyncio
+from graphql.execution.executors.asyncio import AsyncioExecutor
+
 __author__ = "antmil"
 __docformat__ = "restructuredtext"
 
@@ -22,8 +25,9 @@ class TangogqlClient(object):
         self.client = Client(tangoschema)
 
     def execute(self, query):
-        return self.client.execute(query)['data']
-
+        loop = asyncio.get_event_loop()
+        r =  self.client.execute(query, executor=AsyncioExecutor(loop=loop))
+        return r["data"]
 
 @pytest.fixture
 def client():

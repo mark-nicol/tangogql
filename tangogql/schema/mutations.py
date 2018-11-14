@@ -20,7 +20,7 @@ class ExecuteDeviceCommand(Mutation):
     message = List(String)
     output = ScalarTypes()
 
-    def mutate(self, info, device, command, argin=None):
+    async def mutate(self, info, device, command, argin=None):
         """ This method executes a command.
 
         :param device: Name of the device that the command will be executed.
@@ -44,7 +44,7 @@ class ExecuteDeviceCommand(Mutation):
             return ExecuteDeviceCommand(ok=False, message=[str(argin)])
         try:
             proxy = proxies.get(device)
-            result = proxy.command_inout(command, argin)
+            result = await proxy.command_inout(command, argin)
             return ExecuteDeviceCommand(ok=True,
                                         message=["Success"],
                                         output=result)
@@ -67,7 +67,7 @@ class SetAttributeValue(Mutation):
     ok = Boolean()
     message = List(String)
 
-    def mutate(self, info, device, name, value):
+    async def mutate(self, info, device, name, value):
         """ This method sets value to an attribute.
 
         :param device: Name of the device
@@ -90,7 +90,7 @@ class SetAttributeValue(Mutation):
             return SetAttributeValue(ok=False, message=[str(value)])
         try:
             proxy = proxies.get(device)
-            proxy.write_attribute(name, value)
+            await proxy.write_attribute(name, value)
             return SetAttributeValue(ok=True, message=["Success"])
         except (PyTango.DevFailed, PyTango.ConnectionFailed,
                 PyTango.CommunicationFailed, PyTango.DeviceUnlocked) as error:
