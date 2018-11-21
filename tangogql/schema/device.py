@@ -73,7 +73,7 @@ class Device(TangoNodeType, Interface):
     stopped_date = String()
     exported = Boolean()
 
-    def resolve_state(self, info):
+    async def resolve_state(self, info):
         """This method fetch the state of the device.
 
         :return: State of the device.
@@ -81,7 +81,8 @@ class Device(TangoNodeType, Interface):
         """
         try:
             proxy = proxies.get(self.name)
-            return proxy.state()
+            # State implements green mode
+            return await proxy.state()
         except (PyTango.DevFailed, PyTango.ConnectionFailed,
                 PyTango.CommunicationFailed, PyTango.DeviceUnlocked):
             return "UNKNOWN"
@@ -91,14 +92,14 @@ class Device(TangoNodeType, Interface):
     def resolve_properties(self, info, pattern="*"):
         """This method fetch the properties of the device.
 
-        :param pattern: Pattern for filtering the result. 
+        :param pattern: Pattern for filtering the result.
                         Returns only properties that matches the pattern.
         :type pattern: str
 
         :return: List of properties for the device.
         :rtype: List of DeviceProperty
         """
-
+        #TODO:Db calls are not asynchronous in tango
         props = db.get_device_property_list(self.name, pattern)
         return [DeviceProperty(name=p, device=self.name) for p in props]
 
@@ -114,6 +115,7 @@ class Device(TangoNodeType, Interface):
         """
 
         proxy = proxies.get(self.name)
+        # Attribute_list_query is not asyncronous in pytango
         attr_infos = proxy.attribute_list_query()
         rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
         sorted_info = sorted(attr_infos, key=attrgetter("name"))
@@ -172,6 +174,7 @@ class Device(TangoNodeType, Interface):
         """
 
         proxy = proxies.get(self.name)
+        # Not awaitable
         cmd_infos = proxy.command_list_query()
         rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
 
@@ -197,6 +200,7 @@ class Device(TangoNodeType, Interface):
         """
 
         proxy = proxies.get(self.name)
+        # Not awaitable
         dev_info = proxy.info()
 
         return DeviceInfo(id=dev_info.server_id,
