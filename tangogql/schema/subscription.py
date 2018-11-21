@@ -18,7 +18,7 @@ class ChangeData(ObjectType):
 
 
 class ConfigData(ObjectType):
-    description = String()
+    description = String() 
     label = String()
     unit = String()
     format = String()
