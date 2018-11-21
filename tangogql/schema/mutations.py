@@ -1,12 +1,30 @@
 """Module containing the available mutations."""
 
 import PyTango
+import logging
 
 from graphene import ObjectType, Mutation, String, Boolean, List
+from graphql import GraphQLError
 
 from tangogql.schema.base import db, proxies
 from tangogql.schema.types import ScalarTypes
 
+logger = logging.getLogger('logger')
+
+def _is_authorized(info):
+    if info.context == None:
+        return False
+
+    if "user" not in info.context:
+        return False
+
+    if info.context["user"] == None:
+        return False
+
+    return True
+
+class UserUnauthorizedException(GraphQLError):
+    pass
 
 class ExecuteDeviceCommand(Mutation):
     """This class represent a mutation for executing a command."""
@@ -39,6 +57,11 @@ class ExecuteDeviceCommand(Mutation):
                  message = error_message.
         :rtype: ExecuteDeviceCommand
         """
+
+        if _is_authorized(info) == False:
+            raise UserUnauthorizedException("User Unathorized")
+
+        logger.info("MUTATION - ExecuteDeviceCommand - User: {}, Device: {}, Command: {}, Argin: {}".format(info.context["user"], device, command, argin))
 
         if type(argin) is ValueError:
             return ExecuteDeviceCommand(ok=False, message=[str(argin)])
@@ -81,10 +104,15 @@ class SetAttributeValue(Mutation):
         :return: Return ok = True and message = Success if successful,
                  False otherwise.
                  When an input is not one the scalar types or an exception has
-                 been raised while setting the value returns 
+                 been raised while setting the value returns
                  message = error_message.
         :rtype: SetAttributeValue
         """
+
+        if _is_authorized(info) == False:
+            raise UserUnauthorizedException("User Unathorized")
+
+        logger.info("MUTATION - SetAttributeValue - User: {}, Device: {}, Attribute: {}, Value: {}".format(info.context["user"], device, name, value))
 
         if type(value) is ValueError:
             return SetAttributeValue(ok=False, message=[str(value)])
@@ -124,10 +152,15 @@ class PutDeviceProperty(Mutation):
 
         :return: Returns ok = True and message = Success if successful,
                  False otherwise.
-                 If an exception has been raised returns 
+                 If an exception has been raised returns
                  message = error_message.
         :rtype: PutDeviceProperty
         """
+
+        if _is_authorized(info) == False:
+            raise UserUnauthorizedException("User Unathorized")
+
+        logger.info("MUTATION - PutDeviceProperty - User: {}, Device: {}, Name: {}, Value: {}".format(info.context["user"], device, name, value))
 
         # wait = not args.get("async")
         try:
@@ -164,6 +197,11 @@ class DeleteDeviceProperty(Mutation):
                  If exception has been raised returns message = error_message.
         :rtype: DeleteDeviceProperty
         """
+
+        if _is_authorized(info) == False:
+            raise UserUnauthorizedException("User Unathorized")
+
+        logger.info("MUTATION - DeleteDeviceProperty - User: {}, Device: {}, Name: {}".format(info.context["user"], device, name))
 
         try:
             db.delete_device_property(device, name)
