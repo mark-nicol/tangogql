@@ -39,16 +39,21 @@ class ScalarTypes(Scalar):
 
         :return: Value (any)
         """
-
-        # value of type DevState should return as string
-        if type(value).__name__ == "DevState":
-            return str(value)
+        if isinstance(value, str):
+            # value of type DevState should return as string
+            if type(value).__name__ == "DevState":
+                return str(value)
+            else:
+                try:
+                    value = float(value)
+                except ValueError:
+                    pass
         # json don't have support on infinity
         elif isinstance(value, float):
             if math.isinf(value):
                 return str(value)
         return value
-
+        
     # TODO: Check if the following static methods really need to be static.
     @staticmethod
     def serialize(value):
