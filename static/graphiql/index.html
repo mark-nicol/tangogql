@@ -30,7 +30,7 @@
 </head>
 <body>
   <script>
-    var subscriptionsEndpoint = window.location.pathname.replace(/^ws/, "http").replace("/graphiql/", "") + "/socket";
+    var subscriptionsEndpoint = "wss://" + window.location.hostname.replace("www.", "") + window.location.pathname.replace("/graphiql/", "")  + "/socket"; 
     var endpointURL = window.location.pathname.replace("/graphiql/", "") + "/db";
     // Collect the URL parameters
     var parameters = {};
