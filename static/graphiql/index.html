@@ -30,8 +30,8 @@
 </head>
 <body>
   <script>
-    var subscriptionsEndpoint = 'wss://webjive.maxiv.lu.se/socket';
-    var endpointURL = '/db'
+    var subscriptionsEndpoint = window.location.pathname.replace(/^ws/, "http").replace("/graphiql", "") + "/socket";
+    var endpointURL = window.location.pathname.replace("/graphiql/", "") + "/db";
     // Collect the URL parameters
     var parameters = {};
     window.location.search.substr(1).split('&').forEach(function (entry) {
