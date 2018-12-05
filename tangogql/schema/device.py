@@ -8,11 +8,12 @@ from operator import attrgetter
 from graphene import Interface, String, Int, List, Boolean, Field
 
 from tangogql.schema.base import db, proxies
-from tangogql.schema.types import TangoNodeType
+from tangogql.schema.types import TangoNodeType,TypeConverter
 from tangogql.schema.attribute import DeviceAttribute
 from tangogql.schema.attribute import ScalarDeviceAttribute
 from tangogql.schema.attribute import ImageDeviceAttribute
 from tangogql.schema.attribute import SpectrumDeviceAttribute
+
 
 
 class DeviceProperty(TangoNodeType, Interface):
@@ -111,10 +112,10 @@ class Device(TangoNodeType, Interface):
 
         :return: List of attributes of the device.
         :rtype: List of DeviceAttribute
-        """
-
+        """ 
         proxy = proxies.get(self.name)
         attr_infos = proxy.attribute_list_query()
+
         rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
         sorted_info = sorted(attr_infos, key=attrgetter("name"))
         result = []
@@ -126,21 +127,23 @@ class Device(TangoNodeType, Interface):
                 wt = 'READ_WITH_WRITE'
             else:
                 wt = attr_info.writable
+            
+            data_type = PyTango.CmdArgType.values[attr_info.data_type]
+            
             result.append(klass(
                           name=attr_info.name,
                           device=self.name,
                           writable=wt,
-                          datatype=PyTango.CmdArgType.values[
-                                   attr_info.data_type],
+                          datatype=data_type,
                           dataformat=attr_info.data_format,
                           label=attr_info.label,
                           unit=attr_info.unit,
                           description=attr_info.description,
                           displevel=attr_info.disp_level,
-                          minvalue=None if attr_info.min_value  == "Not specified" else attr_info.min_value,
-                          maxvalue=None if attr_info.max_value  == "Not specified" else attr_info.max_value,
-                          minalarm=None if attr_info.min_alarm  == "Not specified" else attr_info.min_alarm,
-                          maxalarm=None if attr_info.max_alarm  == "Not specified" else attr_info.max_alarm
+                          minvalue=None if attr_info.min_value  == "Not specified" else TypeConverter.convert(data_type,attr_info.min_value),
+                          maxvalue=None if attr_info.max_value  == "Not specified" else TypeConverter.convert(data_type,attr_info.max_value),
+                          minalarm=None if attr_info.min_alarm  == "Not specified" else TypeConverter.convert(data_type,attr_info.min_alarm),
+                          maxalarm=None if attr_info.max_alarm  == "Not specified" else TypeConverter.convert(data_type,attr_info.max_alarm)
                           )
                           )
 
@@ -157,7 +160,7 @@ class Device(TangoNodeType, Interface):
                 if str(attr_info.data_format) == "IMAGE":
                     append_to_result(result,
                                      ImageDeviceAttribute, attr_info)
-
+        
         return result
 
     def resolve_commands(self, info, pattern="*"):
