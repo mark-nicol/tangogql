@@ -39,7 +39,6 @@ class ScalarTypes(Scalar):
 
         :return: Value (any)
         """
-
         # value of type DevState should return as string
         if type(value).__name__ == "DevState":
             return str(value)
@@ -48,7 +47,7 @@ class ScalarTypes(Scalar):
             if math.isinf(value):
                 return str(value)
         return value
-
+        
     # TODO: Check if the following static methods really need to be static.
     @staticmethod
     def serialize(value):
@@ -92,5 +91,26 @@ class ScalarTypes(Scalar):
                 return str(node.value)
             else:
                 raise ValueError('The input value is not of acceptable types')
+        except Exception as e:
+            return e
+
+class TypeConverter:
+    def convert(data_type,value):
+        t = str(data_type)
+        try:
+            if t == "DevBoolean":
+                if value.lower() in ["true","t","1"]:
+                    return True
+                elif value.lower() in ["false","f","1"]:
+                    return False
+                raise ValueError
+            elif t in ["DevFloat", "DevDouble"]:
+                return float(value)
+            elif t in ["DevInt","DevShort","DevUShort","DevULong","DevLong","DevLong64","DevULong64"]:
+                return int(value)
+            elif t in ["DevString","DevStates","ConstDevString"]:
+                return str(value)
+            else:
+                return value
         except Exception as e:
             return e
