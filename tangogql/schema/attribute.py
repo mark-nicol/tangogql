@@ -138,8 +138,13 @@ class DeviceAttribute(Interface):
         # TODO: Check this part, don't do anything on an exception?
         # NOTE: Better to propagate SystemExit and KeyboardInterrupt,
         # otherwise Ctrl+C may not work.
+        except (PyTango.DevFailed, PyTango.ConnectionFailed,
+                PyTango.CommunicationFailed, PyTango.DeviceUnlocked) as error:
+            e = error.args[0]
+            return [e.desc, e.reason]
         except Exception as e:
-            pass
+            return str(e)
+
         return value
 
     async def resolve_timestamp(self, *args, **kwargs):
@@ -155,8 +160,12 @@ class DeviceAttribute(Interface):
             # Read request is an io opreration, release the event loop
             att_data = await collaborative_read_attribute(proxy, self.name)
             value = att_data.time.tv_sec
+        except (PyTango.DevFailed, PyTango.ConnectionFailed,
+                PyTango.CommunicationFailed, PyTango.DeviceUnlocked) as error:
+            e = error.args[0]
+            return [e.desc, e.reason]
         except Exception as e:
-            pass
+            return str(e)
         return value
 
 
