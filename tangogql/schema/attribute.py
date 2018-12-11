@@ -23,13 +23,18 @@ async def collaborative_read_attribute(proxy, name):
     TODO: Refactor me !!"""
     # Hacky way, attached two attributes to the device proxy (device proxy is
     # the element shared between requestors.). One defining if someone is
-    # alreading waiting for value, the other one is the asynchronous
-    # shared resul.
+    # already waiting for value, the other one is the asynchronous
+    # shared result.
     reading_attr = "{}_reading".format(name)
     value_attr = "{}_value".format(name)
     if hasattr(proxy, reading_attr) and getattr(proxy, reading_attr):
-        # Someone else is arlready reading the attribute, wait on the future
-        return await getattr(proxy, value_attr)
+        # Someone else is already reading the attribute, wait on the future
+        response = await getattr(proxy, value_attr)
+        if response is not None:
+            return response
+        else:
+            #TODO add an TangogqlException for this case.
+            raise Exception(response)
     else:
         # No one is reading this attribute. Let's read it and tag that
         # this context id awaiting data
@@ -38,12 +43,18 @@ async def collaborative_read_attribute(proxy, name):
         future = asyncio.Future()
         setattr(proxy, value_attr, future)
         # Wait for data
-        read_value = await proxy.read_attribute(name)
-        # Set data for other requestors.
-        future.set_result(read_value)
-        setattr(proxy, reading_attr, False)
-        # Return read content
-        return read_value
+        try:
+            read_value = await proxy.read_attribute(name)
+            # Set data for other requestors.
+            future.set_result(read_value)
+            setattr(proxy, reading_attr, False)
+            # Return read content
+            return read_value
+        except Exception:
+            read_value = None
+            future.set_result(read_value)
+            setattr(proxy, reading_attr, False)
+            raise Exception(None)
 
 class DeviceAttribute(Interface):
     """This class represents an attribute of a device."""
@@ -132,7 +143,7 @@ class DeviceAttribute(Interface):
         value = None
         try:
             proxy = proxies.get(self.device)
-            # Read request is an io opreration, release the event loop
+            # Read request is an io operation, release the event loop
             att_data = await collaborative_read_attribute(proxy, self.name)
             value = att_data.quality.name
         # TODO: Check this part, don't do anything on an exception?
@@ -157,7 +168,7 @@ class DeviceAttribute(Interface):
         value = None
         try:
             proxy = proxies.get(self.device)
-            # Read request is an io opreration, release the event loop
+            # Read request is an io operation, release the event loop
             att_data = await collaborative_read_attribute(proxy, self.name)
             value = att_data.time.tv_sec
         except (PyTango.DevFailed, PyTango.ConnectionFailed,
@@ -165,7 +176,9 @@ class DeviceAttribute(Interface):
             e = error.args[0]
             return [e.desc, e.reason]
         except Exception as e:
-            return str(e)
+            # return str(e)
+            # TODO: Refactor this to handle this exception in a better way.
+            return -1
         return value
 
 
