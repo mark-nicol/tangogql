@@ -4,11 +4,7 @@ from graphql import format_error
 class ErrorParser:
     def parse(error):
         if isinstance(error.original_error,(PyTango.DevFailed, PyTango.ConnectionFailed,
-                PyTango.CommunicationFailed, PyTango.DeviceUnlocked)):
-            for e in error.original_error.args:
-                print("**********")
-                print (e)
-            
+                PyTango.CommunicationFailed, PyTango.DeviceUnlocked)):            
             message =  {"message":[{
                                     "desc"    : e.desc.split("\n")[0],   # only the first row contains important info
                                     "reason"  : e.reason,
