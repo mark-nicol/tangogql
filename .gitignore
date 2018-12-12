@@ -6,6 +6,9 @@
 tsconfig.json
 jsconfig.json
 
+### IntelliJ ###
+.idea/
+
 ### Python ###
 # Byte-compiled / optimized / DLL files
 __pycache__/

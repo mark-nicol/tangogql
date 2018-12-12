@@ -16,13 +16,13 @@ RUN apt-get update && \
 
 COPY environment.yml /tmp/environment.yml
 
-# Install pytango without specifying version:
-# RUN /bin/bash -c "source activate graphql && conda install pytango -c tango-controls"
-# COPY requirements.txt /tmp/requirements.txt
-# RUN /bin/bash -c "source activate graphql && pip install -r /tmp/requirements.txt"
-
 RUN conda update -n base conda && \
     conda env create --name graphql python=3.6 --file=/tmp/environment.yml
+
+# Install pytango without specifying version:
+RUN /bin/bash -c "source activate graphql && conda install pytango -c tango-controls"
+COPY requirements.txt /tmp/requirements.txt
+RUN /bin/bash -c "source activate graphql && pip install -r /tmp/requirements.txt"
 
 RUN git clone https://gitlab.maxiv.lu.se/vinmic/python3-taurus-core.git
 WORKDIR python3-taurus-core
