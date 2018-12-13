@@ -24,7 +24,7 @@ RUN /bin/bash -c "source activate graphql && conda install pytango -c tango-cont
 COPY requirements.txt /tmp/requirements.txt
 RUN /bin/bash -c "source activate graphql && pip install -r /tmp/requirements.txt"
 
-RUN git clone https://gitlab.maxiv.lu.se/vinmic/python3-taurus-core.git
+RUN git clone https://gitlab.com/MaxIV/python3-taurus-core.git
 WORKDIR python3-taurus-core
 RUN  /bin/bash -c "source activate graphql && python setup.py install"
 
