@@ -79,21 +79,21 @@ async def socket_handler(request):
 
 def _build_context(request):
     user = None
-
+    #
     # TODO: retrieve user information from JWT instead
     #
     # if 'webjive_token' in request.cookies:
     #     token = request.cookies['webjive_token']
-
+    #
     #     user = r.get(token)
     #     if user != None:
     #         user = user.decode('UTF-8')
-
+    #
     #     # For some reason, the redis module does not always return a proper
     #     # None value, but a string containing the value 'None'. Horrible.
     #     if user == 'None':
     #         user = None
-
+    #
     return {
         "user": user
     }
