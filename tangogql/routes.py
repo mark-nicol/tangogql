@@ -13,6 +13,8 @@ from graphql.execution.executors.asyncio import AsyncioExecutor
 from tangogql.schema.tango import tangoschema
 from tangogql.schema.mutations import UserUnauthorizedException
 
+from tangogql.schema.errors import ErrorParser
+
 subscription_server = AiohttpSubscriptionServer(tangoschema)
 routes = web.RouteTableDef()
 
@@ -58,7 +60,7 @@ async def db_handler(request):
         if isinstance(response.errors[0].original_error, UserUnauthorizedException):
             return web.HTTPUnauthorized()
         else:
-            data['errors'] = [format_error(e) for e in response.errors]
+            data['errors'] = [ErrorParser.parse(e) for e in response.errors]
     if response.data:
         data["data"] = response.data
     jsondata = json.dumps(data)
