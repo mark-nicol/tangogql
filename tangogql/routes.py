@@ -77,11 +77,10 @@ async def socket_handler(request):
     return ws
 
 
-
 def _build_context(request):    
     try:
-        token = request.cookies.get("webjive_jwt")
-        secret = os.environ.get("SECRET")
+        token = request.cookies.get("webjive_jwt", "")
+        secret = os.environ.get("SECRET", "")
         claims = jwt.decode(token, secret)
         user = claims.get("username")
         groups = claims.get("groups", [])
