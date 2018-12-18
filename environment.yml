@@ -56,6 +56,7 @@ dependencies:
     - idna-ssl==1.0.1
     - multidict==4.3.1
     - promise==2.1
+    - PyJWT==1.7.1
     - python-dateutil==2.7.3
     - redis==2.10.6
     - rx==1.6.1
