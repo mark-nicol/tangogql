@@ -59,12 +59,8 @@ async def db_handler(request):
         if isinstance(response.errors[0].original_error, UserUnauthorizedException):
             return web.HTTPUnauthorized()
         else:
-<<<<<<< HEAD
             parsed_errors = [ErrorParser.parse(e) for e in(response.errors)]
             data['errors'] = ErrorParser.remove_duplicated_errors(parsed_errors)
-=======
-            data['errors'] = [ErrorParser.parse(e) for e in response.errors]
->>>>>>> 041a5f72cd080bb9836b75f51121c40f3b2100f3
     if response.data:
         data["data"] = response.data
     jsondata = json.dumps(data)
@@ -93,24 +89,4 @@ def _build_context(request):
         user = None
         groups = []
 
-<<<<<<< HEAD
-def _build_context(request):
-    user = None
-    if 'webjive_token' in request.cookies:
-        token = request.cookies['webjive_token']
-
-        user = r.get(token)
-        if user != None:
-            user = user.decode('UTF-8')
-
-        # For some reason, the redis module does not always return a proper
-        # None value, but a string containing the value 'None'. Horrible.
-        if user == 'None':
-            user = None
-
-    return {
-        "user": user
-    }
-=======
     return {"user": user, "groups": groups}
->>>>>>> 041a5f72cd080bb9836b75f51121c40f3b2100f3
