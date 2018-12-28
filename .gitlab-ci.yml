@@ -33,6 +33,24 @@ deploy_image:
   only:
     - master
 
+
+### DEVELOP ###
+
+build_image:
+  stage: build
+  script:
+    - docker build . -t docker.maxiv.lu.se/graphql-test
+  only:
+    - develop
+
+deploy_image:
+  stage: deploy
+  script:
+  - docker push docker.maxiv.lu.se/graphql-test
+  - 'curl -H "Authorization: Bearer $AWX_TOKEN" -XPOST https://ansible.maxiv.lu.se/api/v2/job_templates/49/launch/'
+  only:
+    - develop
+
 #image: continuumio/miniconda3
 
 #pages:

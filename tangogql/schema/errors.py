@@ -10,8 +10,6 @@ class ErrorParser:
             duplicated = False
             for e in message:
                 t = tuple(e.items())
-                print(t)
-                print(t not in seen)
                 if t not in seen:
                     seen.add(t)
                     result_set.append(message)

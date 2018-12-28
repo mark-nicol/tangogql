@@ -4,7 +4,8 @@ import asyncio
 from aiohttp import web
 
 import json
-import redis
+import jwt
+import os
 
 from graphql_ws.aiohttp import AiohttpSubscriptionServer
 from graphql import format_error
@@ -17,8 +18,6 @@ from tangogql.schema.errors import ErrorParser
 
 subscription_server = AiohttpSubscriptionServer(tangoschema)
 routes = web.RouteTableDef()
-
-r = redis.StrictRedis(host='redis', port=6379)
 
 # FIXME: aiohttp doesn't support automatic serving of index files when serving
 #        directories statically, so we need to define a number of routes to
@@ -60,8 +59,12 @@ async def db_handler(request):
         if isinstance(response.errors[0].original_error, UserUnauthorizedException):
             return web.HTTPUnauthorized()
         else:
+<<<<<<< HEAD
             parsed_errors = [ErrorParser.parse(e) for e in(response.errors)]
             data['errors'] = ErrorParser.remove_duplicated_errors(parsed_errors)
+=======
+            data['errors'] = [ErrorParser.parse(e) for e in response.errors]
+>>>>>>> 041a5f72cd080bb9836b75f51121c40f3b2100f3
     if response.data:
         data["data"] = response.data
     jsondata = json.dumps(data)
@@ -79,7 +82,18 @@ async def socket_handler(request):
     return ws
 
 
+def _build_context(request):    
+    try:
+        token = request.cookies.get("webjive_jwt", "")
+        secret = os.environ.get("SECRET", "")
+        claims = jwt.decode(token, secret)
+        user = claims.get("username")
+        groups = claims.get("groups", [])
+    except jwt.InvalidTokenError:
+        user = None
+        groups = []
 
+<<<<<<< HEAD
 def _build_context(request):
     user = None
     if 'webjive_token' in request.cookies:
@@ -97,3 +111,6 @@ def _build_context(request):
     return {
         "user": user
     }
+=======
+    return {"user": user, "groups": groups}
+>>>>>>> 041a5f72cd080bb9836b75f51121c40f3b2100f3
