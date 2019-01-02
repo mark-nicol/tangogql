@@ -50,11 +50,15 @@ async def collaborative_read_attribute(proxy, name):
             setattr(proxy, reading_attr, False)
             # Return read content
             return read_value
-        except Exception:
+        except PyTango.DevFailed as error:
             read_value = None
             future.set_result(read_value)
             setattr(proxy, reading_attr, False)
-            raise Exception(None)
+            PyTango.Except.re_throw_exception(error,"","","")
+        except Exception as e:
+            read_value = None
+            future.set_result(read_value)
+            setattr(proxy, reading_attr, False)
 
 class DeviceAttribute(Interface):
     """This class represents an attribute of a device."""
@@ -85,24 +89,18 @@ class DeviceAttribute(Interface):
         """
 
         w_value = None
-        try:
-            proxy = proxies.get(self.device)
-            # Read request is an io opreration, release the event loop
-            att_data = await collaborative_read_attribute(proxy, self.name)
+        proxy = proxies.get(self.device)
+        # Read request is an io opreration, release the event loop
+        att_data = await collaborative_read_attribute(proxy, self.name)
+        temp_val = att_data.w_value
+        if not temp_val is None:
             if att_data.data_format != 0:  # SPECTRUM and IMAGE
-                temp_val = att_data.w_value
                 if isinstance(temp_val, tuple):
                     w_value = list(temp_val)
                 else:
                     w_value = att_data.w_value.tolist()
             else:  # SCALAR
-                w_value = att_data.w_value
-        except (PyTango.DevFailed, PyTango.ConnectionFailed,
-                PyTango.CommunicationFailed, PyTango.DeviceUnlocked) as error:
-            e = error.args[0]
-            return [e.desc, e.reason]
-        except Exception as e:
-            return str(e)
+                w_value = temp_val
         return w_value
 
     async def resolve_value(self, *args, **kwargs):
@@ -113,24 +111,18 @@ class DeviceAttribute(Interface):
         """
 
         value = None
-        try:
-            proxy = proxies.get(self.device)
-            # Read request is an io opreration, release the event loop
-            att_data = await collaborative_read_attribute(proxy, self.name)
+        proxy = proxies.get(self.device)
+        # Read request is an io opreration, release the event loop
+        att_data = await collaborative_read_attribute(proxy, self.name)
+        temp_val = att_data.value
+        if not temp_val is None:
             if att_data.data_format != 0:  # SPECTRUM and IMAGE
-                temp_val = att_data.value
                 if isinstance(temp_val, tuple):
                     value = list(temp_val)
                 else:
                     value = att_data.value.tolist()
             else:  # SCALAR
                 value = att_data.value
-        except (PyTango.DevFailed, PyTango.ConnectionFailed,
-                PyTango.CommunicationFailed, PyTango.DeviceUnlocked) as error:
-            e = error.args[0]
-            return [e.desc, e.reason]
-        except Exception as e:
-            return str(e)
         return value
 
     async def resolve_quality(self, *args, **kwargs):
@@ -141,21 +133,14 @@ class DeviceAttribute(Interface):
         """
 
         value = None
-        try:
-            proxy = proxies.get(self.device)
-            # Read request is an io operation, release the event loop
-            att_data = await collaborative_read_attribute(proxy, self.name)
-            value = att_data.quality.name
+        # try:
+        proxy = proxies.get(self.device)
+        # Read request is an io operation, release the event loop
+        att_data = await collaborative_read_attribute(proxy, self.name)
+        value = att_data.quality.name
         # TODO: Check this part, don't do anything on an exception?
         # NOTE: Better to propagate SystemExit and KeyboardInterrupt,
         # otherwise Ctrl+C may not work.
-        except (PyTango.DevFailed, PyTango.ConnectionFailed,
-                PyTango.CommunicationFailed, PyTango.DeviceUnlocked) as error:
-            e = error.args[0]
-            return [e.desc, e.reason]
-        except Exception as e:
-            return str(e)
-
         return value
 
     async def resolve_timestamp(self, *args, **kwargs):
@@ -166,19 +151,11 @@ class DeviceAttribute(Interface):
         """
 
         value = None
-        try:
-            proxy = proxies.get(self.device)
-            # Read request is an io operation, release the event loop
-            att_data = await collaborative_read_attribute(proxy, self.name)
-            value = att_data.time.tv_sec
-        except (PyTango.DevFailed, PyTango.ConnectionFailed,
-                PyTango.CommunicationFailed, PyTango.DeviceUnlocked) as error:
-            e = error.args[0]
-            return [e.desc, e.reason]
-        except Exception as e:
-            # return str(e)
-            # TODO: Refactor this to handle this exception in a better way.
-            return -1
+        # try:
+        proxy = proxies.get(self.device)
+        # Read request is an io operation, release the event loop
+        att_data = await collaborative_read_attribute(proxy, self.name)
+        value = att_data.time.tv_sec
         return value
 
 
