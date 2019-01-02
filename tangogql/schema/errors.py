@@ -9,7 +9,6 @@ class ErrorParser:
         for message in errors:
             
             for e in message:
-                print("e",e)
                 if isinstance(e,dict):
                     t = tuple(e.items())
                 else:
