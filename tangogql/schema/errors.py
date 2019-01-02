@@ -7,9 +7,10 @@ class ErrorParser:
         seen = set()
         result_set = []
         for message in errors:
-            duplicated = False
+            
             for e in message:
-                if e is dict:
+                print("e",e)
+                if isinstance(e,dict):
                     t = tuple(e.items())
                 else:
                     t = tuple(e)
