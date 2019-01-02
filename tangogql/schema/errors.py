@@ -4,46 +4,43 @@ from graphql import format_error
 
 class ErrorParser:
     def remove_duplicated_errors(errors):
-        seen = set()
         result_set = []
-        for message in errors:
-            
-            for e in message:
-                print("e",e)
-                if isinstance(e,dict):
-                    t = tuple(e.items())
-                else:
-                    t = tuple(e)
-                if t not in seen:
-                    seen.add(t)
-                    result_set.append(message)
+        for e in errors:
+            if e and e not in result_set:
+                result_set.append(e)
         return result_set
 
     def parse(error):
         message = []
         result = {}
-        if isinstance(error.original_error,(PyTango.ConnectionFailed,PyTango.CommunicationFailed,PyTango.DevFailed)):
+        if isinstance(error.original_error,PyTango.DevFailed):
             for e in error.original_error.args:
-                if e.reason == "API_CorbaException":
+                # rethrow pytango exception might gives an empty DevError
+                if e.reason =="":
                     pass
-                if e.reason == "API_CantConnectToDevice":       
+                elif e.reason == "API_CorbaException":
+                    pass
+                elif e.reason in ["API_CantConnectToDevice","API_DeviceTimedOut"]:       
                     message.append({
                                     "device"  : e.desc.split("\n")[0].split(" ")[-1],
                                     "desc"    : e.desc.split("\n")[0],
                                     "reason"  : e.reason.split("_")[-1]
                                     })
-
-                if e.reason == "API_AttributeFailed":
+                elif e.reason == "API_AttributeFailed":
                     [device,attribute] =  e.desc.split(",")      
                     result["device"] = device.split(" ")[-1]
                     result["attribute"] = attribute.split(" ")[-1]
 
-                if e.reason == "API_AttrValueNotSet":
+                elif e.reason == "API_AttrValueNotSet":
                     result["reason"] = e.reason.split("_")[-1]
                     result["field"] = e.desc.split(" ")[1]
+
+                else:
+                    message.append(str(e))
             if result:
                 message.append(result)
         else:
-            message.append(str(error))
+            # skip all the python build-in exceptions
+            pass
         return message
 
