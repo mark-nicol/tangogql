@@ -18,33 +18,31 @@ class ErrorParser:
                     result_set.append(message)
         return result_set
 
-
     def parse(error):
         message = []
-        print(type(error.original_error))
-        if isinstance(error.original_error,(PyTango.ConnectionFailed,PyTango.CommunicationFailed)):
+        result = {}
+        if isinstance(error.original_error,(PyTango.ConnectionFailed,PyTango.CommunicationFailed,PyTango.DevFailed)):
             for e in error.original_error.args:
-                if not e.reason == "API_CorbaException":       
+                if e.reason == "API_CorbaException":
+                    pass
+                if e.reason == "API_CantConnectToDevice":       
                     message.append({
                                     "device"  : e.desc.split("\n")[0].split(" ")[-1],
                                     "desc"    : e.desc.split("\n")[0],
                                     "reason"  : e.reason.split("_")[-1]
                                     })
-            return message
-        elif isinstance(error.original_error, PyTango.DevFailed):
-            print("called")
-            errors = error.original_error.args
-            if len(errors) == 2:
-                for e in errors:
-                    result = {}
-                    if e.reason == "API_AttributeFailed":
-                        [device,attribute] =  e.desc.split(",")      
-                        result["device"] = device.split(" ")[-1]
-                        result["attribute"] = attribute.split(" ")[-1]
-                    if e.reason == "API_AttrValueNotSet":
-                        result["reason"] = e.reason.split("_")[-1]
-                        result["field"] = e.desc.split(" ")[1]
-            message.append(result)
+
+                if e.reason == "API_AttributeFailed":
+                    [device,attribute] =  e.desc.split(",")      
+                    result["device"] = device.split(" ")[-1]
+                    result["attribute"] = attribute.split(" ")[-1]
+
+                if e.reason == "API_AttrValueNotSet":
+                    result["reason"] = e.reason.split("_")[-1]
+                    result["field"] = e.desc.split(" ")[1]
+            if result:
+                message.append(result)
         else:
-            return str(error)
+            message.append(str(error))
+        return message
 
