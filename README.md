@@ -1,3 +1,8 @@
+# Disclaimer
+This repository has been forked from https://gitlab.com/MaxIV/webjive under GPL v3 which remains in place.
+
+This is **not** an official SKA fork and is intended as a short-term starting point for the intended work
+
 # Tango GraphQL
 
 A GraphQL interface for Tango.
