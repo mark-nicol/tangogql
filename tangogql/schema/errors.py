@@ -10,7 +10,7 @@ class ErrorParser:
                 if isinstance(message,dict):
                     t = tuple(message.items())
                 else:
-                    t = tuple(e)
+                    t = str(e)
                 if t not in seen:
                     seen.add(t)
                     result_set.append(message)
@@ -39,6 +39,6 @@ class ErrorParser:
                     message["reason"] = e.reason
                     message["desc"] = e.desc
         else:
-            message["desc"] = str(error)
+            message["reason"] = str(error)
         return message
 
