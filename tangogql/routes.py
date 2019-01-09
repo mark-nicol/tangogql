@@ -43,7 +43,6 @@ async def db_handler(request):
     payload = await request.json()
     query = payload.get("query")
     variables = payload.get("variables")
-
     context = _build_context(request)
 
     # Spawn query as a coroutine using asynchronous executor
@@ -56,6 +55,7 @@ async def db_handler(request):
     )
     data = {}
     if response.errors:
+        print(response.errors)
         if isinstance(response.errors[0].original_error, UserUnauthorizedException):
             return web.HTTPUnauthorized()
         else:
