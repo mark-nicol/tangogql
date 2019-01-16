@@ -4,19 +4,15 @@ import re
 import fnmatch
 import PyTango
 from operator import attrgetter
-
-from graphene import Interface, String, Int, List, Boolean, Field
-
+from graphene import Interface, String, Int, List, Boolean, Field, ObjectType
 from tangogql.schema.base import db, proxies
-from tangogql.schema.types import TangoNodeType,TypeConverter
+from tangogql.schema.types import TypeConverter
 from tangogql.schema.attribute import DeviceAttribute
 from tangogql.schema.attribute import ScalarDeviceAttribute
 from tangogql.schema.attribute import ImageDeviceAttribute
 from tangogql.schema.attribute import SpectrumDeviceAttribute
 
-
-
-class DeviceProperty(TangoNodeType, Interface):
+class DeviceProperty(ObjectType, Interface):
     """ This class represents a property of a device.  """
 
     name = String()
@@ -38,7 +34,7 @@ class DeviceProperty(TangoNodeType, Interface):
             return [line for line in value[name]]
 
 
-class DeviceCommand(TangoNodeType, Interface):
+class DeviceCommand(ObjectType, Interface):
     """This class represents an command and its properties."""
 
     name = String()
@@ -50,14 +46,14 @@ class DeviceCommand(TangoNodeType, Interface):
     outtypedesc = String()
 
 
-class DeviceInfo(TangoNodeType, Interface):
+class DeviceInfo(ObjectType, Interface):
     """ This class represents info of a device.  """
 
     id = String()       # server id
     host = String()     # server host
 
 
-class Device(TangoNodeType, Interface):
+class Device(ObjectType, Interface):
     """This class represent a device."""
 
     name = String()

@@ -43,7 +43,6 @@ async def db_handler(request):
     payload = await request.json()
     query = payload.get("query")
     variables = payload.get("variables")
-
     context = _build_context(request)
 
     # Spawn query as a coroutine using asynchronous executor
