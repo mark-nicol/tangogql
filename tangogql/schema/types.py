@@ -1,27 +1,9 @@
 """Module containing the different types."""
 
 import math
-
-from graphene import ObjectType, String
+from graphene import String
 from graphene.types import Scalar
-
 from graphql.language import ast
-
-
-class TangoNodeType(ObjectType):
-    """This class represents type of a node in Tango."""
-
-    nodetype = String()
-
-    def resolve_nodetype(self, info):
-        """This method gets the type of the node in Tango.
-
-        :return: Name of the type.
-        :rtype: str
-        """
-
-        return type(self).__name__.lower()
-
 
 class ScalarTypes(Scalar):
     """

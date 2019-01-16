@@ -4,27 +4,10 @@ import PyTango
 import logging
 
 from graphene import ObjectType, Mutation, String, Boolean, List
-from graphql import GraphQLError
-
 from tangogql.schema.base import db, proxies
 from tangogql.schema.types import ScalarTypes
-
+from tangogql.schema.authorization import *
 logger = logging.getLogger('logger')
-
-def _is_authorized(info):
-    if info.context == None:
-        return False
-
-    if "user" not in info.context:
-        return False
-
-    if info.context["user"] == None:
-        return False
-
-    return True
-
-class UserUnauthorizedException(GraphQLError):
-    pass
 
 class ExecuteDeviceCommand(Mutation):
     """This class represent a mutation for executing a command."""
@@ -58,25 +41,28 @@ class ExecuteDeviceCommand(Mutation):
         :rtype: ExecuteDeviceCommand
         """
 
-        if _is_authorized(info) == False:
+        if is_authorized(info) == False:
             raise UserUnauthorizedException("User Unathorized")
+        if is_permited(info):
 
-        logger.info("MUTATION - ExecuteDeviceCommand - User: {}, Device: {}, Command: {}, Argin: {}".format(info.context["user"], device, command, argin))
+            logger.info("MUTATION - ExecuteDeviceCommand - User: {}, Device: {}, Command: {}, Argin: {}".format(info.context["user"], device, command, argin))
 
-        if type(argin) is ValueError:
-            return ExecuteDeviceCommand(ok=False, message=[str(argin)])
-        try:
-            proxy = proxies.get(device)
-            result = await proxy.command_inout(command, argin)
-            return ExecuteDeviceCommand(ok=True,
-                                        message=["Success"],
-                                        output=result)
-        except (PyTango.DevFailed, PyTango.ConnectionFailed,
-                PyTango.CommunicationFailed, PyTango.DeviceUnlocked) as error:
-            e = error.args[0]
-            return ExecuteDeviceCommand(ok=False, message=[e.desc, e.reason])
-        except Exception as e:
-            return ExecuteDeviceCommand(ok=False, message=[str(e)])
+            if type(argin) is ValueError:
+                return ExecuteDeviceCommand(ok=False, message=[str(argin)])
+            try:
+                proxy = proxies.get(device)
+                result = await proxy.command_inout(command, argin)
+                return ExecuteDeviceCommand(ok=True,
+                                            message=["Success"],
+                                            output=result)
+            except (PyTango.DevFailed, PyTango.ConnectionFailed,
+                    PyTango.CommunicationFailed, PyTango.DeviceUnlocked) as error:
+                e = error.args[0]
+                return ExecuteDeviceCommand(ok=False, message=[e.desc, e.reason])
+            except Exception as e:
+                return ExecuteDeviceCommand(ok=False, message=[str(e)])
+        else:
+            raise PermissionDeniedException ("Permission denied")
 
 
 class SetAttributeValue(Mutation):
@@ -109,23 +95,25 @@ class SetAttributeValue(Mutation):
         :rtype: SetAttributeValue
         """
 
-        if _is_authorized(info) == False:
+        if is_authorized(info) == False:
             raise UserUnauthorizedException("User Unathorized")
+        if is_permited(info):
+            logger.info("MUTATION - SetAttributeValue - User: {}, Device: {}, Attribute: {}, Value: {}".format(info.context["user"], device, name, value))
 
-        logger.info("MUTATION - SetAttributeValue - User: {}, Device: {}, Attribute: {}, Value: {}".format(info.context["user"], device, name, value))
-
-        if type(value) is ValueError:
-            return SetAttributeValue(ok=False, message=[str(value)])
-        try:
-            proxy = proxies.get(device)
-            await proxy.write_attribute(name, value)
-            return SetAttributeValue(ok=True, message=["Success"])
-        except (PyTango.DevFailed, PyTango.ConnectionFailed,
-                PyTango.CommunicationFailed, PyTango.DeviceUnlocked) as error:
-            e = error.args[0]
-            return SetAttributeValue(ok=False, message=[e.desc, e.reason])
-        except Exception as e:
-            return SetAttributeValue(ok=False, message=[str(e)])
+            if type(value) is ValueError:
+                return SetAttributeValue(ok=False, message=[str(value)])
+            try:
+                proxy = proxies.get(device)
+                await proxy.write_attribute(name, value)
+                return SetAttributeValue(ok=True, message=["Success"])
+            except (PyTango.DevFailed, PyTango.ConnectionFailed,
+                    PyTango.CommunicationFailed, PyTango.DeviceUnlocked) as error:
+                e = error.args[0]
+                return SetAttributeValue(ok=False, message=[e.desc, e.reason])
+            except Exception as e:
+                return SetAttributeValue(ok=False, message=[str(e)])
+        else:
+            raise PermissionDeniedException ("Permission denied")
 
 
 class PutDeviceProperty(Mutation):
@@ -157,22 +145,25 @@ class PutDeviceProperty(Mutation):
         :rtype: PutDeviceProperty
         """
 
-        if _is_authorized(info) == False:
+        if is_authorized(info) == False:
             raise UserUnauthorizedException("User Unathorized")
+        if is_permited(info) == True:
+            logger.info("MUTATION - PutDeviceProperty - User: {}, Device: {}, Name: {}, Value: {}".format(info.context["user"], device, name, value))
 
-        logger.info("MUTATION - PutDeviceProperty - User: {}, Device: {}, Name: {}, Value: {}".format(info.context["user"], device, name, value))
+            # wait = not args.get("async")
+            try:
+                db.put_device_property(device, {name: value})
+                return PutDeviceProperty(ok=True, message=["Success"])
+            except (PyTango.DevFailed, PyTango.ConnectionFailed,
+                    PyTango.CommunicationFailed, PyTango.DeviceUnlocked) as error:
+                e = error.args[0]
+                return SetAttributeValue(ok=False, message=[e.desc, e.reason])
+            except Exception as e:
+                return SetAttributeValue(ok=False, message=[str(e)])
 
-        # wait = not args.get("async")
-        try:
-            db.put_device_property(device, {name: value})
-            return PutDeviceProperty(ok=True, message=["Success"])
-        except (PyTango.DevFailed, PyTango.ConnectionFailed,
-                PyTango.CommunicationFailed, PyTango.DeviceUnlocked) as error:
-            e = error.args[0]
-            return SetAttributeValue(ok=False, message=[e.desc, e.reason])
-        except Exception as e:
-            return SetAttributeValue(ok=False, message=[str(e)])
-
+        else:
+            raise PermissionDeniedException ("Permission denied")
+        
 
 class DeleteDeviceProperty(Mutation):
     """This class represents mutation for deleting property of a device."""
@@ -198,20 +189,23 @@ class DeleteDeviceProperty(Mutation):
         :rtype: DeleteDeviceProperty
         """
 
-        if _is_authorized(info) == False:
+        if is_authorized(info) == False:
             raise UserUnauthorizedException("User Unathorized")
+        if is_permited(info):
+            logger.info("MUTATION - DeleteDeviceProperty - User: {}, Device: {}, Name: {}".format(info.context["user"], device, name))
 
-        logger.info("MUTATION - DeleteDeviceProperty - User: {}, Device: {}, Name: {}".format(info.context["user"], device, name))
-
-        try:
-            db.delete_device_property(device, name)
-            return DeleteDeviceProperty(ok=True, message=["Success"])
-        except (PyTango.DevFailed, PyTango.ConnectionFailed,
-                PyTango.CommunicationFailed, PyTango.DeviceUnlocked) as error:
-            e = error.args[0]
-            return DeleteDeviceProperty(ok=False, message=[e.desc, e.reason])
-        except Exception as e:
-            return DeleteDeviceProperty(ok=False, message=[str(e)])
+            try:
+                db.delete_device_property(device, name)
+                return DeleteDeviceProperty(ok=True, message=["Success"])
+            except (PyTango.DevFailed, PyTango.ConnectionFailed,
+                    PyTango.CommunicationFailed, PyTango.DeviceUnlocked) as error:
+                e = error.args[0]
+                return DeleteDeviceProperty(ok=False, message=[e.desc, e.reason])
+            except Exception as e:
+                return DeleteDeviceProperty(ok=False, message=[str(e)])
+        else:
+	        raise PermissionDeniedException ("Permission denied")
+        
 
 
 class DatabaseMutations(ObjectType):

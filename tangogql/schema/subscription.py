@@ -3,9 +3,7 @@
 import time
 import asyncio
 from collections import defaultdict
-
 from graphene import ObjectType, String, Float, Interface, Field, List, Int
-
 from tangogql.schema.types import ScalarTypes
 from tangogql.listener import TaurusWebAttribute
 
