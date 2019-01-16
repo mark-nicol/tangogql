@@ -55,7 +55,6 @@ async def db_handler(request):
     )
     data = {}
     if response.errors:
-        print(response.errors)
         if isinstance(response.errors[0].original_error, UserUnauthorizedException):
             return web.HTTPUnauthorized()
         else:

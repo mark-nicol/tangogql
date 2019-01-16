@@ -20,7 +20,6 @@ class ErrorParser:
         message = {}
         if isinstance(error.original_error,(PyTango.ConnectionFailed,PyTango.CommunicationFailed,PyTango.DevFailed)):
             for e in error.original_error.args:
-                print(e)
                 # rethrow pytango exception might gives an empty DevError
                 if e.reason =="":
                     pass
