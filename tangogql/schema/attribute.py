@@ -1,14 +1,10 @@
 """Module defining the attributes."""
 
 import PyTango
-from graphene import Interface, String, Int
-
+from graphene import Interface, String, Int, ObjectType
 from tangogql.schema.base import proxies
-from tangogql.schema.types import TangoNodeType
 from tangogql.schema.types import ScalarTypes
-
 import asyncio
-
 
 async def collaborative_read_attribute(proxy, name):
     """
@@ -159,13 +155,13 @@ class DeviceAttribute(Interface):
         return value
 
 
-class ScalarDeviceAttribute(TangoNodeType, interfaces=[DeviceAttribute]):
+class ScalarDeviceAttribute(ObjectType, interfaces=[DeviceAttribute]):
     pass
 
 
-class ImageDeviceAttribute(TangoNodeType, interfaces=[DeviceAttribute]):
+class ImageDeviceAttribute(ObjectType, interfaces=[DeviceAttribute]):
     pass
 
 
-class SpectrumDeviceAttribute(TangoNodeType, interfaces=[DeviceAttribute]):
+class SpectrumDeviceAttribute(ObjectType, interfaces=[DeviceAttribute]):
     pass
