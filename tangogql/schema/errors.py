@@ -4,14 +4,13 @@ from graphql import format_error
 
 class ErrorParser:
     def remove_duplicated_errors(errors):
-        seen = set()
         result_set = []
         for message in errors:
                 if isinstance(message,dict):
                     t = tuple(message.items())
                 else:
                     t = str(e)
-                if t not in seen:
+                if t and t not in seen:
                     seen.add(t)
                     result_set.append(message)
         return result_set
@@ -20,11 +19,14 @@ class ErrorParser:
         message = {}
         if isinstance(error.original_error,(PyTango.ConnectionFailed,PyTango.CommunicationFailed,PyTango.DevFailed)):
             for e in error.original_error.args:
-                if e.reason == "API_CorbaException":
+                # rethrow pytango exception might gives an empty DevError
+                if e.reason =="":
+                    pass
+                elif e.reason == "API_CorbaException":
                     pass
                 elif e.reason == "":
                     pass
-                elif e.reason == "API_CantConnectToDevice":       
+                elif e.reason == ["API_CantConnectToDevice", "API_DeviceTimedOut"]:       
                     message["device"] = e.desc.split("\n")[0].split(" ")[-1]
                     message["desc" ] = e.desc.split("\n")[0]
                     message["reason"] = e.reason.split("_")[-1]
