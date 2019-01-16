@@ -4,6 +4,7 @@ from graphql import format_error
 
 class ErrorParser:
     def remove_duplicated_errors(errors):
+        seen = set()
         result_set = []
         for message in errors:
                 if isinstance(message,dict):
@@ -19,6 +20,7 @@ class ErrorParser:
         message = {}
         if isinstance(error.original_error,(PyTango.ConnectionFailed,PyTango.CommunicationFailed,PyTango.DevFailed)):
             for e in error.original_error.args:
+                print(e)
                 # rethrow pytango exception might gives an empty DevError
                 if e.reason =="":
                     pass
@@ -26,7 +28,7 @@ class ErrorParser:
                     pass
                 elif e.reason == "":
                     pass
-                elif e.reason == ["API_CantConnectToDevice", "API_DeviceTimedOut"]:       
+                elif e.reason in ["API_CantConnectToDevice", "API_DeviceTimedOut"]:
                     message["device"] = e.desc.split("\n")[0].split(" ")[-1]
                     message["desc" ] = e.desc.split("\n")[0]
                     message["reason"] = e.reason.split("_")[-1]
