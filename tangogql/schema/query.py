@@ -2,9 +2,11 @@
 
 import re
 import fnmatch
+import PyTango
 from collections import defaultdict
 from graphene import Interface, ObjectType, String, List, Field
-from tangogql.schema.base import db
+
+from tangogql.schema.base import db, proxies
 from tangogql.schema.device import Device
 
 class Member(Device):
@@ -153,7 +155,7 @@ class Query(ObjectType):
         else:
             return None
 
-    def resolve_devices(self, info, pattern="*"):
+    async def resolve_devices(self, info, pattern="*"):
         """ This method fetches all the devices using the pattern.
 
         :param pattern: Pattern for filtering the result.
@@ -164,7 +166,15 @@ class Query(ObjectType):
         :rtype: List of Device    
         """
         devices = db.get_device_exported(pattern)
-        return [Device(name=d) for d in sorted(devices)]
+        result =[]
+        for device in devices:
+            proxy = proxies.get(device)
+            try:
+                state = await proxy.state()
+                result.append(Device(name=device, connected = True))
+            except (PyTango.ConnectionFailed,PyTango.CommunicationFailed):
+                result.append(Device(name=device,connected = False))
+        return result
 
     def resolve_domains(self, info, pattern="*"):
         """This method fetches all the domains using the pattern.

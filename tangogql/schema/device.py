@@ -58,11 +58,12 @@ class Device(ObjectType, Interface):
 
     name = String()
     state = String()
+    connected = Boolean()
     properties = List(DeviceProperty, pattern=String())
     attributes = List(DeviceAttribute, pattern=String())
     commands = List(DeviceCommand, pattern=String())
     server = Field(DeviceInfo)
-
+    
     # device_class = String()
     # server = String()
     pid = Int()
@@ -110,14 +111,6 @@ class Device(ObjectType, Interface):
         :return: List of attributes of the device.
         :rtype: List of DeviceAttribute
         """ 
-        proxy = proxies.get(self.name)
-        # Attribute_list_query is not asyncronous in pytango
-        attr_infos = proxy.attribute_list_query()
-
-        rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
-        sorted_info = sorted(attr_infos, key=attrgetter("name"))
-        result = []
-
         # TODO: Ensure that result is passed properly, refresh mutable
         #       arguments copy or pointer ...? Tests are passing ...
         def append_to_result(result, klass, attr_info):
@@ -144,21 +137,27 @@ class Device(ObjectType, Interface):
                           maxalarm=None if attr_info.max_alarm  == "Not specified" else TypeConverter.convert(data_type,attr_info.max_alarm)
                           )
                           )
+        result = []
+        if self.connected:
+            proxy = proxies.get(self.name)
+            # Attribute_list_query is not asyncronous in pytango
+            attr_infos = proxy.attribute_list_query()
 
-        for attr_info in sorted_info:
-            if rule.match(attr_info.name):
-                if str(attr_info.data_format) == "SCALAR":
-                    append_to_result(result,
-                                     ScalarDeviceAttribute, attr_info)
+            rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
+            sorted_info = sorted(attr_infos, key=attrgetter("name"))
+            for attr_info in sorted_info:
+                if rule.match(attr_info.name):
+                    if str(attr_info.data_format) == "SCALAR":
+                        append_to_result(result,
+                                        ScalarDeviceAttribute, attr_info)
 
-                if str(attr_info.data_format) == "SPECTRUM":
-                    append_to_result(result,
-                                     SpectrumDeviceAttribute, attr_info)
+                    if str(attr_info.data_format) == "SPECTRUM":
+                        append_to_result(result,
+                                        SpectrumDeviceAttribute, attr_info)
 
-                if str(attr_info.data_format) == "IMAGE":
-                    append_to_result(result,
-                                     ImageDeviceAttribute, attr_info)
-        
+                    if str(attr_info.data_format) == "IMAGE":
+                        append_to_result(result,
+                                        ImageDeviceAttribute, attr_info)
         return result
 
     def resolve_commands(self, info, pattern="*"):
@@ -171,25 +170,27 @@ class Device(ObjectType, Interface):
         :return: List of commands of the device.
         :rtype: List of DeviceCommand
         """
+        if self.connected:
+            proxy = proxies.get(self.name)
+            # Not awaitable
+            cmd_infos = proxy.command_list_query()
+            rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
 
-        proxy = proxies.get(self.name)
-        # Not awaitable
-        cmd_infos = proxy.command_list_query()
-        rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
+            def create_device_command(cmd_info):
+                return DeviceCommand(name=cmd_info.cmd_name,
+                                    tag=cmd_info.cmd_tag,
+                                    displevel=cmd_info.disp_level,
+                                    intype=cmd_info.in_type,
+                                    intypedesc=cmd_info.in_type_desc,
+                                    outtype=cmd_info.out_type,
+                                    outtypedesc=cmd_info.out_type_desc
+                                    )
 
-        def create_device_command(cmd_info):
-            return DeviceCommand(name=cmd_info.cmd_name,
-                                 tag=cmd_info.cmd_tag,
-                                 displevel=cmd_info.disp_level,
-                                 intype=cmd_info.in_type,
-                                 intypedesc=cmd_info.in_type_desc,
-                                 outtype=cmd_info.out_type,
-                                 outtypedesc=cmd_info.out_type_desc
-                                 )
-
-        return [create_device_command(a)
-                for a in sorted(cmd_infos, key=attrgetter("cmd_name"))
-                if rule.match(a.cmd_name)]
+            return [create_device_command(a)
+                    for a in sorted(cmd_infos, key=attrgetter("cmd_name"))
+                    if rule.match(a.cmd_name)]
+        else:
+            return []
 
     def resolve_server(self, info):
         """ This method fetch the server infomation of a device.
@@ -197,14 +198,13 @@ class Device(ObjectType, Interface):
         :return: List server info of a device.
         :rtype: List of DeviceInfo
         """
-
-        proxy = proxies.get(self.name)
-        # Not awaitable
-        dev_info = proxy.info()
-
-        return DeviceInfo(id=dev_info.server_id,
-                           host=dev_info.server_host)
-
+        if self.connected:
+            proxy = proxies.get(self.name)
+            # Not awaitable
+            dev_info = proxy.info()
+            return DeviceInfo(id=dev_info.server_id,
+                            host=dev_info.server_host)
+            
     def resolve_exported(self, info):
         """ This method fetch the infomation about the device if it is exported or not.
 
