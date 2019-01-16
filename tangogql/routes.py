@@ -60,7 +60,8 @@ async def db_handler(request):
             return web.HTTPUnauthorized()
         else:
             parsed_errors = [ErrorParser.parse(e) for e in(response.errors)]
-            data['errors'] = ErrorParser.remove_duplicated_errors(parsed_errors)
+            if parsed_errors:
+                data['errors'] = ErrorParser.remove_duplicated_errors(parsed_errors)
     if response.data:
         data["data"] = response.data
     jsondata = json.dumps(data)

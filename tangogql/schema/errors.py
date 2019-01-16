@@ -20,11 +20,15 @@ class ErrorParser:
         message = {}
         if isinstance(error.original_error,(PyTango.ConnectionFailed,PyTango.CommunicationFailed,PyTango.DevFailed)):
             for e in error.original_error.args:
-                if e.reason == "API_CorbaException":
+                print(e)
+                # rethrow pytango exception might gives an empty DevError
+                if e.reason =="":
+                    pass
+                elif e.reason == "API_CorbaException":
                     pass
                 elif e.reason == "":
                     pass
-                elif e.reason == "API_CantConnectToDevice":       
+                elif e.reason in ["API_CantConnectToDevice", "API_DeviceTimedOut"]:
                     message["device"] = e.desc.split("\n")[0].split(" ")[-1]
                     message["desc" ] = e.desc.split("\n")[0]
                     message["reason"] = e.reason.split("_")[-1]
