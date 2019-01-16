@@ -140,7 +140,7 @@ class Query(ObjectType):
     instances = List(ServerInstance, server=String(), pattern=String())
     classes = List(DeviceClass, pattern=String())
 
-    def resolve_device(self, info, name=None):
+    async def resolve_device(self, info, name=None):
         """ This method fetches the device using the name.
 
         :param name: Name of the device.
@@ -151,7 +151,12 @@ class Query(ObjectType):
         """
         devices = db.get_device_exported(name)
         if len(devices) == 1:
-            return Device(name=devices[0])
+            proxy = proxies.get(devices[0])
+            try:
+                state = await proxy.state()
+                return Device(name=devices[0], connected = True)
+            except (PyTango.ConnectionFailed,PyTango.CommunicationFailed):
+                return Device(name=devices[0],connected = False)
         else:
             return None
 
