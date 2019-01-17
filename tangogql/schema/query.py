@@ -149,14 +149,9 @@ class Query(ObjectType):
         :return:  Device.
         :rtype: Device    
         """
-        devices = db.get_device_exported(name)
-        if len(devices) == 1:
-            proxy = proxies.get(devices[0])
-            try:
-                state = await proxy.state()
-                return Device(name=devices[0], connected = True)
-            except (PyTango.ConnectionFailed,PyTango.CommunicationFailed):
-                return Device(name=devices[0],connected = False)
+        device_names = db.get_device_exported(name)
+        if len(device_names) == 1:
+            return Device(name=device_names[0])
         else:
             return None
 
