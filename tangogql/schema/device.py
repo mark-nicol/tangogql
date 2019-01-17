@@ -78,8 +78,7 @@ class Device(ObjectType, Interface):
         :rtype: str
         """
         try:
-            proxy = proxies.get(self.name)
-            # State implements green mode
+            proxy = self._get_proxy()
             return await proxy.state()
         except (PyTango.DevFailed, PyTango.ConnectionFailed,
                 PyTango.CommunicationFailed, PyTango.DeviceUnlocked):
@@ -101,7 +100,7 @@ class Device(ObjectType, Interface):
         props = db.get_device_property_list(self.name, pattern)
         return [DeviceProperty(name=p, device=self.name) for p in props]
 
-    def resolve_attributes(self, info, pattern="*"):
+    async def resolve_attributes(self, info, pattern="*"):
         """This method fetch all the attributes and its' properties of a device.
 
         :param pattern: Pattern for filtering the result.
@@ -138,9 +137,8 @@ class Device(ObjectType, Interface):
                           )
                           )
         result = []
-        if self.connected:
-            proxy = proxies.get(self.name)
-            # Attribute_list_query is not asyncronous in pytango
+        if await self._get_connected():
+            proxy = self._get_proxy()
             attr_infos = proxy.attribute_list_query()
 
             rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
@@ -160,7 +158,7 @@ class Device(ObjectType, Interface):
                                         ImageDeviceAttribute, attr_info)
         return result
 
-    def resolve_commands(self, info, pattern="*"):
+    async def resolve_commands(self, info, pattern="*"):
         """This method fetch all the commands of a device.
 
         :param pattern: Pattern for filtering of the result.
@@ -170,9 +168,8 @@ class Device(ObjectType, Interface):
         :return: List of commands of the device.
         :rtype: List of DeviceCommand
         """
-        if self.connected:
-            proxy = proxies.get(self.name)
-            # Not awaitable
+        if await self._get_connected():
+            proxy = self._get_proxy()
             cmd_infos = proxy.command_list_query()
             rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
 
@@ -192,15 +189,14 @@ class Device(ObjectType, Interface):
         else:
             return []
 
-    def resolve_server(self, info):
+    async def resolve_server(self, info):
         """ This method fetch the server infomation of a device.
 
         :return: List server info of a device.
         :rtype: List of DeviceInfo
         """
-        if self.connected:
-            proxy = proxies.get(self.name)
-            # Not awaitable
+        if await self._get_connected():
+            proxy = self._get_proxy()
             dev_info = proxy.info()
             return DeviceInfo(id=dev_info.server_id,
                             host=dev_info.server_host)
@@ -212,19 +208,37 @@ class Device(ObjectType, Interface):
         :rtype: bool
         """
 
-        return self.info.exported
+        return self._get_info().exported
 
     def resolve_pid(self, info):
-        return self.info.pid
+        return self._get_info().pid
 
     def resolve_started_date(self, info):
-        return self.info.started_date
+        return self._get_info().started_date
 
     def resolve_stopped_date(self, info):
-        return self.info.stopped_date
+        return self._get_info().info.stopped_date
 
-    @property
-    def info(self):
+    async def resolve_connected(self, info):
+        return await self._get_connected()
+
+    def _get_proxy(self):
+        if not hasattr(self, "_proxy"):
+            self._proxy = proxies.get(self.name)
+        return self._proxy
+
+    async def _get_connected(self):
+        if not hasattr(self, "_connected"):
+            try:
+                proxy = self._get_proxy()
+                await proxy.state()
+                self._connected = True
+            except (PyTango.DevFailed, PyTango.ConnectionFailed):
+                self._connected = False
+        return self._connected
+
+
+    def _get_info(self):
         """This method fetch all the information of a device."""
 
         if not hasattr(self, "_info"):

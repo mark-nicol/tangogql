@@ -165,16 +165,8 @@ class Query(ObjectType):
         :return: List of devices.
         :rtype: List of Device    
         """
-        devices = db.get_device_exported(pattern)
-        result =[]
-        for device in devices:
-            proxy = proxies.get(device)
-            try:
-                state = await proxy.state()
-                result.append(Device(name=device, connected = True))
-            except (PyTango.ConnectionFailed,PyTango.CommunicationFailed):
-                result.append(Device(name=device,connected = False))
-        return result
+        device_names = db.get_device_exported(pattern)
+        return [Device(name=name) for name in device_names]
 
     def resolve_domains(self, info, pattern="*"):
         """This method fetches all the domains using the pattern.
