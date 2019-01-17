@@ -4,19 +4,15 @@ import re
 import fnmatch
 import PyTango
 from operator import attrgetter
-
-from graphene import Interface, String, Int, List, Boolean, Field
-
+from graphene import Interface, String, Int, List, Boolean, Field, ObjectType
 from tangogql.schema.base import db, proxies
-from tangogql.schema.types import TangoNodeType,TypeConverter
+from tangogql.schema.types import TypeConverter
 from tangogql.schema.attribute import DeviceAttribute
 from tangogql.schema.attribute import ScalarDeviceAttribute
 from tangogql.schema.attribute import ImageDeviceAttribute
 from tangogql.schema.attribute import SpectrumDeviceAttribute
 
-
-
-class DeviceProperty(TangoNodeType, Interface):
+class DeviceProperty(ObjectType, Interface):
     """ This class represents a property of a device.  """
 
     name = String()
@@ -38,7 +34,7 @@ class DeviceProperty(TangoNodeType, Interface):
             return [line for line in value[name]]
 
 
-class DeviceCommand(TangoNodeType, Interface):
+class DeviceCommand(ObjectType, Interface):
     """This class represents an command and its properties."""
 
     name = String()
@@ -50,23 +46,24 @@ class DeviceCommand(TangoNodeType, Interface):
     outtypedesc = String()
 
 
-class DeviceInfo(TangoNodeType, Interface):
+class DeviceInfo(ObjectType, Interface):
     """ This class represents info of a device.  """
 
     id = String()       # server id
     host = String()     # server host
 
 
-class Device(TangoNodeType, Interface):
+class Device(ObjectType, Interface):
     """This class represent a device."""
 
     name = String()
     state = String()
+    connected = Boolean()
     properties = List(DeviceProperty, pattern=String())
     attributes = List(DeviceAttribute, pattern=String())
     commands = List(DeviceCommand, pattern=String())
     server = Field(DeviceInfo)
-
+    
     # device_class = String()
     # server = String()
     pid = Int()
@@ -81,8 +78,7 @@ class Device(TangoNodeType, Interface):
         :rtype: str
         """
         try:
-            proxy = proxies.get(self.name)
-            # State implements green mode
+            proxy = self._get_proxy()
             return await proxy.state()
         except (PyTango.DevFailed, PyTango.ConnectionFailed,
                 PyTango.CommunicationFailed, PyTango.DeviceUnlocked):
@@ -104,7 +100,7 @@ class Device(TangoNodeType, Interface):
         props = db.get_device_property_list(self.name, pattern)
         return [DeviceProperty(name=p, device=self.name) for p in props]
 
-    def resolve_attributes(self, info, pattern="*"):
+    async def resolve_attributes(self, info, pattern="*"):
         """This method fetch all the attributes and its' properties of a device.
 
         :param pattern: Pattern for filtering the result.
@@ -114,14 +110,6 @@ class Device(TangoNodeType, Interface):
         :return: List of attributes of the device.
         :rtype: List of DeviceAttribute
         """ 
-        proxy = proxies.get(self.name)
-        # Attribute_list_query is not asyncronous in pytango
-        attr_infos = proxy.attribute_list_query()
-
-        rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
-        sorted_info = sorted(attr_infos, key=attrgetter("name"))
-        result = []
-
         # TODO: Ensure that result is passed properly, refresh mutable
         #       arguments copy or pointer ...? Tests are passing ...
         def append_to_result(result, klass, attr_info):
@@ -148,24 +136,29 @@ class Device(TangoNodeType, Interface):
                           maxalarm=None if attr_info.max_alarm  == "Not specified" else TypeConverter.convert(data_type,attr_info.max_alarm)
                           )
                           )
+        result = []
+        if await self._get_connected():
+            proxy = self._get_proxy()
+            attr_infos = proxy.attribute_list_query()
 
-        for attr_info in sorted_info:
-            if rule.match(attr_info.name):
-                if str(attr_info.data_format) == "SCALAR":
-                    append_to_result(result,
-                                     ScalarDeviceAttribute, attr_info)
+            rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
+            sorted_info = sorted(attr_infos, key=attrgetter("name"))
+            for attr_info in sorted_info:
+                if rule.match(attr_info.name):
+                    if str(attr_info.data_format) == "SCALAR":
+                        append_to_result(result,
+                                        ScalarDeviceAttribute, attr_info)
 
-                if str(attr_info.data_format) == "SPECTRUM":
-                    append_to_result(result,
-                                     SpectrumDeviceAttribute, attr_info)
+                    if str(attr_info.data_format) == "SPECTRUM":
+                        append_to_result(result,
+                                        SpectrumDeviceAttribute, attr_info)
 
-                if str(attr_info.data_format) == "IMAGE":
-                    append_to_result(result,
-                                     ImageDeviceAttribute, attr_info)
-        
+                    if str(attr_info.data_format) == "IMAGE":
+                        append_to_result(result,
+                                        ImageDeviceAttribute, attr_info)
         return result
 
-    def resolve_commands(self, info, pattern="*"):
+    async def resolve_commands(self, info, pattern="*"):
         """This method fetch all the commands of a device.
 
         :param pattern: Pattern for filtering of the result.
@@ -175,40 +168,39 @@ class Device(TangoNodeType, Interface):
         :return: List of commands of the device.
         :rtype: List of DeviceCommand
         """
+        if await self._get_connected():
+            proxy = self._get_proxy()
+            cmd_infos = proxy.command_list_query()
+            rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
 
-        proxy = proxies.get(self.name)
-        # Not awaitable
-        cmd_infos = proxy.command_list_query()
-        rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
+            def create_device_command(cmd_info):
+                return DeviceCommand(name=cmd_info.cmd_name,
+                                    tag=cmd_info.cmd_tag,
+                                    displevel=cmd_info.disp_level,
+                                    intype=cmd_info.in_type,
+                                    intypedesc=cmd_info.in_type_desc,
+                                    outtype=cmd_info.out_type,
+                                    outtypedesc=cmd_info.out_type_desc
+                                    )
 
-        def create_device_command(cmd_info):
-            return DeviceCommand(name=cmd_info.cmd_name,
-                                 tag=cmd_info.cmd_tag,
-                                 displevel=cmd_info.disp_level,
-                                 intype=cmd_info.in_type,
-                                 intypedesc=cmd_info.in_type_desc,
-                                 outtype=cmd_info.out_type,
-                                 outtypedesc=cmd_info.out_type_desc
-                                 )
+            return [create_device_command(a)
+                    for a in sorted(cmd_infos, key=attrgetter("cmd_name"))
+                    if rule.match(a.cmd_name)]
+        else:
+            return []
 
-        return [create_device_command(a)
-                for a in sorted(cmd_infos, key=attrgetter("cmd_name"))
-                if rule.match(a.cmd_name)]
-
-    def resolve_server(self, info):
+    async def resolve_server(self, info):
         """ This method fetch the server infomation of a device.
 
         :return: List server info of a device.
         :rtype: List of DeviceInfo
         """
-
-        proxy = proxies.get(self.name)
-        # Not awaitable
-        dev_info = proxy.info()
-
-        return DeviceInfo(id=dev_info.server_id,
-                           host=dev_info.server_host)
-
+        if await self._get_connected():
+            proxy = self._get_proxy()
+            dev_info = proxy.info()
+            return DeviceInfo(id=dev_info.server_id,
+                            host=dev_info.server_host)
+            
     def resolve_exported(self, info):
         """ This method fetch the infomation about the device if it is exported or not.
 
@@ -216,19 +208,37 @@ class Device(TangoNodeType, Interface):
         :rtype: bool
         """
 
-        return self.info.exported
+        return self._get_info().exported
 
     def resolve_pid(self, info):
-        return self.info.pid
+        return self._get_info().pid
 
     def resolve_started_date(self, info):
-        return self.info.started_date
+        return self._get_info().started_date
 
     def resolve_stopped_date(self, info):
-        return self.info.stopped_date
+        return self._get_info().info.stopped_date
 
-    @property
-    def info(self):
+    async def resolve_connected(self, info):
+        return await self._get_connected()
+
+    def _get_proxy(self):
+        if not hasattr(self, "_proxy"):
+            self._proxy = proxies.get(self.name)
+        return self._proxy
+
+    async def _get_connected(self):
+        if not hasattr(self, "_connected"):
+            try:
+                proxy = self._get_proxy()
+                await proxy.state()
+                self._connected = True
+            except (PyTango.DevFailed, PyTango.ConnectionFailed):
+                self._connected = False
+        return self._connected
+
+
+    def _get_info(self):
         """This method fetch all the information of a device."""
 
         if not hasattr(self, "_info"):

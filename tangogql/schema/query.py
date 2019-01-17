@@ -2,15 +2,12 @@
 
 import re
 import fnmatch
-
+import PyTango
 from collections import defaultdict
-
 from graphene import Interface, ObjectType, String, List, Field
 
-from tangogql.schema.base import db
+from tangogql.schema.base import db, proxies
 from tangogql.schema.device import Device
-from tangogql.schema.types import TangoNodeType
-
 
 class Member(Device):
     """This class represent a member."""
@@ -33,7 +30,7 @@ class Member(Device):
         return self._info
 
 
-class Family(TangoNodeType, Interface):
+class Family(ObjectType, Interface):
     """This class represent a family."""
 
     name = String()
@@ -56,7 +53,7 @@ class Family(TangoNodeType, Interface):
                 for member in members]
 
 
-class Domain(TangoNodeType, Interface):
+class Domain(ObjectType, Interface):
     """This class represent a domain."""
 
     name = String()
@@ -77,7 +74,7 @@ class Domain(TangoNodeType, Interface):
         return [Family(name=family, domain=self.name) for family in families]
 
 
-class DeviceClass(TangoNodeType, Interface):
+class DeviceClass(ObjectType, Interface):
 
     name = String()
     server = String()
@@ -86,7 +83,7 @@ class DeviceClass(TangoNodeType, Interface):
 
 
 # TODO: Missing documentation
-class ServerInstance(TangoNodeType, Interface):
+class ServerInstance(ObjectType, Interface):
     """Not documented yet."""
 
     name = String()
@@ -107,7 +104,7 @@ class ServerInstance(TangoNodeType, Interface):
                 if rule.match(clss)]
 
 
-class Server(TangoNodeType, Interface):
+class Server(ObjectType, Interface):
     """This class represents a query for server."""
 
     name = String()
@@ -143,7 +140,7 @@ class Query(ObjectType):
     instances = List(ServerInstance, server=String(), pattern=String())
     classes = List(DeviceClass, pattern=String())
 
-    def resolve_device(self, info, name=None):
+    async def resolve_device(self, info, name=None):
         """ This method fetches the device using the name.
 
         :param name: Name of the device.
@@ -152,13 +149,13 @@ class Query(ObjectType):
         :return:  Device.
         :rtype: Device    
         """
-        devices = db.get_device_exported(name)
-        if len(devices) == 1:
-            return Device(name=devices[0])
+        device_names = db.get_device_exported(name)
+        if len(device_names) == 1:
+            return Device(name=device_names[0])
         else:
             return None
 
-    def resolve_devices(self, info, pattern="*"):
+    async def resolve_devices(self, info, pattern="*"):
         """ This method fetches all the devices using the pattern.
 
         :param pattern: Pattern for filtering the result.
@@ -168,8 +165,8 @@ class Query(ObjectType):
         :return: List of devices.
         :rtype: List of Device    
         """
-        devices = db.get_device_exported(pattern)
-        return [Device(name=d) for d in sorted(devices)]
+        device_names = db.get_device_exported(pattern)
+        return [Device(name=name) for name in device_names]
 
     def resolve_domains(self, info, pattern="*"):
         """This method fetches all the domains using the pattern.
