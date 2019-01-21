@@ -4,13 +4,14 @@ from graphql import GraphQLError
 
 class AuthorizationMiddleware(object):
     def resolve(next,root,info,**args):
-        if info.operation.operation == 'query':
+        operation = info.operation.operation
+        if operation == 'query':
             return next(root,info,**args)
 
-        elif info.operation.operation == 'subscription':
+        elif operation == 'subscription':
             return next(root,info,**args)
 
-        elif info.operation.operation == 'mutation':
+        elif operation == 'mutation':
             if info.context == None:
                 raise UserUnauthorizedException("User Unathorized")
             if "user" not in info.context:
@@ -22,13 +23,14 @@ class AuthorizationMiddleware(object):
 
 class PermissionMiddleware(object):
     def resolve(next,root,info,**args):
-        if info.operation.operation == 'query':
+        operation = info.operation.operation
+        if operation == 'query':
             return next(root,info,**args)
 
-        elif info.operation.operation == 'subscription':
+        elif operation == 'subscription':
             return next(root,info,**args)
 
-        elif info.operation.operation == 'mutation':
+        elif operation == 'mutation':
             permissions = []
             permissions.append('KITS')
             required_group = os.environ.get("REQUIREDGROUP", "")
