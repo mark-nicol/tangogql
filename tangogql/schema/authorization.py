@@ -2,31 +2,46 @@ import os
 from graphql import GraphQLError
 
 
-def is_authorized(info):
-    if info.context == None:
-        return False
+class AuthorizationMiddleware(object):
+    def resolve(next,root,info,**args):
+        if info.operation.operation == 'query':
+            return next(root,info,**args)
 
-    if "user" not in info.context:
-        return False
+        elif info.operation.operation == 'subscription':
+            return next(root,info,**args)
 
-    if info.context["user"] == None:
-        return False
-    return True
+        elif info.operation.operation == 'mutation':
+            if info.context == None:
+                raise UserUnauthorizedException("User Unathorized")
+            if "user" not in info.context:
+                raise UserUnauthorizedException("User Unathorized")
+            if info.context["user"] == None:
+                raise UserUnauthorizedException("User Unathorized")
+            return next(root,info,**args)
+        
 
-def is_permited(info):
-    permissions = []
-    permissions.append('KITS')
-    required_group = os.environ.get("REQUIREDGROUP", "")
-    if required_group and required_group != '':
-        permissions.append(required_group)
-    memberships = info.context["groups"]
-    if memberships == None:
-        return False
-    else:
-        for membership in memberships:
-            if membership in permissions:
-                return True
-    return False
+class PermissionMiddleware(object):
+    def resolve(next,root,info,**args):
+        if info.operation.operation == 'query':
+            return next(root,info,**args)
+
+        elif info.operation.operation == 'subscription':
+            return next(root,info,**args)
+
+        elif info.operation.operation == 'mutation':
+            permissions = []
+            permissions.append('KITS')
+            required_group = os.environ.get("REQUIREDGROUP", "")
+            if required_group and required_group != '':
+                permissions.append(required_group)
+            memberships = info.context["groups"]
+            if memberships == None:
+                raise PermissionDeniedException("Permission Denied")
+            else:
+                for membership in memberships:
+                    if membership in permissions:
+                        return next(root,info,**args)
+            raise PermissionDeniedException("Permission Denied")
 
 class UserUnauthorizedException(GraphQLError):
     pass

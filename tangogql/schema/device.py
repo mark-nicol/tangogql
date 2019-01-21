@@ -217,7 +217,7 @@ class Device(ObjectType, Interface):
         return self._get_info().started_date
 
     def resolve_stopped_date(self, info):
-        return self._get_info().info.stopped_date
+        return self._get_info().stopped_date
 
     async def resolve_connected(self, info):
         return await self._get_connected()
