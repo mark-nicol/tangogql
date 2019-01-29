@@ -37,6 +37,8 @@ device_commands = """ query{devices(pattern: "sys/tg_test/1"){commands(pattern:"
 
 device_server = """query{devices(pattern: "sys/tg_test/1"){server{id,host}}}  """
 
+device_class = """query{devices(pattern: "sys/tg_test/1"){deviceClass}}"""
+
 device_pid = """query{devices(pattern: "sys/tg_test/1"){pid}}"""
 
 device_startedDate = """ query{devices(pattern: "sys/tg_test/1"){startedDate}} """

@@ -63,8 +63,8 @@ class Device(ObjectType, Interface):
     attributes = List(DeviceAttribute, pattern=String())
     commands = List(DeviceCommand, pattern=String())
     server = Field(DeviceInfo)
-    
-    # device_class = String()
+
+    device_class = String()
     # server = String()
     pid = Int()
     started_date = String()
@@ -208,7 +208,10 @@ class Device(ObjectType, Interface):
         :rtype: bool
         """
 
-        return self._get_info().exported
+        return self.info.exported
+
+    def resolve_device_class(self, info):
+        return self.info.class_name
 
     def resolve_pid(self, info):
         return self._get_info().pid
