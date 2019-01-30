@@ -12,14 +12,18 @@ from tangogql.schema.types import ScalarTypes
 logger = logging.getLogger('logger')
 
 def _is_authorized(info):
-    if info.context == None:
-        return False
+    # AT2-43 Stub the Authentication for MVP 
+    # TODO need proper Tango authorization
 
-    if "user" not in info.context:
-        return False
 
-    if info.context["user"] == None:
-        return False
+    # if info.context == None:
+    #     return False
+
+    # if "user" not in info.context:
+    #     return False
+
+    # if info.context["user"] == None:
+    #     return False
 
     return True
 
