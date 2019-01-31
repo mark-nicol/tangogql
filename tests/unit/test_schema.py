@@ -106,6 +106,12 @@ class TestDeviceClass(object):
         for key, value in result.items():
             assert isinstance(value, str)
 
+    def test_device_resolve_class(self, client):
+        result = client.execute(queries.device_class)
+        assert 'devices' in result
+        result = result['devices'][0]
+        assert isinstance(result['deviceClass'], str)
+
     def test_device_resolve_pid(self, client):
         result = client.execute(queries.device_pid)
         assert 'devices' in result

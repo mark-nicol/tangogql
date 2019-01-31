@@ -1,0 +1,7 @@
+{
+    "secret":"",
+    "allowable_commands":[],
+    "required_groups":[
+                        "KITSLAB"
+                      ]
+}

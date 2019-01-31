@@ -2,6 +2,7 @@ import os
 from graphql import GraphQLError
 
 
+<<<<<<< HEAD
 class AuthorizationMiddleware(object):
     def resolve(next,root,info,**args):
         operation = info.operation.operation
@@ -44,6 +45,29 @@ class PermissionMiddleware(object):
                     if membership in permissions:
                         return next(root,info,**args)
             raise PermissionDeniedException("Permission Denied")
+=======
+def is_authorized(info):
+    if info.context["client_data"] == None:
+        return False
+
+    if "user" not in info.context["client_data"]:
+        return False
+
+    if info.context["client_data"]["user"] == None:
+        return False
+    return True
+
+def is_permited(info):
+    required_groups = info.context["config_data"]["required_groups"]
+    memberships = info.context["client_data"]["groups"]
+    if not memberships:
+        return False
+    else:
+        for membership in memberships:
+            if membership in required_groups:
+                return True
+    return False
+>>>>>>> 85ba3e223855844b8f6c45a9ba0f1c97fe4da4b9
 
 class UserUnauthorizedException(GraphQLError):
     pass
