@@ -45,7 +45,7 @@ class ExecuteDeviceCommand(Mutation):
             raise UserUnauthorizedException("User Unathorized")
         if is_permited(info):
 
-            logger.info("MUTATION - ExecuteDeviceCommand - User: {}, Device: {}, Command: {}, Argin: {}".format(info.context["user"], device, command, argin))
+            logger.info("MUTATION - ExecuteDeviceCommand - User: {}, Device: {}, Command: {}, Argin: {}".format(info.context["client_data"]["user"], device, command, argin))
 
             if type(argin) is ValueError:
                 return ExecuteDeviceCommand(ok=False, message=[str(argin)])
@@ -98,7 +98,7 @@ class SetAttributeValue(Mutation):
         if is_authorized(info) == False:
             raise UserUnauthorizedException("User Unathorized")
         if is_permited(info):
-            logger.info("MUTATION - SetAttributeValue - User: {}, Device: {}, Attribute: {}, Value: {}".format(info.context["user"], device, name, value))
+            logger.info("MUTATION - SetAttributeValue - User: {}, Device: {}, Attribute: {}, Value: {}".format(info.context["client_data"]["user"], device, name, value))
 
             if type(value) is ValueError:
                 return SetAttributeValue(ok=False, message=[str(value)])
@@ -148,7 +148,7 @@ class PutDeviceProperty(Mutation):
         if is_authorized(info) == False:
             raise UserUnauthorizedException("User Unathorized")
         if is_permited(info) == True:
-            logger.info("MUTATION - PutDeviceProperty - User: {}, Device: {}, Name: {}, Value: {}".format(info.context["user"], device, name, value))
+            logger.info("MUTATION - PutDeviceProperty - User: {}, Device: {}, Name: {}, Value: {}".format(info.context["client_data"]["user"], device, name, value))
 
             # wait = not args.get("async")
             try:
@@ -192,7 +192,7 @@ class DeleteDeviceProperty(Mutation):
         if is_authorized(info) == False:
             raise UserUnauthorizedException("User Unathorized")
         if is_permited(info):
-            logger.info("MUTATION - DeleteDeviceProperty - User: {}, Device: {}, Name: {}".format(info.context["user"], device, name))
+            logger.info("MUTATION - DeleteDeviceProperty - User: {}, Device: {}, Name: {}".format(info.context["client_data"]["user"], device, name))
 
             try:
                 db.delete_device_property(device, name)

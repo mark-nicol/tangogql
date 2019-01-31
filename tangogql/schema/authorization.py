@@ -3,28 +3,24 @@ from graphql import GraphQLError
 
 
 def is_authorized(info):
-    if info.context == None:
+    if info.context["client_data"] == None:
         return False
 
-    if "user" not in info.context:
+    if "user" not in info.context["client_data"]:
         return False
 
-    if info.context["user"] == None:
+    if info.context["client_data"]["user"] == None:
         return False
     return True
 
 def is_permited(info):
-    permissions = []
-    permissions.append('KITS')
-    required_group = os.environ.get("REQUIREDGROUP", "")
-    if required_group and required_group != '':
-        permissions.append(required_group)
-    memberships = info.context["groups"]
-    if memberships == None:
+    required_groups = info.context["config_data"]["required_groups"]
+    memberships = info.context["client_data"]["groups"]
+    if not memberships:
         return False
     else:
         for membership in memberships:
-            if membership in permissions:
+            if membership in required_groups:
                 return True
     return False
 

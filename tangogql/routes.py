@@ -43,7 +43,7 @@ async def db_handler(request):
     payload = await request.json()
     query = payload.get("query")
     variables = payload.get("variables")
-    context = _build_context(request)
+    context = _build_context(request,"config.json")
 
     # Spawn query as a coroutine using asynchronous executor
     response = await tangoschema.execute(
@@ -78,10 +78,13 @@ async def socket_handler(request):
     return ws
 
 
-def _build_context(request):    
+def _build_context(request, config_file):    
     try:
+        config = None
+        with open(config_file) as f:
+            config = json.load(f)
         token = request.cookies.get("webjive_jwt", "")
-        secret = os.environ.get("SECRET", "")
+        secret = config['secret']
         claims = jwt.decode(token, secret)
         user = claims.get("username")
         groups = claims.get("groups", [])
@@ -89,4 +92,8 @@ def _build_context(request):
         user = None
         groups = []
 
-    return {"user": user, "groups": groups}
+    return {"client_data": {"user": user, "groups": groups}, "config_data": config}
+
+    
+    
+
