@@ -208,10 +208,10 @@ class Device(ObjectType, Interface):
         :rtype: bool
         """
 
-        return self.info.exported
+        return self._get_info().exported
 
     def resolve_device_class(self, info):
-        return self.info.class_name
+        return self._get_info().class_name
 
     def resolve_pid(self, info):
         return self._get_info().pid
