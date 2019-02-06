@@ -1,7 +1,7 @@
 from graphene import String, Int, List, Boolean, Field, ObjectType
 from tangogql.schema.types import ScalarTypes
 
-activity_log = ActivityLog()
+
 class ActivityLog:
     def __init__(self):
         self._log_container = {}
@@ -22,7 +22,7 @@ class ActivityLog:
             return []
         else: 
             return self._log_container[user]
-            
+
 activity_log = ActivityLog()
 
 class UserLog(ObjectType):
