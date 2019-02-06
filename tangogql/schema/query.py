@@ -8,7 +8,7 @@ from graphene import Interface, ObjectType, String, List, Field
 
 from tangogql.schema.base import db, proxies
 from tangogql.schema.device import Device
-from tangogql.schema.user import UserLog
+#from tangogql.schema.user import UserLog
 
 class Member(Device):
     """This class represent a member."""
@@ -140,7 +140,7 @@ class Query(ObjectType):
     servers = List(Server, pattern=String())
     instances = List(ServerInstance, server=String(), pattern=String())
     classes = List(DeviceClass, pattern=String())
-    userlog = Field(UserLog, user = String(required=True))
+    # userlog = Field(UserLog, user = String(required=True))
 
     async def resolve_device(self, info, name=None):
         """ This method fetches the device using the name.
@@ -237,14 +237,14 @@ class Query(ObjectType):
         # useful to limit the number of children. Let's fake it!
         rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
         return [Server(name=srv) for srv in sorted(servers) if rule.match(srv)]
-    def resolve_userlog(self, info, user):
-        """ This method fetches the activity log using the name.
+    # def resolve_userlog(self, info, user):
+    #     """ This method fetches the activity log using the name.
 
-        :param name: Name of the user.
-        :type name: str
+    #     :param name: Name of the user.
+    #     :type name: str
 
-        :return:  UserLog.
-        :rtype: UserLog    
-        """
+    #     :return:  UserLog.
+    #     :rtype: UserLog    
+    #     """
         
-        return UserLog(user = user)
+    #     return UserLog(user = user)
