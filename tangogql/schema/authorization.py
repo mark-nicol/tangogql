@@ -3,7 +3,7 @@ from graphql import GraphQLError
 import logging
 logger = logging.getLogger('logger')
 
-class AuthorizationMiddleware(object):
+class AuthenticationMiddleware(object): 
     def resolve(next,root,info,**args):
         operation = info.operation.operation
         if operation == 'query':
@@ -21,7 +21,7 @@ class AuthorizationMiddleware(object):
                 raise UserUnauthorizedException("User Unathorized")
             return next(root,info,**args)
         
-class PermissionMiddleware(object):
+class AuthorizationMiddleware(object):
     def resolve(next,root,info,**args):
         operation = info.operation.operation
         if operation == 'query':
