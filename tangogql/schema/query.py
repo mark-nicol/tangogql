@@ -130,6 +130,7 @@ class Server(ObjectType, Interface):
 class Query(ObjectType):
     """This class contains all the queries."""
 
+    info = String()
     devices = List(Device, pattern=String())
     device = Field(Device, name=String(required=True))
     domains = List(Domain, pattern=String())
@@ -139,6 +140,10 @@ class Query(ObjectType):
     servers = List(Server, pattern=String())
     instances = List(ServerInstance, server=String(), pattern=String())
     classes = List(DeviceClass, pattern=String())
+
+    async def resolve_info(self, info):
+        db = PyTango.Database()
+        return db.get_info()
 
     async def resolve_device(self, info, name=None):
         """ This method fetches the device using the name.
