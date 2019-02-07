@@ -14,8 +14,6 @@ services:
       - MYSQL_PASSWORD=tango
       - MYSQL_DATABASE=tango
   tangoql:
-    depends_on:
-      - control-system
     build: .
     restart: always
     ports:
@@ -24,4 +22,3 @@ services:
       - TANGO_HOST=control-system:10000
     volumes:
       - ./logs:/var/log/tangogql
-      - ./config.json:/python3-taurus-core/web-maxiv-graphql/config.json
