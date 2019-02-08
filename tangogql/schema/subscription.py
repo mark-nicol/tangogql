@@ -36,7 +36,7 @@ def parse_name(name):
     return device, attribute
 
 
-SLEEP_DURATION = 0.5
+SLEEP_DURATION = 1.0
 
 
 class Subscription(ObjectType):
