@@ -39,9 +39,9 @@ SLEEP_DURATION = 1.0
 
 
 class Subscription(ObjectType):
-    attributes = Field(AttributeFrame, full_names=List(String))
+    attributes = Field(AttributeFrame, full_names=List(String, required=True))
 
-    async def resolve_attributes(self, info, full_names=[]):
+    async def resolve_attributes(self, info, full_names):
         try:
             attrs = [(taurus.Attribute(name), name) for name in full_names]
             prev_frames = {}
