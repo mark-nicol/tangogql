@@ -49,7 +49,11 @@ class Subscription(ObjectType):
 
             while True:
                 for name, attr in attrs:
-                    read = attr.read()
+                    try:
+                        read = attr.read()
+                    except Exception:
+                        continue
+                        
                     value = normalize_value(read.value)
                     write_value = normalize_value(read.w_value)
                     quality = read.quality.name
