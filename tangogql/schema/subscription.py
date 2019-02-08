@@ -43,11 +43,11 @@ class Subscription(ObjectType):
 
     async def resolve_attributes(self, info, full_names=[]):
         try:
-            attrs = [(name, taurus.Attribute(name)) for name in full_names]
+            attrs = [(taurus.Attribute(name), name) for name in full_names]
             prev_frames = {}
 
             while True:
-                for name, attr in attrs:
+                for attr, name in attrs:
                     try:
                         read = attr.read()
                     except Exception:
@@ -79,5 +79,6 @@ class Subscription(ObjectType):
 
                 await asyncio.sleep(SLEEP_DURATION)
 
-        except Exception as e:
-            raise
+        finally:
+            for attr in attrs:
+                attr.cleanUp()
