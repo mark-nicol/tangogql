@@ -24,7 +24,6 @@ class AttributeFrame(ObjectType):
 
 
 def normalize_value(value):
-    print(type(value))
     if isinstance(value, numpy.ndarray):
         return value.tolist()
     return value
@@ -68,14 +67,15 @@ class Subscription(ObjectType):
                         attribute=attribute,
                         value=value,
                         write_value=write_value,
-                        quality=quality,
+                        quality=quality
                     )
 
-                    prev_frame = prev_frames.get((device, attribute))
+                    key = (device, attribute)
+                    prev_frame = prev_frames.get(key)
                     if frame != prev_frame:
                         yield AttributeFrame(**frame, timestamp=timestamp)
 
-                    prev_frames[(device, attribute)] = frame
+                    prev_frames[key] = frame
 
                 await asyncio.sleep(SLEEP_DURATION)
 
