@@ -20,4 +20,5 @@ RUN conda update -n base conda && \
 WORKDIR /tangogql
 COPY . .
 
+ENV PYTHONUNBUFFERED 1
 CMD source activate graphql && python -m tangogql
