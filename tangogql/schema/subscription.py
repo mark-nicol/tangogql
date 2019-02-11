@@ -3,6 +3,7 @@
 import time
 import asyncio
 import taurus
+import PyTango
 import numpy
 
 
@@ -45,14 +46,22 @@ class Subscription(ObjectType):
         try:
             attrs = [(taurus.Attribute(name), name) for name in full_names]
             prev_frames = {}
+            first_round = True
 
             while True:
                 for attr, name in attrs:
+                    # Only emit the first value unless the attribute is a scalar one, until
+                    # the performance issue of continuously transmitting spectrum and
+                    # image data in JSON has been addressed.
+                    if not first_round:
+                        if attr.getDataFormat() != PyTango.AttrDataFormat.SCALAR:
+                            continue
+
                     try:
                         read = attr.read()
                     except Exception:
                         continue
-                        
+
                     value = normalize_value(read.value)
                     write_value = normalize_value(read.w_value)
                     quality = read.quality.name
@@ -67,7 +76,7 @@ class Subscription(ObjectType):
                         attribute=attribute,
                         value=value,
                         write_value=write_value,
-                        quality=quality
+                        quality=quality,
                     )
 
                     key = (device, attribute)
@@ -77,6 +86,7 @@ class Subscription(ObjectType):
 
                     prev_frames[key] = frame
 
+                first_round = False
                 await asyncio.sleep(SLEEP_DURATION)
 
         finally:
