@@ -2,168 +2,93 @@
 
 import time
 import asyncio
-from collections import defaultdict
+import taurus
+import PyTango
+import numpy
+
+
 from graphene import ObjectType, String, Float, Interface, Field, List, Int
 from tangogql.schema.types import ScalarTypes
-from tangogql.listener import TaurusWebAttribute
 
 
-class ChangeData(ObjectType):
-    value = ScalarTypes()
-    w_value = ScalarTypes()
-    quality = String()
-    time = Float()
-
-
-class ConfigData(ObjectType):
-    description = String()
-    label = String()
-    unit = String()
-    format = String()
-    data_format = String()
-    data_type = String()
-
-
-class Event(Interface):
-    event_type = String()
+class AttributeFrame(ObjectType):
+    attribute = String()
     device = String()
-    name = String()
+    full_name = String()
+    value = ScalarTypes()
+    write_value = ScalarTypes()
+    quality = String()
+    timestamp = Float()
+
+    def resolve_full_name(self, info):
+        return f"{self.device}/{self.attribute}"
 
 
-class ChangeEvent(ObjectType, interfaces=[Event]):
-    data = Field(ChangeData)
+def normalize_value(value):
+    if isinstance(value, numpy.ndarray):
+        return value.tolist()
+    return value
 
 
-class ConfigEvent(ObjectType, interfaces=[Event]):
-    data = Field(ConfigData)
+def parse_name(name):
+    *parts, attribute = name.split("/")
+    device = "/".join(parts)
+    return device, attribute
 
 
-# NOTE: Maybe we should agree on having the constants in capitals
-# Contains subscribed attributes
-change_listeners = {}
-config_listeners = {}
-clients = []
+SLEEP_DURATION = 1.0
+
 
 class Subscription(ObjectType):
-    change_event = List(ChangeEvent, models=List(String))
-    config_event = List(ConfigEvent, models=List(String))
-    unsub_config_event = String(models=List(String))
-    unsub_change_event = String(client_id=Int())
+    attributes = Field(AttributeFrame, full_names=List(String, required=True))
 
-    # TODO: documentation missing
-    async def resolve_change_event(self, info, models=[]):
-        clients.append(True)
-        id = len(clients)-1
+    async def resolve_attributes(self, info, full_names):
+        try:
+            attrs = [(taurus.Attribute(name), name) for name in full_names]
+            prev_frames = {}
+            first_round = True
 
-        keeper = EventKeeper()
-        for attr in models:
-            listener = change_listeners.get(attr)
-            if not listener:
-                l = TaurusWebAttribute(attr, keeper)
-                change_listeners[attr] = l
-            else:
-                change_listeners[attr].addKeeper(keeper)
+            while True:
+                for attr, name in attrs:
+                    # Only emit the first value unless the attribute is a scalar one, until
+                    # the performance issue of continuously transmitting spectrum and
+                    # image data in JSON has been addressed.
+                    if not first_round:
+                        if attr.getDataFormat() != PyTango.AttrDataFormat.SCALAR:
+                            continue
 
-        while clients[id]:
-            evt_list = []
-            events = keeper.get()
-            for event_type, data in events.items():
-                for attr_name, value in data.items():
-                    device, attr = attr_name.rsplit('/', 1)
-                    if event_type == "CHANGE":
-                        data = ChangeData(value=value['value'],
-                                          w_value=value['w_value'],
-                                          quality=value['quality'],
-                                          time=value['time'])
-                        event = ChangeEvent(event_type=event_type,
-                                            device=device,
-                                            name=attr,
-                                            data=data)
-                        evt_list.append(event)
-            if evt_list:
-                yield evt_list
-            await asyncio.sleep(1.0)
+                    try:
+                        read = attr.read()
+                    except Exception:
+                        continue
 
-        # unsubscribed
-        for attr in models:
-            l = change_listeners[attr]
-            l.removeKeeper(keeper)
-        if len(l.keepers) == 0:
-            l.clear
-            del change_listenere
-            del clients[id]
+                    value = normalize_value(read.value)
+                    write_value = normalize_value(read.w_value)
+                    quality = read.quality.name
 
+                    sec = read.time.tv_sec
+                    micro = read.time.tv_usec
+                    timestamp = sec + micro * 1e-6
 
-    async def resolve_config_event(self, info, models=[]):
-        keeper = EventKeeper()
-        for attr in models:
-            taurus_attr = TaurusWebAttribute(attr, keeper)
-            config_listeners[attr] = taurus_attr
+                    device, attribute = parse_name(name)
+                    frame = dict(
+                        device=device,
+                        attribute=attribute,
+                        value=value,
+                        write_value=write_value,
+                        quality=quality,
+                    )
 
-        while config_listeners:
-            evt_list = []
-            events = keeper.get()
-            for event_type, data in events.items():
-                for attr_name, value in data.items():
-                    device, attr = attr_name.rsplit('/', 1)
-                    if event_type == "CONFIG":
-                        data = ConfigData(description=value['description'],
-                                          label=value['label'],
-                                          unit=value['unit'],
-                                          format=value['format'],
-                                          data_format=value['data_format'],
-                                          data_type=value['data_type']
-                                    )
-                        event = ConfigEvent(event_type=event_type,
-                                            device=device,
-                                            name=attr,
-                                            data=data)
-                        evt_list.append(event)
-            if evt_list:
-                yield evt_list
-            await asyncio.sleep(1.0)
+                    key = (device, attribute)
+                    prev_frame = prev_frames.get(key)
+                    if frame != prev_frame:
+                        yield AttributeFrame(**frame, timestamp=timestamp)
 
-    # TODO: documentation missing
-    async def resolve_unsub_change_event(self, info, client_id = -1):
-        if client_id in range(0,len(clients)):
-            if clients[client_id]:
-                clients[client_id]= False
-            yield "Unsubscribed"
-        else:
-            yield "This clients_id is not registed"
+                    prev_frames[key] = frame
 
-    async def resolve_unsub_config_event(self, info, models=[]):
-        result = []
-        if config_listeners:
-            for attr in models:
-                listener = config_listeners[attr]
-                if listener:
-                    listener.clear()
-                    del config_listeners[attr]
-                    result.append(attr)
-            yield f"Unsubscribed: {result}"
-        else:
-            yield "No attribute to unsubscribe"
+                first_round = False
+                await asyncio.sleep(SLEEP_DURATION)
 
-
-# Help class
-class EventKeeper:
-    """A simple wrapper that keeps the latest event values for
-    each attribute."""
-
-    def __init__(self):
-        self._events = defaultdict(dict)
-        self._timestamps = defaultdict(dict)
-        self._latest = defaultdict(dict)
-
-    def put(self, model, action, value):
-        """Update a model"""
-        self._events[action][model] = value
-        self._timestamps[action][model] = time.time()
-
-    def get(self):
-        """Returns the latest accumulated events"""
-        tmp, self._events = self._events, defaultdict(dict)
-        for event_type, events in tmp.items():
-            self._latest[event_type].update(events)
-        return tmp
+        finally:
+            for attr in attrs:
+                attr.cleanUp()

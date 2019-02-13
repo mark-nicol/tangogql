@@ -2,13 +2,16 @@
 
 import PyTango
 import logging
+
 from datetime import datetime 
 from graphene import ObjectType, Mutation, String, Boolean, List
 from tangogql.schema.base import db, proxies
 from tangogql.schema.types import ScalarTypes
+from tangogql.schema.attribute import collaborative_read_attribute
+
 logger = logging.getLogger('logger')
 
-from tangogql.schema.user import activity_log
+from tangogql.schema.log import activity_log
 
 class ExecuteDeviceCommand(Mutation):
     """This class represent a mutation for executing a command."""
@@ -21,7 +24,7 @@ class ExecuteDeviceCommand(Mutation):
     ok = Boolean()
     message = List(String)
     output = ScalarTypes()
-
+    
     async def mutate(self, info, device, command, argin=None):
         """ This method executes a command.
 
@@ -43,7 +46,7 @@ class ExecuteDeviceCommand(Mutation):
         """
         
         logger.info("MUTATION - ExecuteDeviceCommand - User: {}, Device: {}, Command: {}, Argin: {}".format(info.context["client_data"]["user"], device, command, argin))
-       # activity_log.put(datetime.now(),info.context["client_data"]["user"],"ExecuteDeviceCommand",device, {"command" : command, "argin": argin}, before_state, after_state)
+        activity_log.put_log(datetime.now(),info.context["client_data"]["user"],"ExecuteDeviceCommand",device, {"command" : command, "argin": argin})
         if type(argin) is ValueError:
             return ExecuteDeviceCommand(ok=False, message=[str(argin)])
         try:
@@ -91,12 +94,14 @@ class SetAttributeValue(Mutation):
         """
       
         logger.info("MUTATION - SetAttributeValue - User: {}, Device: {}, Attribute: {}, Value: {}".format(info.context["client_data"]["user"], device, name, value))
-       # activity_log.put(datetime.now(),info.context["client_data"]["user"],"SetAttributeValue",device, {"attribute" : name, "value": value} )
+        
         if type(value) is ValueError:
             return SetAttributeValue(ok=False, message=[str(value)])
         try:
             proxy = proxies.get(device)
-            await proxy.write_attribute(name, value)
+            before = await collaborative_read_attribute(proxy,name)
+            result = await proxy.write_read_attribute(name, value)
+            activity_log.put_log(datetime.now(),info.context["client_data"]["user"],"SetAttributeValue",device, {"attribute" : name, "value": value},{"value": before.value}, {"value": result.value} )
             return SetAttributeValue(ok=True, message=["Success"])
         except (PyTango.DevFailed, PyTango.ConnectionFailed,
                 PyTango.CommunicationFailed, PyTango.DeviceUnlocked) as error:
@@ -136,10 +141,12 @@ class PutDeviceProperty(Mutation):
         """
         
         logger.info("MUTATION - PutDeviceProperty - User: {}, Device: {}, Name: {}, Value: {}".format(info.context["client_data"]["user"], device, name, value))
-        #activity_log.put(datetime.now(),info.context["client_data"]["user"],"PutDeviceProperty", device, {"attribute" : name, "value": value} )
         # wait = not args.get("async")
         try:
+            
             db.put_device_property(device, {name: value})
+        
+            activity_log.put_log(datetime.now(),info.context["client_data"]["user"],"PutDeviceProperty", device, {"name" : name, "value": value})
             return PutDeviceProperty(ok=True, message=["Success"])
         except (PyTango.DevFailed, PyTango.ConnectionFailed,
                 PyTango.CommunicationFailed, PyTango.DeviceUnlocked) as error:
@@ -173,9 +180,11 @@ class DeleteDeviceProperty(Mutation):
         :rtype: DeleteDeviceProperty
         """
         logger.info("MUTATION - DeleteDeviceProperty - User: {}, Device: {}, Name: {}".format(info.context["client_data"]["user"], device, name))
-        #activity_log.put(datetime.now(),info.context["client_data"]["user"],"DeleteDeviceProperty", device,{"name" : name} )
-        try:
+        
+        try: 
             db.delete_device_property(device, name)
+            activity_log.put_log(datetime.now(),info.context["client_data"]["user"],"DeleteDeviceProperty", device, {"name" : name})
+
             return DeleteDeviceProperty(ok=True, message=["Success"])
         except (PyTango.DevFailed, PyTango.ConnectionFailed,
                 PyTango.CommunicationFailed, PyTango.DeviceUnlocked) as error:
