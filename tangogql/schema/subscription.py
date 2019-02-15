@@ -24,18 +24,6 @@ class AttributeFrame(ObjectType):
         return f"{self.device}/{self.attribute}"
 
 
-def normalize_value(value):
-    if isinstance(value, numpy.ndarray):
-        return value.tolist()
-    return value
-
-
-def parse_name(name):
-    *parts, attribute = name.split("/")
-    device = "/".join(parts)
-    return device, attribute
-
-
 SLEEP_DURATION = 1.0
 
 
@@ -43,52 +31,46 @@ class Subscription(ObjectType):
     attributes = Field(AttributeFrame, full_names=List(String, required=True))
 
     async def resolve_attributes(self, info, full_names):
-        try:
-            attrs = [(taurus.Attribute(name), name) for name in full_names]
-            prev_frames = {}
-            first_round = True
+        attrs = [PyTango.AttributeProxy(name) for name in full_names]
+        ignore = []
 
-            while True:
-                for attr, name in attrs:
-                    # Only emit the first value unless the attribute is a scalar one, until
-                    # the performance issue of continuously transmitting spectrum and
-                    # image data in JSON has been addressed.
-                    if not first_round:
-                        if attr.getDataFormat() != PyTango.AttrDataFormat.SCALAR:
-                            continue
+        while True:
+            for i, attr in enumerate(attrs):
+                # Skip attributes that have been ignored due to their data format (see
+                # comment below)
+                if i in ignore:
+                    continue
 
-                    try:
-                        read = attr.read()
-                    except Exception:
-                        continue
+                try:
+                    read = attr.read(extract_as=PyTango.ExtractAs.List)
+                except Exception:
+                    continue
 
-                    value = normalize_value(read.value)
-                    write_value = normalize_value(read.w_value)
-                    quality = read.quality.name
+                # Ignore attributes that aren't scalar after the first read, until
+                # the performance issue of continuously transmitting spectrum and
+                # image data in JSON has been addressed.
+                if read.data_format != PyTango.AttrDataFormat.SCALAR:
+                    ignore.append(i)
 
-                    sec = read.time.tv_sec
-                    micro = read.time.tv_usec
-                    timestamp = sec + micro * 1e-6
+                sec = read.time.tv_sec
+                micro = read.time.tv_usec
+                timestamp = sec + micro * 1e-6
 
-                    device, attribute = parse_name(name)
-                    frame = dict(
-                        device=device,
-                        attribute=attribute,
-                        value=value,
-                        write_value=write_value,
-                        quality=quality,
-                    )
+                value = read.value
+                write_value = read.w_value
 
-                    key = (device, attribute)
-                    prev_frame = prev_frames.get(key)
-                    if frame != prev_frame:
-                        yield AttributeFrame(**frame, timestamp=timestamp)
+                quality = read.quality.name
 
-                    prev_frames[key] = frame
+                attribute = attr.name()
+                device = attr.get_device_proxy().name()
 
-                first_round = False
-                await asyncio.sleep(SLEEP_DURATION)
+                yield AttributeFrame(
+                    device=device,
+                    attribute=attribute,
+                    value=value,
+                    write_value=write_value,
+                    quality=quality,
+                    timestamp=timestamp
+                )
 
-        finally:
-            for attr in attrs:
-                attr.cleanUp()
+            await asyncio.sleep(SLEEP_DURATION)
