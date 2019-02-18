@@ -25,24 +25,37 @@ class AttributeFrame(ObjectType):
 
 
 SLEEP_DURATION = 1.0
+GREEN_MODE = PyTango.GreenMode.Asyncio
 
 
 class Subscription(ObjectType):
     attributes = Field(AttributeFrame, full_names=List(String, required=True))
 
     async def resolve_attributes(self, info, full_names):
-        attrs = [PyTango.AttributeProxy(name) for name in full_names]
+        device_proxies = {}
+        attributes = []
         ignore = []
 
+        for full_name in full_names:
+            *parts, attribute = full_name.split("/")
+            device = "/".join(parts)
+            device_proxies[device] = PyTango.DeviceProxy(device, green_mode=GREEN_MODE)
+            attributes.append((device, attribute))
+
         while True:
-            for i, attr in enumerate(attrs):
+            for i, (device, attribute) in enumerate(attributes):
                 # Skip attributes that have been ignored due to their data format (see
                 # comment below)
                 if i in ignore:
                     continue
 
                 try:
-                    read = attr.read(extract_as=PyTango.ExtractAs.List)
+                    proxy = device_proxies[device]
+                    read = await asyncio.shield(
+                        proxy.read_attribute(
+                            attribute, extract_as=PyTango.ExtractAs.List
+                        )
+                    )
                 except Exception:
                     continue
 
@@ -58,11 +71,7 @@ class Subscription(ObjectType):
 
                 value = read.value
                 write_value = read.w_value
-
                 quality = read.quality.name
-
-                attribute = attr.name()
-                device = attr.get_device_proxy().name()
 
                 yield AttributeFrame(
                     device=device,
@@ -70,7 +79,7 @@ class Subscription(ObjectType):
                     value=value,
                     write_value=write_value,
                     quality=quality,
-                    timestamp=timestamp
+                    timestamp=timestamp,
                 )
 
-            await asyncio.sleep(SLEEP_DURATION)
+                await asyncio.shield(asyncio.sleep(SLEEP_DURATION))
