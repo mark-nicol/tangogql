@@ -28,21 +28,19 @@ class UserAction(Interface):
     timestamp = DateTime() 
     user = String()
     device = String()
-
-class ExcuteCommandUserAction(ObjectType,interfaces=[UserAction]):
     name = String()
+    
+class ExcuteCommandUserAction(ObjectType,interfaces=[UserAction]):
     argin = ScalarTypes()
 
 class SetAttributeValueUserAction(ObjectType,interfaces=[UserAction]):
-    name = String()
     value = ScalarTypes()
     value_before = ScalarTypes()
     value_after = ScalarTypes()
 
 class PutDevicePropertyUserAction(ObjectType,interfaces=[UserAction]):
-    name = String()
     value = ScalarTypes()
 
 class DeleteDevicePropertyUserAction(ObjectType,interfaces=[UserAction]):
-    name = String()
+    pass
 
