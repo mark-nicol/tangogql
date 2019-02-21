@@ -6,7 +6,6 @@ import taurus
 import PyTango
 import numpy
 
-
 from graphene import ObjectType, String, Float, Interface, Field, List, Int
 from tangogql.schema.types import ScalarTypes
 
@@ -24,71 +23,53 @@ class AttributeFrame(ObjectType):
         return f"{self.device}/{self.attribute}"
 
 
-def normalize_value(value):
-    if isinstance(value, numpy.ndarray):
-        return value.tolist()
-    return value
-
-
-def parse_name(name):
-    *parts, attribute = name.split("/")
-    device = "/".join(parts)
-    return device, attribute
-
-
-SLEEP_DURATION = 1.0
+SLEEP_DURATION = 3.0
 
 
 class Subscription(ObjectType):
     attributes = Field(AttributeFrame, full_names=List(String, required=True))
 
     async def resolve_attributes(self, info, full_names):
-        try:
-            attrs = [(taurus.Attribute(name), name) for name in full_names]
-            prev_frames = {}
-            first_round = True
+        device_proxies = {}
+        name_pairs = []
 
-            while True:
-                for attr, name in attrs:
-                    # Only emit the first value unless the attribute is a scalar one, until
-                    # the performance issue of continuously transmitting spectrum and
-                    # image data in JSON has been addressed.
-                    if not first_round:
-                        if attr.getDataFormat() != PyTango.AttrDataFormat.SCALAR:
-                            continue
+        for full_name in full_names:
+            *parts, attribute = full_name.split("/")
+            device = "/".join(parts)
+            device_proxies[device] = PyTango.DeviceProxy(device)
+            name_pairs.append((device, attribute))
 
+        while True:
+            try:
+                for device, attribute in name_pairs:
                     try:
-                        read = attr.read()
+                        proxy = device_proxies[device]
+                        read = await asyncio.shield(
+                            proxy.read_attribute(
+                                attribute, extract_as=PyTango.ExtractAs.List
+                            )
+                        )
                     except Exception:
                         continue
-
-                    value = normalize_value(read.value)
-                    write_value = normalize_value(read.w_value)
-                    quality = read.quality.name
 
                     sec = read.time.tv_sec
                     micro = read.time.tv_usec
                     timestamp = sec + micro * 1e-6
 
-                    device, attribute = parse_name(name)
-                    frame = dict(
+                    value = read.value
+                    write_value = read.w_value
+                    quality = read.quality.name
+
+                    yield AttributeFrame(
                         device=device,
                         attribute=attribute,
                         value=value,
                         write_value=write_value,
                         quality=quality,
+                        timestamp=timestamp,
                     )
 
-                    key = (device, attribute)
-                    prev_frame = prev_frames.get(key)
-                    if frame != prev_frame:
-                        yield AttributeFrame(**frame, timestamp=timestamp)
-
-                    prev_frames[key] = frame
-
-                first_round = False
-                await asyncio.sleep(SLEEP_DURATION)
-
-        finally:
-            for attr in attrs:
-                attr.cleanUp()
+                await asyncio.shield(asyncio.sleep(SLEEP_DURATION))
+            
+            except StopAsyncIteration:
+                break
