@@ -5,11 +5,11 @@ import fnmatch
 import PyTango
 import copy
 from collections import defaultdict
-from graphene import Interface, ObjectType, String, List, Field
+from graphene import Interface, ObjectType, String, List, Field, Int
 from tangogql.schema.types import ScalarTypes
 from tangogql.schema.base import db, proxies
 from tangogql.schema.device import Device
-from tangogql.schema.log import activity_log, UserAction
+from tangogql.schema.log import user_actions, UserAction
 #from tangogql.schema.user import UserLog
 
 class Member(Device):
@@ -139,7 +139,7 @@ class Query(ObjectType):
     domains = List(Domain, pattern=String())
     families = List(Family, domain=String(), pattern=String())
     members = List(Member, domain=String(), family=String(), pattern=String())
-    logs = List(UserAction, device = String())
+    user_actions = List(UserAction, pattern=String(),skip=Int(),first=Int())
     servers = List(Server, pattern=String())
     instances = List(ServerInstance, server=String(), pattern=String())
     classes = List(DeviceClass, pattern=String())
@@ -244,8 +244,8 @@ class Query(ObjectType):
         rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
         return [Server(name=srv) for srv in sorted(servers) if rule.match(srv)]
 
-    def resolve_logs(self, info, device="*"):
-        """ This method fetches the activity logs.
+    def resolve_user_actions(self, info, pattern="*", first = None, skip = None):
+        """ This method fetches the user actions.
 
         :param name: Name of the user.
         :type name: str
@@ -253,4 +253,11 @@ class Query(ObjectType):
         :return:  Log.
         :rtype: Log    
         """
-        return activity_log.get_logs(device=device)
+        result = user_actions.get(pattern)
+        if skip:
+            result = result[skip:]
+
+        if first:
+            result = result[:first]
+        
+        return result

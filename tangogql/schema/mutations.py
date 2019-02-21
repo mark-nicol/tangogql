@@ -15,7 +15,7 @@ from tangogql.schema.log import DeleteDevicePropertyUserAction
 
 logger = logging.getLogger('logger')
 
-from tangogql.schema.log import activity_log
+from tangogql.schema.log import user_actions
 
 class ExecuteDeviceCommand(Mutation):
     """This class represent a mutation for executing a command."""
@@ -54,10 +54,10 @@ class ExecuteDeviceCommand(Mutation):
                                         timestamp = datetime.now(), 
                                         user = info.context["client_data"]["user"],
                                         device = device,
-                                        command = command,
+                                        name = command,
                                         argin = argin
                                     )
-        activity_log.put(log)
+        user_actions.put(log)
         if type(argin) is ValueError:
             return ExecuteDeviceCommand(ok=False, message=[str(argin)])
         try:
@@ -118,10 +118,10 @@ class SetAttributeValue(Mutation):
                                             device = device,
                                             name = name,
                                             value = value,
-                                            before_value = before.value,
-                                            after_value = result.value
+                                            value_before = before.value,
+                                            value_after = result.value
                                         )
-            activity_log.put(log)
+            user_actions.put(log)
             return SetAttributeValue(ok=True, message=["Success"])
         except (PyTango.DevFailed, PyTango.ConnectionFailed,
                 PyTango.CommunicationFailed, PyTango.DeviceUnlocked) as error:
@@ -170,9 +170,9 @@ class PutDeviceProperty(Mutation):
                                             user = info.context["client_data"]["user"],
                                             device = device,
                                             name = name,
-                                            property_value = value
+                                            value = value
                                         )
-            activity_log.put(log)
+            user_actions.put(log)
             return PutDeviceProperty(ok=True, message=["Success"])
         except (PyTango.DevFailed, PyTango.ConnectionFailed,
                 PyTango.CommunicationFailed, PyTango.DeviceUnlocked) as error:
@@ -215,7 +215,7 @@ class DeleteDeviceProperty(Mutation):
                                             device = device,
                                             name = name
                                         )
-            activity_log.put(log)
+            user_actions.put(log)
 
             return DeleteDeviceProperty(ok=True, message=["Success"])
         except (PyTango.DevFailed, PyTango.ConnectionFailed,

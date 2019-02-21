@@ -13,16 +13,16 @@ class ActivityLog:
     def put(self,log):
         self._log_container.append(log)
 
-    def get_logs(self, device = "*"):
+    def get(self, pattern = "*"):
         result = []
-        rule = re.compile(fnmatch.translate(device), re.IGNORECASE)
+        rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
         for log in self._log_container:
             if rule.match(log.device):
                 result.append(log)
         result.sort(key = lambda e: e.timestamp, reverse=True)
         return result
     
-activity_log = ActivityLog()
+user_actions = ActivityLog()
 
 class UserAction(Interface):
     timestamp = DateTime() 
@@ -30,18 +30,18 @@ class UserAction(Interface):
     device = String()
 
 class ExcuteCommandUserAction(ObjectType,interfaces=[UserAction]):
-    command = String()
+    name = String()
     argin = ScalarTypes()
 
 class SetAttributeValueUserAction(ObjectType,interfaces=[UserAction]):
     name = String()
     value = ScalarTypes()
-    before_value = ScalarTypes()
-    after_value = ScalarTypes()
+    value_before = ScalarTypes()
+    value_after = ScalarTypes()
 
 class PutDevicePropertyUserAction(ObjectType,interfaces=[UserAction]):
     name = String()
-    property_value = List(String)
+    value = ScalarTypes()
 
 class DeleteDevicePropertyUserAction(ObjectType,interfaces=[UserAction]):
     name = String()

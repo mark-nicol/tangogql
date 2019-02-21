@@ -11,6 +11,7 @@ from tangogql.schema.attribute import DeviceAttribute
 from tangogql.schema.attribute import ScalarDeviceAttribute
 from tangogql.schema.attribute import ImageDeviceAttribute
 from tangogql.schema.attribute import SpectrumDeviceAttribute
+from tangogql.schema.log import UserAction, user_actions
 
 class DeviceProperty(ObjectType, Interface):
     """ This class represents a property of a device.  """
@@ -63,13 +64,20 @@ class Device(ObjectType, Interface):
     attributes = List(DeviceAttribute, pattern=String())
     commands = List(DeviceCommand, pattern=String())
     server = Field(DeviceInfo)
-
+    user_actions = List(UserAction, skip=Int(), first=Int())
     device_class = String()
     # server = String()
     pid = Int()
     started_date = String()
     stopped_date = String()
     exported = Boolean()
+    def resolve_user_actions(self, info, skip=None, first=None):
+        result = user_actions.get(self.name)
+        if skip:
+            result = result[skip:]
+        if first:
+            result = result[:first]
+        return result
 
     async def resolve_state(self, info):
         """This method fetch the state of the device.
