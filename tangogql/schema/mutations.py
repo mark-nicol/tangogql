@@ -8,6 +8,10 @@ from graphene import ObjectType, Mutation, String, Boolean, List
 from tangogql.schema.base import db, proxies
 from tangogql.schema.types import ScalarTypes
 from tangogql.schema.attribute import collaborative_read_attribute
+from tangogql.schema.log import ExcuteCommandUserAction
+from tangogql.schema.log import SetAttributeValueUserAction
+from tangogql.schema.log import PutDevicePropertyUserAction
+from tangogql.schema.log import DeleteDevicePropertyUserAction
 
 logger = logging.getLogger('logger')
 
@@ -46,7 +50,14 @@ class ExecuteDeviceCommand(Mutation):
         """
         
         logger.info("MUTATION - ExecuteDeviceCommand - User: {}, Device: {}, Command: {}, Argin: {}".format(info.context["client_data"]["user"], device, command, argin))
-        activity_log.put_log(datetime.now(),info.context["client_data"]["user"],"ExecuteDeviceCommand",device, {"command" : command, "argin": argin})
+        log = ExcuteCommandUserAction(
+                                        timestamp = datetime.now(), 
+                                        user = info.context["client_data"]["user"],
+                                        device = device,
+                                        command = command,
+                                        argin = argin
+                                    )
+        activity_log.put(log)
         if type(argin) is ValueError:
             return ExecuteDeviceCommand(ok=False, message=[str(argin)])
         try:
@@ -101,7 +112,16 @@ class SetAttributeValue(Mutation):
             proxy = proxies.get(device)
             before = await collaborative_read_attribute(proxy,name)
             result = await proxy.write_read_attribute(name, value)
-            activity_log.put_log(datetime.now(),info.context["client_data"]["user"],"SetAttributeValue",device, {"attribute" : name, "value": value},{"value": before.value}, {"value": result.value} )
+            log = SetAttributeValueUserAction(
+                                            timestamp = datetime.now(), 
+                                            user = info.context["client_data"]["user"],
+                                            device = device,
+                                            name = name,
+                                            value = value,
+                                            before_value = before.value,
+                                            after_value = result.value
+                                        )
+            activity_log.put(log)
             return SetAttributeValue(ok=True, message=["Success"])
         except (PyTango.DevFailed, PyTango.ConnectionFailed,
                 PyTango.CommunicationFailed, PyTango.DeviceUnlocked) as error:
@@ -145,8 +165,14 @@ class PutDeviceProperty(Mutation):
         try:
             
             db.put_device_property(device, {name: value})
-        
-            activity_log.put_log(datetime.now(),info.context["client_data"]["user"],"PutDeviceProperty", device, {"name" : name, "value": value})
+            log = PutDevicePropertyUserAction(
+                                            timestamp = datetime.now(), 
+                                            user = info.context["client_data"]["user"],
+                                            device = device,
+                                            name = name,
+                                            property_value = value
+                                        )
+            activity_log.put(log)
             return PutDeviceProperty(ok=True, message=["Success"])
         except (PyTango.DevFailed, PyTango.ConnectionFailed,
                 PyTango.CommunicationFailed, PyTango.DeviceUnlocked) as error:
@@ -183,7 +209,13 @@ class DeleteDeviceProperty(Mutation):
         
         try: 
             db.delete_device_property(device, name)
-            activity_log.put_log(datetime.now(),info.context["client_data"]["user"],"DeleteDeviceProperty", device, {"name" : name})
+            log = DeleteDevicePropertyUserAction(
+                                            timestamp = datetime.now(), 
+                                            user = info.context["client_data"]["user"],
+                                            device = device,
+                                            name = name
+                                        )
+            activity_log.put(log)
 
             return DeleteDeviceProperty(ok=True, message=["Success"])
         except (PyTango.DevFailed, PyTango.ConnectionFailed,
