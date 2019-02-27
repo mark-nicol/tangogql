@@ -6,10 +6,10 @@ import PyTango
 import copy
 from collections import defaultdict
 from graphene import Interface, ObjectType, String, List, Field, Int
-from tangogql.schema.types import ScalarTypes,TypeConverter
+from tangogql.schema.types import ScalarTypes
 from tangogql.schema.base import db, proxies
 from tangogql.schema.device import Device,append_to_result
-from tangogql.schema.attribute import DeviceAttribute, ScalarDeviceAttribute, ImageDeviceAttribute,SpectrumDeviceAttribute
+from tangogql.schema.attribute import DeviceAttribute
 from tangogql.schema.log import user_actions, UserAction
 
 
@@ -191,7 +191,7 @@ class Query(ObjectType):
         for device, attrs in attr_list.items():
             proxy = proxies.get(device)
             attr_infos = proxy.attribute_list_query()
-            
+
             for attr_info in attr_infos:
                 if attr_info.name in attrs:
                     if str(attr_info.data_format) == "SCALAR":
