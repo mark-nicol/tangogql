@@ -44,10 +44,8 @@ class Subscription(ObjectType):
                 for device, attribute in name_pairs:
                     try:
                         proxy = device_proxies[device]
-                        read = await asyncio.shield(
-                            proxy.read_attribute(
-                                attribute, extract_as=PyTango.ExtractAs.List
-                            )
+                        read = await proxy.read_attribute(
+                            attribute, extract_as=PyTango.ExtractAs.List
                         )
                     except Exception:
                         continue
@@ -69,7 +67,7 @@ class Subscription(ObjectType):
                         timestamp=timestamp,
                     )
 
-                await asyncio.shield(asyncio.sleep(SLEEP_DURATION))
-            
+                await asyncio.sleep(SLEEP_DURATION)
+
             except StopAsyncIteration:
                 break
