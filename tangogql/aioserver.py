@@ -22,6 +22,7 @@ import json
 import sys
 
 from tangogql.routes import routes
+from tangogql.config import Config
 
 
 __all__ = ['run']
@@ -29,6 +30,9 @@ __all__ = ['run']
 # A factory function is needed to use aiohttp-devtools for live reload functionality.
 def setup_server():
     app = aiohttp.web.Application(debug=True)
+
+    config = Config(open("config.json"))
+    app["config"] = config
 
     defaults_dict = {"*": aiohttp_cors.ResourceOptions(
                                             allow_credentials=True,
@@ -87,38 +91,6 @@ def setup():
         setup_logger(logfile)
     )
 
-def is_configuration_corrupt(config_file):
-    logger = logging.getLogger('logger')
-    try:
-        with open(config_file) as f:
-            config = json.load(f)
-        result = all(elem in config.keys() for elem in ['secret', "allowable_commands", "required_groups"])
-        if not result:
-            logger.debug("CONFIGURATIONFILE - Configuration file does not contain all required keys")
-            return True
-        if not isinstance(config['secret'],str):
-            logger.debug("CONFIGURATIONFILE - Secret has to be a string")
-            return True
-        if not isinstance(config['allowable_commands'], list):
-            logger.debug("CONFIGURATIONFILE - Allowable_commands has to be a list")
-            return True
-        for e in config['allowable_commands']:
-            if not isinstance(e, str):
-                logger.debug("CONFIGURATIONFILE - Command names in allowable_commands has to be a string")
-                return True
-        if not isinstance(config['required_groups'], list):
-            logger.debug("CONFIGURATIONFILE - required_groups has to be a list")
-            return True        
-        for e in config['required_groups']:
-            if not isinstance(e, str):
-                logger.debug("CONFIGURATIONFILE - group names in required_groups has to be a string")
-                return True
-        return False
-    except Exception as e:
-        logger.debug("CONFIGURATIONFILE - Configuration file is corrupt")
-        return True
-
-
 # Called by aiohttp-devtools when restarting the dev server.
 # Not used in production
 def dev_run():
@@ -127,9 +99,10 @@ def dev_run():
 
 def run():
     (app, logger) = setup()
-    # check configuration file
-    if is_configuration_corrupt("config.json"):
-        sys.exit(1)
+
+    # if is_configuration_corrupt("config.json"):
+    #     sys.exit(1)
+
     loop = asyncio.get_event_loop()
     handler = app.make_handler(debug=True)
     f = loop.create_server(handler, '0.0.0.0', 5004)

@@ -12,7 +12,7 @@ from graphql import format_error
 from graphql.execution.executors.asyncio import AsyncioExecutor
 
 from tangogql.schema.tango import tangoschema
-from tangogql.schema.authorization import AuthorizationMiddleware,AuthenticationMiddleware,UserUnauthorizedException
+from tangogql.schema.authorization import AuthorizationMiddleware,AuthenticationMiddleware,AuthenticityError
 
 from tangogql.schema.errors import ErrorParser
 
@@ -43,13 +43,13 @@ async def db_handler(request):
     payload = await request.json()
     query = payload.get("query")
     variables = payload.get("variables")
-    context = _build_context(request,"config.json")
+    context = _build_context(request)
 
     # Spawn query as a coroutine using asynchronous executor
     response = await tangoschema.execute(
         query,
         variable_values=variables,
-        middleware=[AuthenticationMiddleware, AuthorizationMiddleware],
+        middleware=[AuthorizationMiddleware, AuthenticationMiddleware],
         context_value=context,
         return_promise=True,
         executor=AsyncioExecutor(loop=loop),
@@ -58,7 +58,7 @@ async def db_handler(request):
     if response.errors:
         for e in response.errors:
             if hasattr(e,"original_error"):
-                if isinstance(e.original_error, UserUnauthorizedException):
+                if isinstance(e.original_error, AuthenticityError):
                     return web.HTTPUnauthorized()    
         parsed_errors = [ErrorParser.parse(e) for e in(response.errors)]
         if parsed_errors:
@@ -80,22 +80,31 @@ async def socket_handler(request):
     return ws
 
 
-def _build_context(request, config_file):    
+class ClientInfo:
+    def __init__(self, user, groups):
+        if user is not None and type(user) is not str:
+            raise TypeError("user must be a string or None")
+
+        if not type(groups) is list:
+            raise TypeError("groups must be a list")
+
+        self.user = user
+        self.groups = groups
+
+
+def _build_context(request):
+    config = request.app["config"]
+
     try:
-        config = None
-        with open(config_file) as f:
-            config = json.load(f)
         token = request.cookies.get("webjive_jwt", "")
-        secret = config['secret']
-        claims = jwt.decode(token, secret)
-        user = claims.get("username")
-        groups = claims.get("groups", [])
+        claims = jwt.decode(token, config.secret)
     except jwt.InvalidTokenError:
-        user = None
-        groups = []
+        claims = {}
 
-    return {"client_data": {"user": user, "groups": groups}, "config_data": config}
+    user = claims.get("username")
+    groups = claims.get("groups", [])
 
-    
-    
-
+    return {
+        "client": ClientInfo(user, groups),
+        "config": config
+    }

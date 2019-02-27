@@ -49,10 +49,10 @@ class ExecuteDeviceCommand(Mutation):
         :rtype: ExecuteDeviceCommand
         """
         
-        logger.info("MUTATION - ExecuteDeviceCommand - User: {}, Device: {}, Command: {}, Argin: {}".format(info.context["client_data"]["user"], device, command, argin))
+        logger.info("MUTATION - ExecuteDeviceCommand - User: {}, Device: {}, Command: {}, Argin: {}".format(info.context["client"].user, device, command, argin))
         log = ExcuteCommandUserAction(
                                         timestamp = datetime.now(), 
-                                        user = info.context["client_data"]["user"],
+                                        user = info.context["client"].user,
                                         device = device,
                                         name = command,
                                         argin = argin
@@ -104,7 +104,7 @@ class SetAttributeValue(Mutation):
         :rtype: SetAttributeValue
         """
       
-        logger.info("MUTATION - SetAttributeValue - User: {}, Device: {}, Attribute: {}, Value: {}".format(info.context["client_data"]["user"], device, name, value))
+        logger.info("MUTATION - SetAttributeValue - User: {}, Device: {}, Attribute: {}, Value: {}".format(info.context["client"].user, device, name, value))
         
         if type(value) is ValueError:
             return SetAttributeValue(ok=False, message=[str(value)])
@@ -114,7 +114,7 @@ class SetAttributeValue(Mutation):
             result = await proxy.write_read_attribute(name, value)
             log = SetAttributeValueUserAction(
                                             timestamp = datetime.now(), 
-                                            user = info.context["client_data"]["user"],
+                                            user = info.context["client"].user,
                                             device = device,
                                             name = name,
                                             value = value,
@@ -160,14 +160,14 @@ class PutDeviceProperty(Mutation):
         :rtype: PutDeviceProperty
         """
         
-        logger.info("MUTATION - PutDeviceProperty - User: {}, Device: {}, Name: {}, Value: {}".format(info.context["client_data"]["user"], device, name, value))
+        logger.info("MUTATION - PutDeviceProperty - User: {}, Device: {}, Name: {}, Value: {}".format(info.context["client"].user, device, name, value))
         # wait = not args.get("async")
         try:
             
             db.put_device_property(device, {name: value})
             log = PutDevicePropertyUserAction(
                                             timestamp = datetime.now(), 
-                                            user = info.context["client_data"]["user"],
+                                            user = info.context["client"].user,
                                             device = device,
                                             name = name,
                                             value = value
@@ -205,13 +205,13 @@ class DeleteDeviceProperty(Mutation):
                  If exception has been raised returns message = error_message.
         :rtype: DeleteDeviceProperty
         """
-        logger.info("MUTATION - DeleteDeviceProperty - User: {}, Device: {}, Name: {}".format(info.context["client_data"]["user"], device, name))
+        logger.info("MUTATION - DeleteDeviceProperty - User: {}, Device: {}, Name: {}".format(info.context["client"].user, device, name))
         
         try: 
             db.delete_device_property(device, name)
             log = DeleteDevicePropertyUserAction(
                                             timestamp = datetime.now(), 
-                                            user = info.context["client_data"]["user"],
+                                            user = info.context["client"].user,
                                             device = device,
                                             name = name
                                         )
