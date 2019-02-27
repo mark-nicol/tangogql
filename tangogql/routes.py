@@ -4,7 +4,6 @@ import asyncio
 from aiohttp import web
 
 import json
-import jwt
 import os
 
 from graphql_ws.aiohttp import AiohttpSubscriptionServer
@@ -13,6 +12,7 @@ from graphql.execution.executors.asyncio import AsyncioExecutor
 
 from tangogql.schema.tango import tangoschema
 from tangogql.auth import AuthorizationMiddleware, AuthenticationMiddleware, AuthError
+from tangogql.context import build_context
 
 from tangogql.schema.errors import ErrorParser
 
@@ -43,7 +43,9 @@ async def db_handler(request):
     payload = await request.json()
     query = payload.get("query")
     variables = payload.get("variables")
-    context = _build_context(request)
+
+    config = request.app["config"]
+    context = build_context(request, config)
 
     # Spawn query as a coroutine using asynchronous executor
     response = await tangoschema.execute(
@@ -78,33 +80,3 @@ async def socket_handler(request):
     await ws.prepare(request)
     await subscription_server.handle(ws)
     return ws
-
-
-class ClientInfo:
-    def __init__(self, user, groups):
-        if user is not None and type(user) is not str:
-            raise TypeError("user must be a string or None")
-
-        if not type(groups) is list:
-            raise TypeError("groups must be a list")
-
-        self.user = user
-        self.groups = groups
-
-
-def _build_context(request):
-    config = request.app["config"]
-
-    try:
-        token = request.cookies.get("webjive_jwt", "")
-        claims = jwt.decode(token, config.secret)
-    except jwt.InvalidTokenError:
-        claims = {}
-
-    user = claims.get("username")
-    groups = claims.get("groups", [])
-
-    return {
-        "client": ClientInfo(user, groups),
-        "config": config
-    }
