@@ -1,9 +1,9 @@
 import json
 
 
-# TODO: required_groups should be renamed to authorized_groups,
-# in order not to imply that the user needs to belong to *all*
-# of the groups.
+# TODO: required_groups should be renamed in order not to make clear that:
+# - only one group needs to match
+# - an empty list means no restrictions (does this make sense?)
 
 
 class Config:
