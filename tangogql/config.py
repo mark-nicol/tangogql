@@ -1,8 +1,8 @@
 import json
 
 class Config:
-	def __init__(self, f):
-		data = json.load(f)
+	def __init__(self, file):
+		data = json.load(file)
 
 		try:
 			secret = data["secret"]
