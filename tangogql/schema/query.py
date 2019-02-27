@@ -6,11 +6,12 @@ import PyTango
 import copy
 from collections import defaultdict
 from graphene import Interface, ObjectType, String, List, Field, Int
-from tangogql.schema.types import ScalarTypes
+from tangogql.schema.types import ScalarTypes,TypeConverter
 from tangogql.schema.base import db, proxies
-from tangogql.schema.device import Device
+from tangogql.schema.device import Device,append_to_result
+from tangogql.schema.attribute import DeviceAttribute, ScalarDeviceAttribute, ImageDeviceAttribute,SpectrumDeviceAttribute
 from tangogql.schema.log import user_actions, UserAction
-#from tangogql.schema.user import UserLog
+
 
 class Member(Device):
     """This class represent a member."""
@@ -143,7 +144,7 @@ class Query(ObjectType):
     servers = List(Server, pattern=String())
     instances = List(ServerInstance, server=String(), pattern=String())
     classes = List(DeviceClass, pattern=String())
-
+    attributes = List(DeviceAttribute, full_name=List(String, required=True))
     async def resolve_info(self, info):
         db = PyTango.Database()
         return db.get_info()
@@ -175,6 +176,35 @@ class Query(ObjectType):
         """
         device_names = db.get_device_exported(pattern)
         return [Device(name=name) for name in device_names]
+    async def resolve_attributes(self, info, full_name):
+        result = []
+        attr_list = {}
+        for name in full_name:
+            splitted_name = name.split('/')
+            device = '/'.join(splitted_name[:-1])
+            attr = splitted_name[-1]
+            if attr in attr_list:
+                attr_list[device].append(attr)
+            else:
+                attr_list[device] = [attr]
+                
+        for device, attrs in attr_list.items():
+            proxy = proxies.get(device)
+            attr_infos = proxy.attribute_list_query()
+            
+            for attr_info in attr_infos:
+                if attr_info.name in attrs:
+                    if str(attr_info.data_format) == "SCALAR":
+                        append_to_result(result,
+                                        ScalarDeviceAttribute, attr_info, device)
+                    if str(attr_info.data_format) == "SPECTRUM":
+                        append_to_result(result,
+                                        SpectrumDeviceAttribute, attr_info)
+                    if str(attr_info.data_format) == "IMAGE":
+                        append_to_result(result,
+                                        ImageDeviceAttribute, attr_info)
+
+        return result
 
     def resolve_domains(self, info, pattern="*"):
         """This method fetches all the domains using the pattern.
