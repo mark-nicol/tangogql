@@ -8,7 +8,7 @@ class AuthenticationMiddleware:
     def resolve(next, root, info, **args):
         if info.operation.operation == 'mutation':
             if info.context["client"].user is None:
-                raise AuthenticityError("User is not authenticated")
+                raise AuthenticationError("User is not authenticated")
 
         return next(root, info, **args)
 
@@ -22,12 +22,15 @@ class AuthorizationMiddleware:
             memberships = client.groups
 
             if required_groups and not set(required_groups) & set(memberships):
-                raise AuthorityException(f"User {client.user} is not in any of the required groups")
+                raise AuthorizationError(f"User {client.user} is not in any of the required groups")
 
         return next(root, info, **args)
 
-class AuthenticityError(GraphQLError):
+class AuthError(GraphQLError):
+    pass
+
+class AuthenticationError(AuthError):
     pass
     
-class AuthorityException(GraphQLError):
+class AuthorizationError(AuthError):
     pass

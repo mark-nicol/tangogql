@@ -12,7 +12,7 @@ from graphql import format_error
 from graphql.execution.executors.asyncio import AsyncioExecutor
 
 from tangogql.schema.tango import tangoschema
-from tangogql.schema.authorization import AuthorizationMiddleware,AuthenticationMiddleware,AuthenticityError
+from tangogql.auth import AuthorizationMiddleware, AuthenticationMiddleware, AuthError
 
 from tangogql.schema.errors import ErrorParser
 
@@ -58,7 +58,7 @@ async def db_handler(request):
     if response.errors:
         for e in response.errors:
             if hasattr(e,"original_error"):
-                if isinstance(e.original_error, AuthenticityError):
+                if isinstance(e.original_error, AuthError):
                     return web.HTTPUnauthorized()    
         parsed_errors = [ErrorParser.parse(e) for e in(response.errors)]
         if parsed_errors:
