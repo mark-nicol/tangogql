@@ -7,7 +7,7 @@ import graphene
 
 from tangogql.schema.query import Query
 from tangogql.schema.subscription import Subscription
-from tangogql.schema.mutations import DatabaseMutations
+from tangogql.schema.mutations import Mutations
 from tangogql.schema.log import (
     ExcuteCommandUserAction,
     SetAttributeValueUserAction,
@@ -20,7 +20,7 @@ MODE = bool(os.environ.get("READ_ONLY"))
 if MODE == True:
     mutation = None
 else:
-    mutation = DatabaseMutations
+    mutation = Mutations
 
 types = [
     ExcuteCommandUserAction,

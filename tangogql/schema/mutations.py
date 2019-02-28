@@ -225,7 +225,7 @@ class DeleteDeviceProperty(Mutation):
         except Exception as e:
             return DeleteDeviceProperty(ok=False, message=[str(e)])
         
-class DatabaseMutations(ObjectType):
+class Mutations(ObjectType):
     """This class contains all the mutations."""
 
     put_device_property = PutDeviceProperty.Field()
