@@ -6,7 +6,7 @@ import taurus
 import PyTango
 import numpy
 
-from graphene import ObjectType, String, Float, Interface, Field, List, Int
+from graphene import ObjectType, String, Float, Field, List, Int
 from tangogql.schema.types import ScalarTypes
 
 

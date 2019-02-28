@@ -1,7 +1,7 @@
 """Module defining the attributes."""
 
 import PyTango
-from graphene import Interface, String, Int, ObjectType
+from graphene import String, Int, ObjectType
 from tangogql.schema.base import proxies
 from tangogql.schema.types import ScalarTypes
 import asyncio
@@ -56,7 +56,7 @@ async def collaborative_read_attribute(proxy, name):
             future.set_result(read_value)
             setattr(proxy, reading_attr, False)
 
-class DeviceAttribute(Interface):
+class DeviceAttribute(ObjectType):
     """This class represents an attribute of a device."""
 
     name = String()
@@ -153,15 +153,3 @@ class DeviceAttribute(Interface):
         att_data = await collaborative_read_attribute(proxy, self.name)
         value = att_data.time.tv_sec
         return value
-
-
-class ScalarDeviceAttribute(ObjectType, interfaces=[DeviceAttribute]):
-    pass
-
-
-class ImageDeviceAttribute(ObjectType, interfaces=[DeviceAttribute]):
-    pass
-
-
-class SpectrumDeviceAttribute(ObjectType, interfaces=[DeviceAttribute]):
-    pass

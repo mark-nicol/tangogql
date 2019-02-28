@@ -5,7 +5,7 @@ import fnmatch
 import PyTango
 import copy
 from collections import defaultdict
-from graphene import Interface, ObjectType, String, List, Field, Int
+from graphene import ObjectType, String, List, Field, Int
 from tangogql.schema.types import ScalarTypes
 from tangogql.schema.base import db, proxies
 from tangogql.schema.device import Device
@@ -33,7 +33,7 @@ class Member(Device):
         return self._info
 
 
-class Family(ObjectType, Interface):
+class Family(ObjectType):
     """This class represent a family."""
 
     name = String()
@@ -56,7 +56,7 @@ class Family(ObjectType, Interface):
                 for member in members]
 
 
-class Domain(ObjectType, Interface):
+class Domain(ObjectType):
     """This class represent a domain."""
 
     name = String()
@@ -77,7 +77,7 @@ class Domain(ObjectType, Interface):
         return [Family(name=family, domain=self.name) for family in families]
 
 
-class DeviceClass(ObjectType, Interface):
+class DeviceClass(ObjectType):
 
     name = String()
     server = String()
@@ -86,7 +86,7 @@ class DeviceClass(ObjectType, Interface):
 
 
 # TODO: Missing documentation
-class ServerInstance(ObjectType, Interface):
+class ServerInstance(ObjectType):
     """Not documented yet."""
 
     name = String()
@@ -107,7 +107,7 @@ class ServerInstance(ObjectType, Interface):
                 if rule.match(clss)]
 
 
-class Server(ObjectType, Interface):
+class Server(ObjectType):
     """This class represents a query for server."""
 
     name = String()
