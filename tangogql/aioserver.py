@@ -18,8 +18,11 @@ import aiohttp_cors
 import asyncio
 import uuid
 import os
+import json
+import sys
 
 from tangogql.routes import routes
+from tangogql.config import Config
 
 
 __all__ = ['run']
@@ -27,6 +30,9 @@ __all__ = ['run']
 # A factory function is needed to use aiohttp-devtools for live reload functionality.
 def setup_server():
     app = aiohttp.web.Application(debug=True)
+
+    config = Config(open("config.json"))
+    app["config"] = config
 
     defaults_dict = {"*": aiohttp_cors.ResourceOptions(
                                             allow_credentials=True,
@@ -94,6 +100,9 @@ def dev_run():
 def run():
     (app, logger) = setup()
 
+    # if is_configuration_corrupt("config.json"):
+    #     sys.exit(1)
+
     loop = asyncio.get_event_loop()
     handler = app.make_handler(debug=True)
     f = loop.create_server(handler, '0.0.0.0', 5004)
@@ -114,7 +123,6 @@ def run():
         loop.run_until_complete(srv.wait_closed())
         loop.run_until_complete(app.cleanup())
     loop.close()
-
 
 if __name__ == "__main__":
     run()

@@ -1,28 +1,24 @@
 version: "3"
 services:
+  database:
+    image: tangocs/mysql:latest
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=1
+  control-system:
+    image: tangocs/tango-cs:latest
+    environment: 
+      - ORB_PORT=10000
+      - TANGO_HOST=127.0.0.1:10000
+      - MYSQL_HOST=database:3306
+      - MYSQL_USER=tango
+      - MYSQL_PASSWORD=tango
+      - MYSQL_DATABASE=tango
   tangoql:
     build: .
     restart: always
-    command: /bin/bash -c "source activate graphql && adev runserver tangogql/aioserver.py --app-factory=dev_run --port=5004"
     ports:
       - "5004:5004"
+    environment:
+      - TANGO_HOST=control-system:10000
     volumes:
-      - .:/python3-taurus-core/web-maxiv-graphql
       - ./logs:/var/log/tangogql
-    environment:
-      - TANGO_HOST=w-v-kitslab-csdb-0:10000
-      - LOG_PATH=/var/log/tangogql
-      # If this is not set, the output of python is delayed and only shows when the docker container restarts
-      - PYTHONUNBUFFERED=1
-  auth:
-    image: webjive-auth
-    ports:
-      - "8080:8080"
-    environment:
-      - "REDIS_HOST=redis"
-    volumes:
-      - "./.env:/var/app/.env"
-  redis:
-    image: redis
-    ports:
-      - "6379:6379"

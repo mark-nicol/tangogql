@@ -2,15 +2,15 @@
 
 import re
 import fnmatch
-
+import PyTango
+import copy
 from collections import defaultdict
-
-from graphene import Interface, ObjectType, String, List, Field
-
-from tangogql.schema.base import db
+from graphene import ObjectType, String, List, Field, Int
+from tangogql.schema.types import ScalarTypes
+from tangogql.schema.base import db, proxies
 from tangogql.schema.device import Device
-from tangogql.schema.types import TangoNodeType
-
+from tangogql.schema.log import user_actions, UserAction
+#from tangogql.schema.user import UserLog
 
 class Member(Device):
     """This class represent a member."""
@@ -33,7 +33,7 @@ class Member(Device):
         return self._info
 
 
-class Family(TangoNodeType, Interface):
+class Family(ObjectType):
     """This class represent a family."""
 
     name = String()
@@ -56,7 +56,7 @@ class Family(TangoNodeType, Interface):
                 for member in members]
 
 
-class Domain(TangoNodeType, Interface):
+class Domain(ObjectType):
     """This class represent a domain."""
 
     name = String()
@@ -77,7 +77,7 @@ class Domain(TangoNodeType, Interface):
         return [Family(name=family, domain=self.name) for family in families]
 
 
-class DeviceClass(TangoNodeType, Interface):
+class DeviceClass(ObjectType):
 
     name = String()
     server = String()
@@ -86,7 +86,7 @@ class DeviceClass(TangoNodeType, Interface):
 
 
 # TODO: Missing documentation
-class ServerInstance(TangoNodeType, Interface):
+class ServerInstance(ObjectType):
     """Not documented yet."""
 
     name = String()
@@ -107,7 +107,7 @@ class ServerInstance(TangoNodeType, Interface):
                 if rule.match(clss)]
 
 
-class Server(TangoNodeType, Interface):
+class Server(ObjectType):
     """This class represents a query for server."""
 
     name = String()
@@ -133,17 +133,22 @@ class Server(TangoNodeType, Interface):
 class Query(ObjectType):
     """This class contains all the queries."""
 
+    info = String()
     devices = List(Device, pattern=String())
     device = Field(Device, name=String(required=True))
     domains = List(Domain, pattern=String())
     families = List(Family, domain=String(), pattern=String())
     members = List(Member, domain=String(), family=String(), pattern=String())
-
+    user_actions = List(UserAction, pattern=String(),skip=Int(),first=Int())
     servers = List(Server, pattern=String())
     instances = List(ServerInstance, server=String(), pattern=String())
     classes = List(DeviceClass, pattern=String())
 
-    def resolve_device(self, info, name=None):
+    async def resolve_info(self, info):
+        db = PyTango.Database()
+        return db.get_info()
+
+    async def resolve_device(self, info, name=None):
         """ This method fetches the device using the name.
 
         :param name: Name of the device.
@@ -152,13 +157,13 @@ class Query(ObjectType):
         :return:  Device.
         :rtype: Device    
         """
-        devices = db.get_device_exported(name)
-        if len(devices) == 1:
-            return Device(name=devices[0])
+        device_names = db.get_device_exported(name)
+        if len(device_names) == 1:
+            return Device(name=device_names[0])
         else:
             return None
 
-    def resolve_devices(self, info, pattern="*"):
+    async def resolve_devices(self, info, pattern="*"):
         """ This method fetches all the devices using the pattern.
 
         :param pattern: Pattern for filtering the result.
@@ -168,8 +173,8 @@ class Query(ObjectType):
         :return: List of devices.
         :rtype: List of Device    
         """
-        devices = db.get_device_exported(pattern)
-        return [Device(name=d) for d in sorted(devices)]
+        device_names = db.get_device_exported(pattern)
+        return [Device(name=name) for name in device_names]
 
     def resolve_domains(self, info, pattern="*"):
         """This method fetches all the domains using the pattern.
@@ -238,3 +243,21 @@ class Query(ObjectType):
         # useful to limit the number of children. Let's fake it!
         rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
         return [Server(name=srv) for srv in sorted(servers) if rule.match(srv)]
+
+    def resolve_user_actions(self, info, pattern="*", first = None, skip = None):
+        """ This method fetches the user actions.
+
+        :param name: Name of the user.
+        :type name: str
+
+        :return:  Log.
+        :rtype: Log    
+        """
+        result = user_actions.get(pattern)
+        if skip:
+            result = result[skip:]
+
+        if first:
+            result = result[:first]
+        
+        return result

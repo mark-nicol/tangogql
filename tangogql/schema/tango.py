@@ -7,22 +7,28 @@ import graphene
 
 from tangogql.schema.query import Query
 from tangogql.schema.subscription import Subscription
-from tangogql.schema.mutations import DatabaseMutations
-from tangogql.schema.attribute import ScalarDeviceAttribute
-from tangogql.schema.attribute import ImageDeviceAttribute
-from tangogql.schema.attribute import SpectrumDeviceAttribute
+from tangogql.schema.mutations import Mutations
+from tangogql.schema.log import (
+    ExcuteCommandUserAction,
+    SetAttributeValueUserAction,
+    PutDevicePropertyUserAction,
+    DeleteDevicePropertyUserAction,
+)
 
-
-MODE = bool(os.environ.get('READ_ONLY'))
+MODE = bool(os.environ.get("READ_ONLY"))
 
 if MODE == True:
-    mutation=None
+    mutation = None
 else:
-    mutation=DatabaseMutations
+    mutation = Mutations
 
-tangoschema = graphene.Schema(query=Query, mutation=mutation,
-                              subscription=Subscription,
-                              types=[ScalarDeviceAttribute,
-                                     ImageDeviceAttribute,
-                                     SpectrumDeviceAttribute]
-                             )
+types = [
+    ExcuteCommandUserAction,
+    SetAttributeValueUserAction,
+    PutDevicePropertyUserAction,
+    DeleteDevicePropertyUserAction,
+]
+
+tangoschema = graphene.Schema(
+    query=Query, mutation=mutation, subscription=Subscription, types=types
+)
