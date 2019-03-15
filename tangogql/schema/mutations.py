@@ -2,12 +2,13 @@
 
 import PyTango
 import logging
+import asyncio
 
 from datetime import datetime 
-from graphene import ObjectType, Mutation, String, Boolean, List
+from graphene import ObjectType, Mutation, String, Boolean, List, Field
 from tangogql.schema.base import db, proxies
 from tangogql.schema.types import ScalarTypes
-from tangogql.schema.attribute import collaborative_read_attribute
+from tangogql.schema.attribute import DeviceAttribute, collaborative_read_attribute
 from tangogql.schema.log import ExcuteCommandUserAction
 from tangogql.schema.log import SetAttributeValueUserAction
 from tangogql.schema.log import PutDevicePropertyUserAction
@@ -84,7 +85,7 @@ class SetAttributeValue(Mutation):
 
     ok = Boolean()
     message = List(String)
-    value = ScalarTypes()
+    attribute = Field(DeviceAttribute)
 
     async def mutate(self, info, device, name, value):
         """ This method sets value to an attribute.
@@ -108,11 +109,14 @@ class SetAttributeValue(Mutation):
         logger.info("MUTATION - SetAttributeValue - User: {}, Device: {}, Attribute: {}, Value: {}".format(info.context["client"].user, device, name, value))
         
         if type(value) is ValueError:
-            return SetAttributeValue(ok=False, message=[str(value)])
+            return SetAttributeValue(ok=False, message=[str(value)], attribute=None)
         try:
             proxy = proxies.get(device)
             before = await collaborative_read_attribute(proxy,name)
-            result = await proxy.write_read_attribute(name, value)
+            read_coro = proxy.write_read_attribute(name, value)
+            read_fut = asyncio.ensure_future(read_coro)
+            result = await read_fut
+
             log = SetAttributeValueUserAction(
                                             timestamp = datetime.now(), 
                                             user = info.context["client"].user,
@@ -123,13 +127,19 @@ class SetAttributeValue(Mutation):
                                             value_after = result.value
                                         )
             user_actions.put(log)
-            return SetAttributeValue(ok=True, value=result.value, message=["Success"])
+
+            return SetAttributeValue(ok=True, message=["Success"], attribute=DeviceAttribute(
+                name=name,
+                device=device,
+                _attr_read=read_fut
+            ))
+
         except (PyTango.DevFailed, PyTango.ConnectionFailed,
                 PyTango.CommunicationFailed, PyTango.DeviceUnlocked) as error:
             e = error.args[0]
-            return SetAttributeValue(ok=False, value=None, message=[e.desc, e.reason])
+            return SetAttributeValue(ok=False, message=[e.desc, e.reason], attribute=None)
         except Exception as e:
-            return SetAttributeValue(ok=False, value=None, message=[str(e)])
+            return SetAttributeValue(ok=False, message=[str(e)], attribute=None)
 
 
 class PutDeviceProperty(Mutation):

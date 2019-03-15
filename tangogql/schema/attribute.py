@@ -2,9 +2,10 @@
 
 import PyTango
 from graphene import String, Float, ObjectType
-from tangogql.schema.base import proxies
-from tangogql.schema.types import ScalarTypes
 import asyncio
+
+from tangogql.schema.base import proxies
+from tangogql.schema.types import ScalarTypes, TypeConverter
 
 async def collaborative_read_attribute(proxy, name):
     """
@@ -78,6 +79,9 @@ class DeviceAttribute(ObjectType):
     minalarm = ScalarTypes()
     maxalarm = ScalarTypes()
 
+    _attr_read = None
+    _attr_info = None
+
     async def resolve_writevalue(self, *args, **kwargs):
         """This method fetch the coresponding w_value of an attribute bases on its name.
 
@@ -120,9 +124,59 @@ class DeviceAttribute(ObjectType):
         usec = read.time.tv_usec
         return sec + usec * 1e-6
 
+    def resolve_dataformat(self, info):
+        return self._get_attr_info().data_format
+
+    def resolve_label(self, info):
+        return self._get_attr_info().label
+
+    def resolve_unit(self, info):
+        return self._get_attr_info().unit
+
+    def resolve_description(self, info):
+        return self._get_attr_info().description
+
+    def resolve_displevel(self, info):
+        return self._get_attr_info().disp_level
+
+    def resolve_writable(self, info):
+        return str(self._get_attr_info().writable)
+
+    def resolve_datatype(self, info):
+        return self._get_datatype()
+
+    def resolve_minvalue(self, info):
+        return self._convert_value("min_value")
+
+    def resolve_maxvalue(self, info):
+        return self._convert_value("max_value")
+
+    def resolve_minalarm(self, info):
+        return self._convert_value("min_alarm")
+
+    def resolve_maxalarm(self, info):
+        return self._convert_value("max_alarm")
+
     async def _get_attr_read(self):
-        if not hasattr(self, "_attr_read"):
+        if self._attr_read is None:
             proxy = proxies.get(self.device)
             read_coro = proxy.read_attribute(self.name, extract_as=PyTango.ExtractAs.List)
             self._attr_read = asyncio.ensure_future(read_coro)
         return await self._attr_read
+
+    def _get_attr_info(self):
+        proxy = proxies.get(self.device)
+        return proxy.attribute_query(self.name)
+
+    def _get_datatype(self):
+        return PyTango.CmdArgType.values[self._get_attr_info().data_type]
+
+    def _convert_value(self, key):
+        attr_info = self._get_attr_info()
+        value = getattr(attr_info, key)
+
+        if value == "Not specified":
+            return None
+        else:
+            datatype = self._get_datatype()
+            return TypeConverter.convert(datatype, value)
