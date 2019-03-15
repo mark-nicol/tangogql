@@ -6,7 +6,6 @@ import PyTango
 from operator import attrgetter
 from graphene import String, Int, List, Boolean, Field, ObjectType
 from tangogql.schema.base import db, proxies
-from tangogql.schema.types import TypeConverter
 from tangogql.schema.attribute import DeviceAttribute
 from tangogql.schema.log import UserAction, user_actions
 
@@ -118,12 +117,6 @@ class Device(ObjectType):
         # TODO: Ensure that result is passed properly, refresh mutable
         #       arguments copy or pointer ...? Tests are passing ...
 
-        def convert_value(data_type, value):
-            if value == "Not specified":
-                return None
-            else:
-                return TypeConverter.convert(data_type, value)
-
         result = []
         if await self._get_connected():
             proxy = self._get_proxy()
@@ -133,27 +126,10 @@ class Device(ObjectType):
             sorted_info = sorted(attr_infos, key=attrgetter("name"))
             
             for attr_info in sorted_info:
-                if rule.match(attr_info.name):
-                    if attr_info.writable == PyTango._tango.AttrWriteType.WT_UNKNOWN:
-                        wt = 'READ_WITH_WRITE'
-                    else:
-                        wt = attr_info.writable
-
-                    data_type = PyTango.CmdArgType.values[attr_info.data_type]            
+                if rule.match(attr_info.name):          
                     result.append(DeviceAttribute(
                         name=attr_info.name,
                         device=self.name,
-                        writable=wt,
-                        datatype=data_type,
-                        dataformat=attr_info.data_format,
-                        label=attr_info.label,
-                        unit=attr_info.unit,
-                        description=attr_info.description,
-                        displevel=attr_info.disp_level,
-                        minvalue=convert_value(data_type, attr_info.min_value),
-                        maxvalue=convert_value(data_type, attr_info.max_value),
-                        minalarm=convert_value(data_type, attr_info.min_alarm),
-                        maxalarm=convert_value(data_type, attr_info.max_alarm)
                     ))
 
         return result
