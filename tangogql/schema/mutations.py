@@ -188,9 +188,9 @@ class PutDeviceProperty(Mutation):
         except (PyTango.DevFailed, PyTango.ConnectionFailed,
                 PyTango.CommunicationFailed, PyTango.DeviceUnlocked) as error:
             e = error.args[0]
-            return SetAttributeValue(ok=False, message=[e.desc, e.reason])
+            return PutDeviceProperty(ok=False, message=[e.desc, e.reason])
         except Exception as e:
-            return SetAttributeValue(ok=False, message=[str(e)])
+            return PutDeviceProperty(ok=False, message=[str(e)])
         
 
 class DeleteDeviceProperty(Mutation):
