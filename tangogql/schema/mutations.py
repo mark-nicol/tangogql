@@ -84,6 +84,7 @@ class SetAttributeValue(Mutation):
 
     ok = Boolean()
     message = List(String)
+    value = ScalarTypes()
 
     async def mutate(self, info, device, name, value):
         """ This method sets value to an attribute.
@@ -122,13 +123,13 @@ class SetAttributeValue(Mutation):
                                             value_after = result.value
                                         )
             user_actions.put(log)
-            return SetAttributeValue(ok=True, message=["Success"])
+            return SetAttributeValue(ok=True, value=result.value, message=["Success"])
         except (PyTango.DevFailed, PyTango.ConnectionFailed,
                 PyTango.CommunicationFailed, PyTango.DeviceUnlocked) as error:
             e = error.args[0]
-            return SetAttributeValue(ok=False, message=[e.desc, e.reason])
+            return SetAttributeValue(ok=False, value=None, message=[e.desc, e.reason])
         except Exception as e:
-            return SetAttributeValue(ok=False, message=[str(e)])
+            return SetAttributeValue(ok=False, value=None, message=[str(e)])
 
 
 class PutDeviceProperty(Mutation):
