@@ -2,12 +2,13 @@
 
 import PyTango
 import logging
+import asyncio
 
 from datetime import datetime 
-from graphene import ObjectType, Mutation, String, Boolean, List
+from graphene import ObjectType, Mutation, String, Boolean, List, Field
 from tangogql.schema.base import db, proxies
 from tangogql.schema.types import ScalarTypes
-from tangogql.schema.attribute import collaborative_read_attribute
+from tangogql.schema.attribute import DeviceAttribute, collaborative_read_attribute
 from tangogql.schema.log import ExcuteCommandUserAction
 from tangogql.schema.log import SetAttributeValueUserAction
 from tangogql.schema.log import PutDevicePropertyUserAction
@@ -49,10 +50,10 @@ class ExecuteDeviceCommand(Mutation):
         :rtype: ExecuteDeviceCommand
         """
         
-        logger.info("MUTATION - ExecuteDeviceCommand - User: {}, Device: {}, Command: {}, Argin: {}".format(info.context["client_data"]["user"], device, command, argin))
+        logger.info("MUTATION - ExecuteDeviceCommand - User: {}, Device: {}, Command: {}, Argin: {}".format(info.context["client"].user, device, command, argin))
         log = ExcuteCommandUserAction(
                                         timestamp = datetime.now(), 
-                                        user = info.context["client_data"]["user"],
+                                        user = info.context["client"].user,
                                         device = device,
                                         name = command,
                                         argin = argin
@@ -84,6 +85,7 @@ class SetAttributeValue(Mutation):
 
     ok = Boolean()
     message = List(String)
+    attribute = Field(DeviceAttribute)
 
     async def mutate(self, info, device, name, value):
         """ This method sets value to an attribute.
@@ -104,17 +106,20 @@ class SetAttributeValue(Mutation):
         :rtype: SetAttributeValue
         """
       
-        logger.info("MUTATION - SetAttributeValue - User: {}, Device: {}, Attribute: {}, Value: {}".format(info.context["client_data"]["user"], device, name, value))
+        logger.info("MUTATION - SetAttributeValue - User: {}, Device: {}, Attribute: {}, Value: {}".format(info.context["client"].user, device, name, value))
         
         if type(value) is ValueError:
-            return SetAttributeValue(ok=False, message=[str(value)])
+            return SetAttributeValue(ok=False, message=[str(value)], attribute=None)
         try:
             proxy = proxies.get(device)
             before = await collaborative_read_attribute(proxy,name)
-            result = await proxy.write_read_attribute(name, value)
+            read_coro = proxy.write_read_attribute(name, value)
+            read_fut = asyncio.ensure_future(read_coro)
+            result = await read_fut
+
             log = SetAttributeValueUserAction(
                                             timestamp = datetime.now(), 
-                                            user = info.context["client_data"]["user"],
+                                            user = info.context["client"].user,
                                             device = device,
                                             name = name,
                                             value = value,
@@ -122,13 +127,19 @@ class SetAttributeValue(Mutation):
                                             value_after = result.value
                                         )
             user_actions.put(log)
-            return SetAttributeValue(ok=True, message=["Success"])
+
+            return SetAttributeValue(ok=True, message=["Success"], attribute=DeviceAttribute(
+                name=name,
+                device=device,
+                _attr_read=read_fut
+            ))
+
         except (PyTango.DevFailed, PyTango.ConnectionFailed,
                 PyTango.CommunicationFailed, PyTango.DeviceUnlocked) as error:
             e = error.args[0]
-            return SetAttributeValue(ok=False, message=[e.desc, e.reason])
+            return SetAttributeValue(ok=False, message=[e.desc, e.reason], attribute=None)
         except Exception as e:
-            return SetAttributeValue(ok=False, message=[str(e)])
+            return SetAttributeValue(ok=False, message=[str(e)], attribute=None)
 
 
 class PutDeviceProperty(Mutation):
@@ -160,14 +171,14 @@ class PutDeviceProperty(Mutation):
         :rtype: PutDeviceProperty
         """
         
-        logger.info("MUTATION - PutDeviceProperty - User: {}, Device: {}, Name: {}, Value: {}".format(info.context["client_data"]["user"], device, name, value))
+        logger.info("MUTATION - PutDeviceProperty - User: {}, Device: {}, Name: {}, Value: {}".format(info.context["client"].user, device, name, value))
         # wait = not args.get("async")
         try:
             
             db.put_device_property(device, {name: value})
             log = PutDevicePropertyUserAction(
                                             timestamp = datetime.now(), 
-                                            user = info.context["client_data"]["user"],
+                                            user = info.context["client"].user,
                                             device = device,
                                             name = name,
                                             value = value
@@ -177,9 +188,9 @@ class PutDeviceProperty(Mutation):
         except (PyTango.DevFailed, PyTango.ConnectionFailed,
                 PyTango.CommunicationFailed, PyTango.DeviceUnlocked) as error:
             e = error.args[0]
-            return SetAttributeValue(ok=False, message=[e.desc, e.reason])
+            return PutDeviceProperty(ok=False, message=[e.desc, e.reason])
         except Exception as e:
-            return SetAttributeValue(ok=False, message=[str(e)])
+            return PutDeviceProperty(ok=False, message=[str(e)])
         
 
 class DeleteDeviceProperty(Mutation):
@@ -205,13 +216,13 @@ class DeleteDeviceProperty(Mutation):
                  If exception has been raised returns message = error_message.
         :rtype: DeleteDeviceProperty
         """
-        logger.info("MUTATION - DeleteDeviceProperty - User: {}, Device: {}, Name: {}".format(info.context["client_data"]["user"], device, name))
+        logger.info("MUTATION - DeleteDeviceProperty - User: {}, Device: {}, Name: {}".format(info.context["client"].user, device, name))
         
         try: 
             db.delete_device_property(device, name)
             log = DeleteDevicePropertyUserAction(
                                             timestamp = datetime.now(), 
-                                            user = info.context["client_data"]["user"],
+                                            user = info.context["client"].user,
                                             device = device,
                                             name = name
                                         )
@@ -225,7 +236,7 @@ class DeleteDeviceProperty(Mutation):
         except Exception as e:
             return DeleteDeviceProperty(ok=False, message=[str(e)])
         
-class DatabaseMutations(ObjectType):
+class Mutations(ObjectType):
     """This class contains all the mutations."""
 
     put_device_property = PutDeviceProperty.Field()

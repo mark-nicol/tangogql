@@ -4,43 +4,12 @@ import re
 import fnmatch
 import PyTango
 from operator import attrgetter
-from graphene import Interface, String, Int, List, Boolean, Field, ObjectType
+from graphene import String, Int, List, Boolean, Field, ObjectType
 from tangogql.schema.base import db, proxies
-from tangogql.schema.types import TypeConverter
 from tangogql.schema.attribute import DeviceAttribute
-from tangogql.schema.attribute import ScalarDeviceAttribute
-from tangogql.schema.attribute import ImageDeviceAttribute
-from tangogql.schema.attribute import SpectrumDeviceAttribute
 from tangogql.schema.log import UserAction, user_actions
 
-# TODO: Ensure that result is passed properly, refresh mutable
-#       arguments copy or pointer ...? Tests are passing ...
-def append_to_result(result, klass, attr_info, device_name):
-    if attr_info.writable == PyTango._tango.AttrWriteType.WT_UNKNOWN:
-        wt = 'READ_WITH_WRITE'
-    else:
-        wt = attr_info.writable
-    
-    data_type = PyTango.CmdArgType.values[attr_info.data_type]
-    
-    result.append(klass(
-                    name=attr_info.name,
-                    device=device_name,
-                    writable=wt,
-                    datatype=data_type,
-                    dataformat=attr_info.data_format,
-                    label=attr_info.label,
-                    unit=attr_info.unit,
-                    description=attr_info.description,
-                    displevel=attr_info.disp_level,
-                    minvalue=None if attr_info.min_value  == "Not specified" else TypeConverter.convert(data_type,attr_info.min_value),
-                    maxvalue=None if attr_info.max_value  == "Not specified" else TypeConverter.convert(data_type,attr_info.max_value),
-                    minalarm=None if attr_info.min_alarm  == "Not specified" else TypeConverter.convert(data_type,attr_info.min_alarm),
-                    maxalarm=None if attr_info.max_alarm  == "Not specified" else TypeConverter.convert(data_type,attr_info.max_alarm)
-                    )
-                )
-
-class DeviceProperty(ObjectType, Interface):
+class DeviceProperty(ObjectType):
     """ This class represents a property of a device.  """
 
     name = String()
@@ -62,7 +31,7 @@ class DeviceProperty(ObjectType, Interface):
             return [line for line in value[name]]
 
 
-class DeviceCommand(ObjectType, Interface):
+class DeviceCommand(ObjectType):
     """This class represents an command and its properties."""
 
     name = String()
@@ -74,14 +43,14 @@ class DeviceCommand(ObjectType, Interface):
     outtypedesc = String()
 
 
-class DeviceInfo(ObjectType, Interface):
+class DeviceInfo(ObjectType):
     """ This class represents info of a device.  """
 
     id = String()       # server id
     host = String()     # server host
 
 
-class Device(ObjectType, Interface):
+class Device(ObjectType):
     """This class represent a device."""
 
     name = String()
@@ -145,6 +114,9 @@ class Device(ObjectType, Interface):
         :return: List of attributes of the device.
         :rtype: List of DeviceAttribute
         """ 
+        # TODO: Ensure that result is passed properly, refresh mutable
+        #       arguments copy or pointer ...? Tests are passing ...
+
         result = []
         if await self._get_connected():
             proxy = self._get_proxy()
@@ -152,19 +124,14 @@ class Device(ObjectType, Interface):
 
             rule = re.compile(fnmatch.translate(pattern), re.IGNORECASE)
             sorted_info = sorted(attr_infos, key=attrgetter("name"))
+            
             for attr_info in sorted_info:
-                if rule.match(attr_info.name):
-                    if str(attr_info.data_format) == "SCALAR":
-                        append_to_result(result,
-                                        ScalarDeviceAttribute, attr_info, self.name)
+                if rule.match(attr_info.name):          
+                    result.append(DeviceAttribute(
+                        name=attr_info.name,
+                        device=self.name,
+                    ))
 
-                    if str(attr_info.data_format) == "SPECTRUM":
-                        append_to_result(result,
-                                        SpectrumDeviceAttribute, attr_info,self.name)
-
-                    if str(attr_info.data_format) == "IMAGE":
-                        append_to_result(result,
-                                        ImageDeviceAttribute, attr_info, self.name)
         return result
 
     async def resolve_commands(self, info, pattern="*"):

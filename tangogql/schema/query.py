@@ -5,10 +5,10 @@ import fnmatch
 import PyTango
 import copy
 from collections import defaultdict
-from graphene import Interface, ObjectType, String, List, Field, Int
+from graphene import ObjectType, String, List, Field, Int
 from tangogql.schema.types import ScalarTypes
 from tangogql.schema.base import db, proxies
-from tangogql.schema.device import Device,append_to_result
+from tangogql.schema.device import Device
 from tangogql.schema.attribute import DeviceAttribute
 from tangogql.schema.log import user_actions, UserAction
 
@@ -34,7 +34,7 @@ class Member(Device):
         return self._info
 
 
-class Family(ObjectType, Interface):
+class Family(ObjectType):
     """This class represent a family."""
 
     name = String()
@@ -57,7 +57,7 @@ class Family(ObjectType, Interface):
                 for member in members]
 
 
-class Domain(ObjectType, Interface):
+class Domain(ObjectType):
     """This class represent a domain."""
 
     name = String()
@@ -78,7 +78,7 @@ class Domain(ObjectType, Interface):
         return [Family(name=family, domain=self.name) for family in families]
 
 
-class DeviceClass(ObjectType, Interface):
+class DeviceClass(ObjectType):
 
     name = String()
     server = String()
@@ -87,7 +87,7 @@ class DeviceClass(ObjectType, Interface):
 
 
 # TODO: Missing documentation
-class ServerInstance(ObjectType, Interface):
+class ServerInstance(ObjectType):
     """Not documented yet."""
 
     name = String()
@@ -108,7 +108,7 @@ class ServerInstance(ObjectType, Interface):
                 if rule.match(clss)]
 
 
-class Server(ObjectType, Interface):
+class Server(ObjectType):
     """This class represents a query for server."""
 
     name = String()
@@ -194,16 +194,10 @@ class Query(ObjectType):
 
             for attr_info in attr_infos:
                 if attr_info.name in attrs:
-                    if str(attr_info.data_format) == "SCALAR":
-                        append_to_result(result,
-                                        ScalarDeviceAttribute, attr_info, device)
-                    if str(attr_info.data_format) == "SPECTRUM":
-                        append_to_result(result,
-                                        SpectrumDeviceAttribute, attr_info)
-                    if str(attr_info.data_format) == "IMAGE":
-                        append_to_result(result,
-                                        ImageDeviceAttribute, attr_info)
-
+                    result.append(DeviceAttribute(
+                        name=attr_info.name,
+                        device=self.name,
+                    ))
         return result
 
     def resolve_domains(self, info, pattern="*"):

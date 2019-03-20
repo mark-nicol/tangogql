@@ -1,10 +1,11 @@
 """Module defining the attributes."""
 
 import PyTango
-from graphene import Interface, String, Int, ObjectType
-from tangogql.schema.base import proxies
-from tangogql.schema.types import ScalarTypes
+from graphene import String, Float, ObjectType
 import asyncio
+
+from tangogql.schema.base import proxies
+from tangogql.schema.types import ScalarTypes, TypeConverter
 
 async def collaborative_read_attribute(proxy, name):
     """
@@ -40,7 +41,7 @@ async def collaborative_read_attribute(proxy, name):
         setattr(proxy, value_attr, future)
         # Wait for data
         try:
-            read_value = await proxy.read_attribute(name)
+            read_value = await proxy.read_attribute(name, extract_as=PyTango.ExtractAs.List)
             # Set data for other requestors.
             future.set_result(read_value)
             setattr(proxy, reading_attr, False)
@@ -56,7 +57,8 @@ async def collaborative_read_attribute(proxy, name):
             future.set_result(read_value)
             setattr(proxy, reading_attr, False)
 
-class DeviceAttribute(Interface):
+
+class DeviceAttribute(ObjectType):
     """This class represents an attribute of a device."""
 
     name = String()
@@ -70,12 +72,15 @@ class DeviceAttribute(Interface):
     value = ScalarTypes()
     writevalue = ScalarTypes()
     quality = String()
-    timestamp = Int()
+    timestamp = Float()
     displevel= String()
     minvalue = ScalarTypes()
     maxvalue = ScalarTypes()
     minalarm = ScalarTypes()
     maxalarm = ScalarTypes()
+
+    _attr_read = None
+    _attr_info = None
 
     async def resolve_writevalue(self, *args, **kwargs):
         """This method fetch the coresponding w_value of an attribute bases on its name.
@@ -84,20 +89,8 @@ class DeviceAttribute(Interface):
         :rtype: Any
         """
 
-        w_value = None
-        proxy = proxies.get(self.device)
-        # Read request is an io opreration, release the event loop
-        att_data = await collaborative_read_attribute(proxy, self.name)
-        temp_val = att_data.w_value
-        if not temp_val is None:
-            if att_data.data_format != 0:  # SPECTRUM and IMAGE
-                if isinstance(temp_val, tuple):
-                    w_value = list(temp_val)
-                else:
-                    w_value = att_data.w_value.tolist()
-            else:  # SCALAR
-                w_value = temp_val
-        return w_value
+        read = await self._get_attr_read()
+        return read.w_value
 
     async def resolve_value(self, *args, **kwargs):
         """This method fetch the coresponding value of an attribute bases on its name.
@@ -106,20 +99,8 @@ class DeviceAttribute(Interface):
         :rtype: Any
         """
 
-        value = None
-        proxy = proxies.get(self.device)
-        # Read request is an io opreration, release the event loop
-        att_data = await collaborative_read_attribute(proxy, self.name)
-        temp_val = att_data.value
-        if not temp_val is None:
-            if att_data.data_format != 0:  # SPECTRUM and IMAGE
-                if isinstance(temp_val, tuple):
-                    value = list(temp_val)
-                else:
-                    value = att_data.value.tolist()
-            else:  # SCALAR
-                value = att_data.value
-        return value
+        read = await self._get_attr_read()
+        return read.value
 
     async def resolve_quality(self, *args, **kwargs):
         """This method fetch the coresponding quality of an attribute bases on its name.
@@ -128,16 +109,8 @@ class DeviceAttribute(Interface):
         :rtype: str
         """
 
-        value = None
-        # try:
-        proxy = proxies.get(self.device)
-        # Read request is an io operation, release the event loop
-        att_data = await collaborative_read_attribute(proxy, self.name)
-        value = att_data.quality.name
-        # TODO: Check this part, don't do anything on an exception?
-        # NOTE: Better to propagate SystemExit and KeyboardInterrupt,
-        # otherwise Ctrl+C may not work.
-        return value
+        read = await self._get_attr_read()
+        return read.quality.name
 
     async def resolve_timestamp(self, *args, **kwargs):
         """This method fetch the timestamp value of an attribute bases on its name.
@@ -146,22 +119,64 @@ class DeviceAttribute(Interface):
         :rtype: float
         """
 
-        value = None
-        # try:
+        read = await self._get_attr_read()
+        sec = read.time.tv_sec
+        usec = read.time.tv_usec
+        return sec + usec * 1e-6
+
+    def resolve_dataformat(self, info):
+        return self._get_attr_info().data_format
+
+    def resolve_label(self, info):
+        return self._get_attr_info().label
+
+    def resolve_unit(self, info):
+        return self._get_attr_info().unit
+
+    def resolve_description(self, info):
+        return self._get_attr_info().description
+
+    def resolve_displevel(self, info):
+        return self._get_attr_info().disp_level
+
+    def resolve_writable(self, info):
+        return str(self._get_attr_info().writable)
+
+    def resolve_datatype(self, info):
+        return self._get_datatype()
+
+    def resolve_minvalue(self, info):
+        return self._convert_value("min_value")
+
+    def resolve_maxvalue(self, info):
+        return self._convert_value("max_value")
+
+    def resolve_minalarm(self, info):
+        return self._convert_value("min_alarm")
+
+    def resolve_maxalarm(self, info):
+        return self._convert_value("max_alarm")
+
+    async def _get_attr_read(self):
+        if self._attr_read is None:
+            proxy = proxies.get(self.device)
+            read_coro = proxy.read_attribute(self.name, extract_as=PyTango.ExtractAs.List)
+            self._attr_read = asyncio.ensure_future(read_coro)
+        return await self._attr_read
+
+    def _get_attr_info(self):
         proxy = proxies.get(self.device)
-        # Read request is an io operation, release the event loop
-        att_data = await collaborative_read_attribute(proxy, self.name)
-        value = att_data.time.tv_sec
-        return value
+        return proxy.attribute_query(self.name)
 
+    def _get_datatype(self):
+        return PyTango.CmdArgType.values[self._get_attr_info().data_type]
 
-class ScalarDeviceAttribute(ObjectType, interfaces=[DeviceAttribute]):
-    pass
+    def _convert_value(self, key):
+        attr_info = self._get_attr_info()
+        value = getattr(attr_info, key)
 
-
-class ImageDeviceAttribute(ObjectType, interfaces=[DeviceAttribute]):
-    pass
-
-
-class SpectrumDeviceAttribute(ObjectType, interfaces=[DeviceAttribute]):
-    pass
+        if value == "Not specified":
+            return None
+        else:
+            datatype = self._get_datatype()
+            return TypeConverter.convert(datatype, value)
