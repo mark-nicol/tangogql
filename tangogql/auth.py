@@ -4,25 +4,23 @@ import logging
 
 logger = logging.getLogger('logger')
 
-def authentication_middleware(next, root, info, **args):
-    if info.operation.operation == 'mutation':
-        if info.context["client"].user is None:
-            raise AuthenticationError("User is not authenticated")
-
-    return next(root, info, **args)
-
-def authorization_middleware(next, root, info, **args):
-    if info.operation.operation == 'mutation':
-        config = info.context["config"]
+def authorization(f):
+    def wrapper(*args, **kw):
+        config = args[1].context["config"]
         required_groups = config.required_groups
-
-        client = info.context["client"]
+        client = args[1].context["client"]
         memberships = client.groups
-
         if required_groups and not set(required_groups) & set(memberships):
             raise AuthorizationError(f"User {client.user} is not in any of the required groups")
+        return f(*args, **kw)
+    return wrapper
 
-    return next(root, info, **args)
+def authentication(f):
+    def wrapper(*args, **kw):
+        if args[1].context["client"].user is None:
+            raise AuthenticationError("User is not authenticated")
+        return f(*args, **kw)
+    return wrapper
 
 class AuthError(GraphQLError):
     pass

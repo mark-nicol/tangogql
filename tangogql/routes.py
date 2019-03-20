@@ -11,7 +11,7 @@ from graphql import format_error
 from graphql.execution.executors.asyncio import AsyncioExecutor
 
 from tangogql.schema.tango import tangoschema
-from tangogql.auth import authorization_middleware, authentication_middleware, AuthError
+from tangogql.auth import AuthError
 from tangogql.context import build_context
 
 from tangogql.schema.errors import ErrorParser
@@ -43,7 +43,6 @@ async def db_handler(request):
     payload = await request.json()
     query = payload.get("query")
     variables = payload.get("variables")
-
     config = request.app["config"]
     context = build_context(request, config)
 
@@ -51,7 +50,6 @@ async def db_handler(request):
     response = await tangoschema.execute(
         query,
         variable_values=variables,
-        middleware=[authorization_middleware, authentication_middleware],
         context_value=context,
         return_promise=True,
         executor=AsyncioExecutor(loop=loop),
