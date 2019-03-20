@@ -196,7 +196,7 @@ class Query(ObjectType):
                 if attr_info.name in attrs:
                     result.append(DeviceAttribute(
                         name=attr_info.name,
-                        device=self.name,
+                        device=device,
                     ))
         return result
 
