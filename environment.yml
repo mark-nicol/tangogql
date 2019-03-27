@@ -25,7 +25,7 @@ dependencies:
   - pip=10.0.1=py36_0
   - py-boost=1.67.0=py36h04863e7_4
   - python=3.6.6=hc3d631a_0
-  - pyzmq=17.0.0=py36h14c3975_3
+  - pyzmq=18.0.0=py36he6710b0_0
   - readline=7.0=ha6073c6_4
   - setuptools=39.2.0=py36_0
   - six=1.11.0=py36_1
@@ -33,11 +33,11 @@ dependencies:
   - tk=8.6.7=hc745277_3
   - wheel=0.31.1=py36_0
   - xz=5.2.4=h14c3975_4
-  - zeromq=4.2.5=hf484d3e_0
+  - zeromq=4.3.1=he6710b0_2
   - zlib=1.2.11=ha838bed_2
   - omniorb=4.2.2=py36h6bb024c_0
-  - pytango=9.2.4=py36ha8d69ae_1
-  - tango=9.2.5a=h6bb024c_0
+  - pytango=9.3.0=py36ha8d69ae_1
+  - tango=9.3.2=h6bb024c_0
   - pip:
     - aiohttp==3.5.4
     - aiohttp-cors==0.7.0
