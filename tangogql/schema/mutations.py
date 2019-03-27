@@ -13,7 +13,7 @@ from tangogql.schema.log import ExcuteCommandUserAction
 from tangogql.schema.log import SetAttributeValueUserAction
 from tangogql.schema.log import PutDevicePropertyUserAction
 from tangogql.schema.log import DeleteDevicePropertyUserAction
-
+from tangogql.auth import authorization, authentication
 logger = logging.getLogger('logger')
 
 from tangogql.schema.log import user_actions
@@ -29,7 +29,8 @@ class ExecuteDeviceCommand(Mutation):
     ok = Boolean()
     message = List(String)
     output = ScalarTypes()
-    
+    @authentication
+    @authorization
     async def mutate(self, info, device, command, argin=None):
         """ This method executes a command.
 
@@ -87,6 +88,8 @@ class SetAttributeValue(Mutation):
     message = List(String)
     attribute = Field(DeviceAttribute)
 
+    @authentication
+    @authorization
     async def mutate(self, info, device, name, value):
         """ This method sets value to an attribute.
 
@@ -154,6 +157,8 @@ class PutDeviceProperty(Mutation):
     ok = Boolean()
     message = List(String)
 
+    @authentication
+    @authorization
     def mutate(self, info, device, name, value=""):
         """ This method adds property to a device.
 
@@ -203,6 +208,8 @@ class DeleteDeviceProperty(Mutation):
     ok = Boolean()
     message = List(String)
 
+    @authentication
+    @authorization
     def mutate(self, info, device, name):
         """This method delete a property of a device.
 
