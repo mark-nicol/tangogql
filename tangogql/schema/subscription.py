@@ -2,7 +2,7 @@
 
 import time
 import asyncio
-import taurus
+# import taurus
 import PyTango
 import numpy
 

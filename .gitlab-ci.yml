@@ -25,14 +25,6 @@ build_image:
 # #  only:
 # #    - master
 
-deploy_image:
-  stage: deploy
-  script:
-  - docker push docker.maxiv.lu.se/graphql
-  - 'curl -H "Authorization: Bearer $AWX_TOKEN" -XPOST https://ansible.maxiv.lu.se/api/v2/job_templates/33/launch/'
-  only:
-    - master
-
 ### DEVELOP ###
 
 build_image_develop:
