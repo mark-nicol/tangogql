@@ -56,6 +56,7 @@ class Device(ObjectType):
     name = String()
     state = String()
     connected = Boolean()
+    alias = String()
     properties = List(DeviceProperty, pattern=String())
     attributes = List(DeviceAttribute, pattern=String())
     commands = List(DeviceCommand, pattern=String())
@@ -67,6 +68,7 @@ class Device(ObjectType):
     started_date = String()
     stopped_date = String()
     exported = Boolean()
+
     def resolve_user_actions(self, info, skip=None, first=None):
         result = user_actions.get(self.name)
         if skip:
@@ -89,6 +91,13 @@ class Device(ObjectType):
             return "UNKNOWN"
         except Exception as e:
             return str(e)
+
+    def resolve_alias(self, info):
+        try:
+            proxy = self._get_proxy()
+            return proxy.alias()
+        except PyTango.DevFailed:
+            return None
 
     def resolve_properties(self, info, pattern="*"):
         """This method fetch the properties of the device.
