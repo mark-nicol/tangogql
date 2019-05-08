@@ -11,10 +11,6 @@ COPY environment.yml /tmp/environment.yml
 
 RUN conda update -n base conda && \
     conda env create --name graphql python=3.6 --file=/tmp/environment.yml && \
-    git clone https://gitlab.maxiv.lu.se/vinmic/python3-taurus-core.git && \
-    cd python3-taurus-core && \
-    source activate graphql && \
-    python setup.py install && \
     conda clean -a -y
 
 WORKDIR /tangogql
