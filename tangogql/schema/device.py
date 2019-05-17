@@ -232,3 +232,5 @@ class Device(ObjectType):
         if not hasattr(self, "_info"):
             self._info = db.get_device_info(self.name)
         return self._info
+
+    

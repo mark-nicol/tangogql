@@ -9,8 +9,9 @@ from graphene import ObjectType, String, List, Field, Int
 from tangogql.schema.types import ScalarTypes
 from tangogql.schema.base import db, proxies
 from tangogql.schema.device import Device
+from tangogql.schema.attribute import DeviceAttribute
 from tangogql.schema.log import user_actions, UserAction
-#from tangogql.schema.user import UserLog
+
 
 class Member(Device):
     """This class represent a member."""
@@ -143,6 +144,7 @@ class Query(ObjectType):
     servers = List(Server, pattern=String())
     instances = List(ServerInstance, server=String(), pattern=String())
     classes = List(DeviceClass, pattern=String())
+    attributes = List(DeviceAttribute, full_names=List(String, required=True))
 
     async def resolve_info(self, info):
         db = PyTango.Database()
@@ -175,6 +177,28 @@ class Query(ObjectType):
         """
         device_names = db.get_device_exported(pattern)
         return [Device(name=name) for name in device_names]
+
+    async def resolve_attributes(self, info, full_names):
+        result = []
+        attr_list = defaultdict(list)
+
+        for name in full_names:
+            *parts, attribute = name.split('/')
+            device = '/'.join(parts)
+            attr_list[device].append(attribute)
+                
+        for device, attrs in attr_list.items():
+            proxy = proxies.get(device)
+            attr_infos = proxy.attribute_list_query()
+
+            for attr_info in attr_infos:
+                if attr_info.name in attrs:
+                    result.append(DeviceAttribute(
+                        name=attr_info.name,
+                        device=device,
+                    ))
+
+        return result
 
     def resolve_domains(self, info, pattern="*"):
         """This method fetches all the domains using the pattern.
