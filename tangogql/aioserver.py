@@ -21,14 +21,53 @@ import os
 import json
 import sys
 
-from tangogql.routes import routes
-from tangogql.config import Config
-
-
 __all__ = ['run']
+
+
+def ensure_connectivity(retries=5, sleep_duration=5):
+    """
+    Attempt to connect to the TANGO host specified by the TANGO_HOST
+    environment variable by instantiating a PyTango.Database object. Upon
+    failure it will retry up to `retries` times, sleeping for `sleep_duration`
+    seconds between attempts. If no connection can be established even after
+    retrying, it will cause the program to exit with code 1. Progress is
+    reported to stdout as follows:
+
+    (1/5) Trying to connect to tango-host:10000... Failed! Retrying in 5 seconds.
+    (2/5) Trying to connect to tango-host:10000... Failed! Retrying in 5 seconds.
+    (3/5) Trying to connect to tango-host:10000... Connected!
+
+    :param retries: The number of retries before exiting
+    :param sleep_duration: The number of seconds to sleep between attempts.
+    :returns: None
+    """
+
+    import PyTango, time
+    host = os.getenv("TANGO_HOST")
+
+    for retry in range(1, retries+1):
+        print(f"({retry}/{retries}) Trying to connect to {host}...", end="")
+        try:
+            PyTango.Database()
+        except PyTango.ConnectionFailed:
+            print(f" Failed!", end="")
+            if retry == retries:
+                print()
+                sys.exit(1)
+            else:
+                print(f" Retrying in {sleep_duration} seconds.")
+                time.sleep(sleep_duration)
+        else:
+            print(" Connected!")
+            break
 
 # A factory function is needed to use aiohttp-devtools for live reload functionality.
 def setup_server():
+    ensure_connectivity()
+
+    from tangogql.routes import routes
+    from tangogql.config import Config
+
     app = aiohttp.web.Application(debug=True)
 
     config = Config(open("config.json"))
