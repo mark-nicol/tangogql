@@ -144,7 +144,8 @@ class Query(ObjectType):
     servers = List(Server, pattern=String())
     instances = List(ServerInstance, server=String(), pattern=String())
     classes = List(DeviceClass, pattern=String())
-    attributes = List(DeviceAttribute, full_name=List(String, required=True))
+    attributes = List(DeviceAttribute, full_names=List(String, required=True))
+
     async def resolve_info(self, info):
         db = PyTango.Database()
         return db.get_info()
@@ -176,17 +177,15 @@ class Query(ObjectType):
         """
         device_names = db.get_device_exported(pattern)
         return [Device(name=name) for name in device_names]
-    async def resolve_attributes(self, info, full_name):
+
+    async def resolve_attributes(self, info, full_names):
         result = []
-        attr_list = {}
-        for name in full_name:
-            splitted_name = name.split('/')
-            device = '/'.join(splitted_name[:-1])
-            attr = splitted_name[-1]
-            if attr in attr_list:
-                attr_list[device].append(attr)
-            else:
-                attr_list[device] = [attr]
+        attr_list = defaultdict(list)
+
+        for name in full_names:
+            *parts, attribute = name.split('/')
+            device = '/'.join(parts)
+            attr_list[device].append(attribute)
                 
         for device, attrs in attr_list.items():
             proxy = proxies.get(device)
@@ -198,6 +197,7 @@ class Query(ObjectType):
                         name=attr_info.name,
                         device=device,
                     ))
+
         return result
 
     def resolve_domains(self, info, pattern="*"):
