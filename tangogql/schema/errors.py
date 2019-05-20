@@ -7,11 +7,12 @@ class ErrorParser:
         seen = set()
         result_set = []
         for message in errors:
+            if message["reason"] != "None":
                 if isinstance(message,dict):
                     t = tuple(message.items())
                 else:
                     t = str(e)
-                if t and t not in seen:
+                if t not in seen:
                     seen.add(t)
                     result_set.append(message)
         return result_set
