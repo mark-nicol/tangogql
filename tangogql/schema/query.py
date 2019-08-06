@@ -223,7 +223,8 @@ class Query(ObjectType):
                         intype=cmd_info.in_type,
                         intypedesc=cmd_info.in_type_desc,
                         outtype=cmd_info.out_type,
-                        outtypedesc=cmd_info.out_type_desc
+                        outtypedesc=cmd_info.out_type_desc,
+                        device=device_name
                     ))
 
         return result
