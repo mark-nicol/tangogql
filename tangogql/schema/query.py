@@ -8,7 +8,7 @@ from collections import defaultdict
 from graphene import ObjectType, String, List, Field, Int
 from tangogql.schema.types import ScalarTypes
 from tangogql.schema.base import db, proxies
-from tangogql.schema.device import Device
+from tangogql.schema.device import Device, DeviceCommand
 from tangogql.schema.attribute import DeviceAttribute
 from tangogql.schema.log import user_actions, UserAction
 
@@ -144,7 +144,9 @@ class Query(ObjectType):
     servers = List(Server, pattern=String())
     instances = List(ServerInstance, server=String(), pattern=String())
     classes = List(DeviceClass, pattern=String())
+
     attributes = List(DeviceAttribute, full_names=List(String, required=True))
+    commands = List(DeviceCommand, full_names=List(String, required=True))
 
     async def resolve_info(self, info):
         db = PyTango.Database()
@@ -196,6 +198,32 @@ class Query(ObjectType):
                     result.append(DeviceAttribute(
                         name=attr_info.name,
                         device=device,
+                    ))
+
+        return result
+
+    async def resolve_commands(self, info, full_names):
+        result = []
+        cmd_list = defaultdict(list)
+
+        for name in full_names:
+            *parts, command_name = name.split('/')
+            device_name = '/'.join(parts)
+            cmd_list[device_name].append(command_name)
+
+        for device_name, command_names in cmd_list.items():
+            proxy = proxies.get(device_name)
+            cmd_infos = proxy.command_list_query()
+
+            for cmd_info in cmd_infos:
+                if cmd_info.cmd_name in command_names:
+                    result.append(DeviceCommand(name=cmd_info.cmd_name,
+                        tag=cmd_info.cmd_tag,
+                        displevel=cmd_info.disp_level,
+                        intype=cmd_info.in_type,
+                        intypedesc=cmd_info.in_type_desc,
+                        outtype=cmd_info.out_type,
+                        outtypedesc=cmd_info.out_type_desc
                     ))
 
         return result
