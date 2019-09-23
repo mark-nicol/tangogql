@@ -1,7 +1,7 @@
 """Module containing the Subscription implementation."""
 from graphene import ObjectType, String, Float, Field, List
 from tangogql.schema.types import ScalarTypes
-from tangoql.base.proxies import subscriptions as subs
+from tangogql.schema.base import subscriptions as subs
 
 
 class AttributeFrame(ObjectType):
@@ -25,6 +25,7 @@ class Subscription(ObjectType):
 
     async def resolve_attributes(self, info, full_names):
         """ Setup attribute subscriibtion and return an async gen """
+        print(self.attributes)
         async with subs.attribute_reads(full_names) as attribute_reads:
             async for evt in attribute_reads:
                 read = evt.read

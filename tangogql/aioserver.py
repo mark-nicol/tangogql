@@ -91,23 +91,23 @@ def setup_logger(logfile):
     logger = logging.getLogger('logger')
     logger.setLevel(logging.DEBUG)
 
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    # formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 
-    max_mega_bytes = 15
-    log_file_size_in_bytes = max_mega_bytes * (1024*1024)
+    # max_mega_bytes = 15
+    # log_file_size_in_bytes = max_mega_bytes * (1024*1024)
 
-    # file_handler = logging.handlers.RotatingFileHandler(logfile, maxBytes=log_file_size_in_bytes, backupCount=5)
-    # file_handler.setLevel(logging.INFO)
-    # file_handler.setFormatter(formatter)
+    # # file_handler = logging.handlers.RotatingFileHandler(logfile, maxBytes=log_file_size_in_bytes, backupCount=5)
+    # # file_handler.setLevel(logging.INFO)
+    # # file_handler.setFormatter(formatter)
 
-    stream_handler = logging.StreamHandler()
-    stream_handler.setLevel(logging.DEBUG)
-    stream_handler.setFormatter(formatter)
+    # stream_handler = logging.StreamHandler()
+    # stream_handler.setLevel(logging.DEBUG)
+    # stream_handler.setFormatter(formatter)
 
-    # logger.addHandler(file_handler)
-    logger.addHandler(stream_handler)
+    # # logger.addHandler(file_handler)
+    # logger.addHandler(stream_handler)
 
-    logger.debug("Logging setup done. Logfile: " + logfile)
+    # logger.debug("Logging setup done. Logfile: " + logfile)
 
     return logger
 
