@@ -2,7 +2,8 @@ import asyncio
 from tango import EventType, DevFailed
 from tango import GreenMode
 from tango import DeviceProxy
-from loguru import logger
+import logging as logger
+
 
 
 class Attribute:

@@ -6,8 +6,7 @@ try:
 except ImportError:
     from async_generator import asynccontextmanager as contextmanager
 
-from loguru import logger
-
+import logging as logger
 
 class SubscriptionManager:
     """ Manage attribute subscriptions """
