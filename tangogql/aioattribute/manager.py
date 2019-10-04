@@ -6,18 +6,18 @@ try:
 except ImportError:
     from async_generator import asynccontextmanager as contextmanager
 
-import logging as logger
 
 class SubscriptionManager:
     """ Manage attribute subscriptions """
 
     def __init__(self):
         self.attributes = {}
+        self.lock = asyncio.Lock()
 
     def _get_attribute(self, name):
         """ Create a new attribute subscribion or return an existing one"""
         if name not in self.attributes:
-            self.attributes[name] = Attribute(name)
+            self.attributes[name] = Attribute(name, polling_interval=1)
         return self.attributes[name]
 
     @contextmanager
@@ -29,14 +29,13 @@ class SubscriptionManager:
         """
         # Create listener
         listener = asyncio.Queue()
-        for name in names:
-            # TODO Event subsction is failling if we subscribe to all event at
-            # the same time. So, does it makes sense to subscribe in a task
-            # if we have to sleep there ?
-            await asyncio.sleep(0.01)
-            # Send listener to all the required attributes.
-            attribute = self._get_attribute(name)
-            attribute.add_listener(listener)
+        # Tango does not support concurent subscribitons
+        # Be sure that the subscription are done one by one
+        async with self.lock:
+            for name in names:
+                # Send listener to all the required attributes.
+                attribute = self._get_attribute(name)
+                await attribute.add_listener(listener)
 
         async def async_iterator():
             """ asynchronous iterator to yield event from attributes """

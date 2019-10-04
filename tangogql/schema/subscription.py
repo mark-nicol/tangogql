@@ -3,6 +3,8 @@ from graphene import ObjectType, String, Float, Field, List
 from tangogql.schema.types import ScalarTypes
 from tangogql.schema.base import subscriptions as subs
 
+import traceback
+
 
 class AttributeFrame(ObjectType):
     attribute = String()
@@ -25,21 +27,23 @@ class Subscription(ObjectType):
 
     async def resolve_attributes(self, info, full_names):
         """ Setup attribute subscriibtion and return an async gen """
-        print(self.attributes)
         async with subs.attribute_reads(full_names) as attribute_reads:
-            async for evt in attribute_reads:
-                read = evt.read
-                sec = read.time.tv_sec
-                micro = read.time.tv_usec
-                timestamp = sec + micro * 1e-6
-                value = read.value
-                write_value = read.w_value
-                quality = read.quality.name
-                yield AttributeFrame(
-                    device=evt.device,
-                    attribute=read.name,
-                    value=value,
-                    write_value=write_value,
-                    quality=quality,
-                    timestamp=timestamp,
-                )
+            async for device, read in attribute_reads:
+                try:
+                    sec = read.time.tv_sec
+                    micro = read.time.tv_usec
+                    timestamp = sec + micro * 1e-6
+                    value = read.value
+                    write_value = read.w_value
+                    quality = read.quality.name
+                    yield AttributeFrame(
+                        device=device,
+                        attribute=read.name,
+                        value=value,
+                        write_value=write_value,
+                        quality=quality,
+                        timestamp=timestamp,
+                    )
+                except Exception as e:
+                    traceback.print_exc()
+                    raise e
