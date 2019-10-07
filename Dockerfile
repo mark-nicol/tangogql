@@ -19,4 +19,4 @@ COPY . .
 ENV PYTHONUNBUFFERED 1
 ENV PYTANGO_GREEN_MODE asyncio
 
-CMD source activate graphql && pip install async_generator &&   python -m tangogql
+CMD source activate graphql && python -m tangogql
