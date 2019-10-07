@@ -1,13 +1,9 @@
 """Module containing the Subscription implementation."""
-
-import time
-import asyncio
-# import taurus
-import PyTango
-import numpy
-
-from graphene import ObjectType, String, Float, Field, List, Int
+from graphene import ObjectType, String, Float, Field, List
 from tangogql.schema.types import ScalarTypes
+from tangogql.schema.base import subscriptions as subs
+
+import traceback
 
 
 class AttributeFrame(ObjectType):
@@ -30,44 +26,24 @@ class Subscription(ObjectType):
     attributes = Field(AttributeFrame, full_names=List(String, required=True))
 
     async def resolve_attributes(self, info, full_names):
-        device_proxies = {}
-        name_pairs = []
-
-        for full_name in full_names:
-            *parts, attribute = full_name.split("/")
-            device = "/".join(parts)
-            device_proxies[device] = PyTango.DeviceProxy(device)
-            name_pairs.append((device, attribute))
-
-        while True:
-            try:
-                for device, attribute in name_pairs:
-                    try:
-                        proxy = device_proxies[device]
-                        read = await proxy.read_attribute(
-                            attribute, extract_as=PyTango.ExtractAs.List
-                        )
-                    except Exception:
-                        continue
-
+        """ Setup attribute subscriibtion and return an async gen """
+        async with subs.attribute_reads(full_names) as attribute_reads:
+            async for device, read in attribute_reads:
+                try:
                     sec = read.time.tv_sec
                     micro = read.time.tv_usec
                     timestamp = sec + micro * 1e-6
-
                     value = read.value
                     write_value = read.w_value
                     quality = read.quality.name
-
                     yield AttributeFrame(
                         device=device,
-                        attribute=attribute,
+                        attribute=read.name,
                         value=value,
                         write_value=write_value,
                         quality=quality,
                         timestamp=timestamp,
                     )
-
-                await asyncio.sleep(SLEEP_DURATION)
-
-            except StopAsyncIteration:
-                break
+                except Exception as e:
+                    traceback.print_exc()
+                    raise e
