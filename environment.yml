@@ -38,7 +38,6 @@ dependencies:
   - omniorb=4.2.2=py36h6bb024c_0
   - pytango=9.3.0=py36ha8d69ae_1
   - tango=9.3.2=h6bb024c_0
-  - async-generator=1.10=pypi_0
   - pip:
     - aiohttp==3.5.4
     - aiohttp-cors==0.7.0
@@ -62,4 +61,5 @@ dependencies:
     - rx==1.6.1
     - typing==3.6.4
     - yarl==1.2.4
+    - async-generator==1.10
 prefix: /opt/conda/envs/graphql
