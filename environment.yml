@@ -61,4 +61,5 @@ dependencies:
     - rx==1.6.1
     - typing==3.6.4
     - yarl==1.2.4
+    - async_generator==1.10
 prefix: /opt/conda/envs/graphql
