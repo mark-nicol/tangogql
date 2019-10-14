@@ -1,4 +1,5 @@
 import asyncio
+import PyTango
 from tango import EventType, DevFailed
 from tango import GreenMode
 from tango import DeviceProxy
@@ -73,7 +74,7 @@ class Attribute:
                         logger.debug(f"{self.name} Polling loop")
                         # Read attribute
                         read = await self.device_proxy.read_attribute(
-                            self.attr
+                            self.attr, extract_as=PyTango.ExtractAs.List
                         )
                         self._notify_listeners(read)
                     except DevFailed:
