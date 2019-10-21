@@ -1,0 +1,30 @@
+*.py[cod]
+*.egg-info
+*.eggs
+.ipynb_checkpoints
+
+build
+dist
+.cache
+__pycache__
+.pytest_cache
+
+htmlcov
+.coverage
+coverage.xml
+.pytest_cache
+
+# ide
+.idea
+.eclipse
+.vscode
+
+# dirs to exclude
+CI
+docs
+ska
+
+Dockerfile
+Dockerfile-test
+.gitlab-ci.yml
+.gitignore

@@ -1,0 +1,48 @@
+#[[source]]
+#url = 'https://nexus.engageska-portugal.pt/repository/pypi/simple'
+#verify_ssl = true
+#name = 'nexus'
+
+[[source]]
+url = 'https://pypi.python.org/simple'
+verify_ssl = true
+name = 'pypi'
+
+[packages]
+# numpy and pytango versions must match those in the ska-python-builder image,
+# otherwise pytango will be recompiled.
+pytango = "==9.3.1"
+numpy = "==1.17.2"
+
+aiohttp = "*"
+aiohttp-cors = "*"
+aniso8601 = "*"
+async_generator = "*"
+async-timeout = "*"
+attrs = "*"
+bson = "*"
+chardet = "*"
+cython = "*"
+graphene = "*"
+graphql-core = "*"
+graphql-relay = "*"
+graphql-ws = "*"
+idna = "*"
+idna-ssl = "*"
+multidict = "*"
+promise = "*"
+PyJWT = "*"
+python-dateutil = "*"
+rx = "<2"
+yarl = "*"
+
+[dev-packages]
+aiohttp-devtools = "*"
+pytest = "*"
+
+## If you want to debug devices running in containers, add pydevd to the dependencies
+# pydevd = "*"
+# ptvsd = "*"
+
+[requires]
+python_version = "3.7"
