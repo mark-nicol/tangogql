@@ -10,12 +10,13 @@
 # #   tags: [maxiv-centos7]
 
 
-# build_image:
-#   stage: build
-#   script:
-#     - docker build . -t docker.maxiv.lu.se/graphql
-#   only:
-#     - master
+build_image:
+  stage: build
+  script:
+    - docker build . -t docker.maxiv.lu.se/graphql
+    - docker push docker.maxiv.lu.se/graphql
+  only:
+    - master
 
 # # unit_test:
 # #  stage: test
@@ -25,32 +26,19 @@
 # #  only:
 # #    - master
 
-# deploy_image:
-#   stage: deploy
-#   script:
-#   - docker push docker.maxiv.lu.se/graphql
-#   - "curl -H 'Authorization: Bearer gOj9o8s3RapHiThfNbImaFYMDoOKTG' -k --request POST https://ansible.maxiv.lu.se/api/v2/job_templates/6/launch/"
-#   only:
-#     - master
+### DEVELOP ###
 
-image: continuumio/miniconda3
-
-pages:
+build_image_develop:
+  stage: build
   script:
-  - apt-get update
-  - apt-get -y install build-essential
-  - conda update -n base conda
-  - conda env create --name tangogql python=3.6 --file=environment.yml
-  - source activate tangogql
-  - git clone https://gitlab.com/MaxIV/python3-taurus-core
-  - cd python3-taurus-core && python setup.py install
-  - pip install sphinx
-  - pip install sphinx_rtd_theme
-  - cd ../docs
-  - make html
-  - mv build/html/ ../public/
-  artifacts:
-    paths:
-    - public
+    - docker build . -t docker.maxiv.lu.se/graphql-test
+    - docker push docker.maxiv.lu.se/graphql-test
   only:
-  - master
+    - develop
+
+deploy_image_develop:
+  stage: deploy
+  script:
+  - 'curl -H "Authorization: Bearer $AWX_TOKEN" -XPOST https://ansible.maxiv.lu.se/api/v2/job_templates/49/launch/'
+  only:
+    - develop

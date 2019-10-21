@@ -6,7 +6,7 @@ A simple caching layer on top of a TANGO database.
 
 from collections import OrderedDict
 
-import PyTango
+from tango import Database, DeviceProxy, GreenMode
 
 from tangogql.ttldict import TTLDict
 
@@ -29,7 +29,7 @@ class CachedMethod(object):
 class CachedDatabase(object):
     """A TANGO database wrapper that caches 'get' methods."""
 
-    _db = PyTango.Database()
+    _db = Database()
     _methods = {}
 
     def __init__(self, ttl):
@@ -62,7 +62,7 @@ class DeviceProxyCache(object):
             self._device_proxies[devname] = proxy  # putting it first
             return proxy
         # Unknown device; let's create a new proxy
-        proxy = PyTango.DeviceProxy(devname)
+        proxy = DeviceProxy(devname, green_mode=GreenMode.Asyncio)
         if len(self._device_proxies) == self.max_proxies:
             # delete the oldest proxy last = False means FIFO
             self._device_proxies.popitem(last=False)

@@ -70,7 +70,7 @@ class TestDeviceClass(object):
                     assert value is None
                 else:
                     assert isinstance(value, (int, float, str))
-            elif key != 'value':
+            elif key not in ['value', 'writevalue'] :
                 assert isinstance(value, str)
             else:
                 assert isinstance(value, (int, float))
@@ -105,6 +105,12 @@ class TestDeviceClass(object):
         assert "host" in result
         for key, value in result.items():
             assert isinstance(value, str)
+
+    def test_device_resolve_class(self, client):
+        result = client.execute(queries.device_class)
+        assert 'devices' in result
+        result = result['devices'][0]
+        assert isinstance(result['deviceClass'], str)
 
     def test_device_resolve_pid(self, client):
         result = client.execute(queries.device_pid)

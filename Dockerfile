@@ -1,37 +1,22 @@
-############################################################
-# Dockerfile to build a deployment container for mtango-py
-# Based on Ubuntu and miniconda
-############################################################
+FROM continuumio/miniconda3:4.5.12
+EXPOSE 5004
 
-# To build an image, e.g.:
-# $ docker build . -t docker.maxiv.lu.se/graphql
-#
-# To run it, e.g.:
-# $ docker run -d -p 5004:5004  -e TANGO_HOST=w-v-kitslab-csdb-0:10000 --name=graphql docker.maxiv.lu.se/graphql
-
-FROM continuumio/miniconda3
+SHELL ["/bin/bash", "-c"]
 
 RUN apt-get update && \
-    apt-get -y install build-essential
+    apt-get -y install build-essential && \
+    apt-get clean
 
 COPY environment.yml /tmp/environment.yml
 
 RUN conda update -n base conda && \
-    conda env create --name graphql python=3.6 --file=/tmp/environment.yml
+    conda env create --name graphql python=3.6 --file=/tmp/environment.yml && \
+    conda clean -a -y
 
-# Install pytango without specifying version:
-RUN /bin/bash -c "source activate graphql && conda install pytango -c tango-controls"
-COPY requirements.txt /tmp/requirements.txt
-RUN /bin/bash -c "source activate graphql && pip install -r /tmp/requirements.txt"
+WORKDIR /tangogql
+COPY . .
 
-RUN git clone https://gitlab.com/MaxIV/python3-taurus-core.git
-WORKDIR python3-taurus-core
-RUN  /bin/bash -c "source activate graphql && python setup.py install"
+ENV PYTHONUNBUFFERED 1
+ENV PYTANGO_GREEN_MODE asyncio
 
-COPY . web-maxiv-graphql
-WORKDIR web-maxiv-graphql
-
-# run the web service
-EXPOSE 5004
-
-CMD  /bin/bash -c "source activate graphql && python -m tangogql"
+CMD source activate graphql && python -m tangogql

@@ -2,33 +2,21 @@
 
 import PyTango
 import logging
+import asyncio
 
-from graphene import ObjectType, Mutation, String, Boolean, List
-from graphql import GraphQLError
-
+from datetime import datetime 
+from graphene import ObjectType, Mutation, String, Boolean, List, Field
 from tangogql.schema.base import db, proxies
 from tangogql.schema.types import ScalarTypes
-
+from tangogql.schema.attribute import DeviceAttribute, collaborative_read_attribute
+from tangogql.schema.log import ExcuteCommandUserAction
+from tangogql.schema.log import SetAttributeValueUserAction
+from tangogql.schema.log import PutDevicePropertyUserAction
+from tangogql.schema.log import DeleteDevicePropertyUserAction
+from tangogql.auth import authorization, authentication
 logger = logging.getLogger('logger')
 
-def _is_authorized(info):
-    # AT2-43 Stub the Authentication for MVP 
-    # TODO need proper Tango authorization
-
-
-    # if info.context == None:
-    #     return False
-
-    # if "user" not in info.context:
-    #     return False
-
-    # if info.context["user"] == None:
-    #     return False
-
-    return True
-
-class UserUnauthorizedException(GraphQLError):
-    pass
+from tangogql.schema.log import user_actions
 
 class ExecuteDeviceCommand(Mutation):
     """This class represent a mutation for executing a command."""
@@ -41,8 +29,9 @@ class ExecuteDeviceCommand(Mutation):
     ok = Boolean()
     message = List(String)
     output = ScalarTypes()
-
-    def mutate(self, info, device, command, argin=None):
+    @authentication
+    @authorization
+    async def mutate(self, info, device, command, argin=None):
         """ This method executes a command.
 
         :param device: Name of the device that the command will be executed.
@@ -61,17 +50,21 @@ class ExecuteDeviceCommand(Mutation):
                  message = error_message.
         :rtype: ExecuteDeviceCommand
         """
-
-        if _is_authorized(info) == False:
-            raise UserUnauthorizedException("User Unathorized")
-
-        logger.info("MUTATION - ExecuteDeviceCommand - User: {}, Device: {}, Command: {}, Argin: {}".format(info.context["user"], device, command, argin))
-
+        
+        logger.info("MUTATION - ExecuteDeviceCommand - User: {}, Device: {}, Command: {}, Argin: {}".format(info.context["client"].user, device, command, argin))
+        log = ExcuteCommandUserAction(
+                                        timestamp = datetime.now(), 
+                                        user = info.context["client"].user,
+                                        device = device,
+                                        name = command,
+                                        argin = argin
+                                    )
+        user_actions.put(log)
         if type(argin) is ValueError:
             return ExecuteDeviceCommand(ok=False, message=[str(argin)])
         try:
             proxy = proxies.get(device)
-            result = proxy.command_inout(command, argin)
+            result = await proxy.command_inout(command, argin)
             return ExecuteDeviceCommand(ok=True,
                                         message=["Success"],
                                         output=result)
@@ -93,8 +86,11 @@ class SetAttributeValue(Mutation):
 
     ok = Boolean()
     message = List(String)
+    attribute = Field(DeviceAttribute)
 
-    def mutate(self, info, device, name, value):
+    @authentication
+    @authorization
+    async def mutate(self, info, device, name, value):
         """ This method sets value to an attribute.
 
         :param device: Name of the device
@@ -112,24 +108,41 @@ class SetAttributeValue(Mutation):
                  message = error_message.
         :rtype: SetAttributeValue
         """
-
-        if _is_authorized(info) == False:
-            raise UserUnauthorizedException("User Unathorized")
-
-        logger.info("MUTATION - SetAttributeValue - User: {}, Device: {}, Attribute: {}, Value: {}".format(info.context["user"], device, name, value))
-
+      
+        logger.info("MUTATION - SetAttributeValue - User: {}, Device: {}, Attribute: {}, Value: {}".format(info.context["client"].user, device, name, value))
+        
         if type(value) is ValueError:
-            return SetAttributeValue(ok=False, message=[str(value)])
+            return SetAttributeValue(ok=False, message=[str(value)], attribute=None)
         try:
             proxy = proxies.get(device)
-            proxy.write_attribute(name, value)
-            return SetAttributeValue(ok=True, message=["Success"])
+            before = await collaborative_read_attribute(proxy,name)
+            read_coro = proxy.write_read_attribute(name, value)
+            read_fut = asyncio.ensure_future(read_coro)
+            result = await read_fut
+
+            log = SetAttributeValueUserAction(
+                                            timestamp = datetime.now(), 
+                                            user = info.context["client"].user,
+                                            device = device,
+                                            name = name,
+                                            value = value,
+                                            value_before = before.value,
+                                            value_after = result.value
+                                        )
+            user_actions.put(log)
+
+            return SetAttributeValue(ok=True, message=["Success"], attribute=DeviceAttribute(
+                name=name,
+                device=device,
+                _attr_read=read_fut
+            ))
+
         except (PyTango.DevFailed, PyTango.ConnectionFailed,
                 PyTango.CommunicationFailed, PyTango.DeviceUnlocked) as error:
             e = error.args[0]
-            return SetAttributeValue(ok=False, message=[e.desc, e.reason])
+            return SetAttributeValue(ok=False, message=[e.desc, e.reason], attribute=None)
         except Exception as e:
-            return SetAttributeValue(ok=False, message=[str(e)])
+            return SetAttributeValue(ok=False, message=[str(e)], attribute=None)
 
 
 class PutDeviceProperty(Mutation):
@@ -144,6 +157,8 @@ class PutDeviceProperty(Mutation):
     ok = Boolean()
     message = List(String)
 
+    @authentication
+    @authorization
     def mutate(self, info, device, name, value=""):
         """ This method adds property to a device.
 
@@ -160,23 +175,28 @@ class PutDeviceProperty(Mutation):
                  message = error_message.
         :rtype: PutDeviceProperty
         """
-
-        if _is_authorized(info) == False:
-            raise UserUnauthorizedException("User Unathorized")
-
-        logger.info("MUTATION - PutDeviceProperty - User: {}, Device: {}, Name: {}, Value: {}".format(info.context["user"], device, name, value))
-
+        
+        logger.info("MUTATION - PutDeviceProperty - User: {}, Device: {}, Name: {}, Value: {}".format(info.context["client"].user, device, name, value))
         # wait = not args.get("async")
         try:
+            
             db.put_device_property(device, {name: value})
+            log = PutDevicePropertyUserAction(
+                                            timestamp = datetime.now(), 
+                                            user = info.context["client"].user,
+                                            device = device,
+                                            name = name,
+                                            value = value
+                                        )
+            user_actions.put(log)
             return PutDeviceProperty(ok=True, message=["Success"])
         except (PyTango.DevFailed, PyTango.ConnectionFailed,
                 PyTango.CommunicationFailed, PyTango.DeviceUnlocked) as error:
             e = error.args[0]
-            return SetAttributeValue(ok=False, message=[e.desc, e.reason])
+            return PutDeviceProperty(ok=False, message=[e.desc, e.reason])
         except Exception as e:
-            return SetAttributeValue(ok=False, message=[str(e)])
-
+            return PutDeviceProperty(ok=False, message=[str(e)])
+        
 
 class DeleteDeviceProperty(Mutation):
     """This class represents mutation for deleting property of a device."""
@@ -188,6 +208,8 @@ class DeleteDeviceProperty(Mutation):
     ok = Boolean()
     message = List(String)
 
+    @authentication
+    @authorization
     def mutate(self, info, device, name):
         """This method delete a property of a device.
 
@@ -201,14 +223,18 @@ class DeleteDeviceProperty(Mutation):
                  If exception has been raised returns message = error_message.
         :rtype: DeleteDeviceProperty
         """
-
-        if _is_authorized(info) == False:
-            raise UserUnauthorizedException("User Unathorized")
-
-        logger.info("MUTATION - DeleteDeviceProperty - User: {}, Device: {}, Name: {}".format(info.context["user"], device, name))
-
-        try:
+        logger.info("MUTATION - DeleteDeviceProperty - User: {}, Device: {}, Name: {}".format(info.context["client"].user, device, name))
+        
+        try: 
             db.delete_device_property(device, name)
+            log = DeleteDevicePropertyUserAction(
+                                            timestamp = datetime.now(), 
+                                            user = info.context["client"].user,
+                                            device = device,
+                                            name = name
+                                        )
+            user_actions.put(log)
+
             return DeleteDeviceProperty(ok=True, message=["Success"])
         except (PyTango.DevFailed, PyTango.ConnectionFailed,
                 PyTango.CommunicationFailed, PyTango.DeviceUnlocked) as error:
@@ -216,12 +242,12 @@ class DeleteDeviceProperty(Mutation):
             return DeleteDeviceProperty(ok=False, message=[e.desc, e.reason])
         except Exception as e:
             return DeleteDeviceProperty(ok=False, message=[str(e)])
-
-
-class DatabaseMutations(ObjectType):
+        
+class Mutations(ObjectType):
     """This class contains all the mutations."""
 
     put_device_property = PutDeviceProperty.Field()
     delete_device_property = DeleteDeviceProperty.Field()
     setAttributeValue = SetAttributeValue.Field()
     execute_command = ExecuteDeviceCommand.Field()
+

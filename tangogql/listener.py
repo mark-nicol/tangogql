@@ -2,8 +2,8 @@
 
 from asyncio import QueueFull
 import numpy as np
-from taurus import Attribute
-from taurus.core.taurusbasetypes import TaurusEventType
+# from taurus import Attribute
+# from taurus.core.taurusbasetypes import TaurusEventType
 import PyTango
 
 # Manager().changeDefaultPollingPeriod(1000)
@@ -48,49 +48,49 @@ def format_config_event(evt):
 
 
 # Based on code from the taurus-web project
-class TaurusWebAttribute(object):
+# class TaurusWebAttribute(object):
 
-    def __init__(self, name, keeper):
-        self.name = name
-        self.keepers = [keeper]
-        self._last_time = 0
-        self.last_value_event = None
-        self.last_config_event = None
-        self.attribute = Attribute(self.name)
-        self.attribute.addListener(self)
+#     def __init__(self, name, keeper):
+#         self.name = name
+#         self.keepers = [keeper]
+#         self._last_time = 0
+#         self.last_value_event = None
+#         self.last_config_event = None
+#         self.attribute = Attribute(self.name)
+#         self.attribute.addListener(self)
 
-    def eventReceived(self, evt_src, evt_type, evt_value):
+#     def eventReceived(self, evt_src, evt_type, evt_value):
 
-        # print(evt_value)
+#         # print(evt_value)
 
-        if evt_type == TaurusEventType.Error:
-            action = "ERROR"
-            value = error_str(evt_value)
-        else:
-            if evt_type == TaurusEventType.Config:
-                action = "CONFIG"
-                value = format_config_event(evt_src)
-                self.last_config_event = value
-            else:
-                self._last_time = evt_value.time.tv_sec
-                action = "CHANGE"
-                value = format_value_event(evt_value)
-                self.last_value_event = value
+#         if evt_type == TaurusEventType.Error:
+#             action = "ERROR"
+#             value = error_str(evt_value)
+#         else:
+#             if evt_type == TaurusEventType.Config:
+#                 action = "CONFIG"
+#                 value = format_config_event(evt_src)
+#                 self.last_config_event = value
+#             else:
+#                 self._last_time = evt_value.time.tv_sec
+#                 action = "CHANGE"
+#                 value = format_value_event(evt_value)
+#                 self.last_value_event = value
 
-        # self.callback(self.name, {"type": action, "data": {self.name: value}})
-        # event = {"type": action, "data": value}
-        try:
-            for keeper in self.keepers:
-                keeper.put(self.name, action, value)
-        except QueueFull:
-            print("Queue full!")
-        # print(event)
+#         # self.callback(self.name, {"type": action, "data": {self.name: value}})
+#         # event = {"type": action, "data": value}
+#         try:
+#             for keeper in self.keepers:
+#                 keeper.put(self.name, action, value)
+#         except QueueFull:
+#             print("Queue full!")
+#         # print(event)
 
-    def addKeeper(self,keeper):
-        self.keepers.append(keeper)
+#     def addKeeper(self,keeper):
+#         self.keepers.append(keeper)
 
-    def removeKeeper(self,keeper):
-        self.keepers.remove(keeper)
+#     def removeKeeper(self,keeper):
+#         self.keepers.remove(keeper)
 
-    def clear(self):
-        self.attribute.removeListener(self)
+#     def clear(self):
+#         self.attribute.removeListener(self)
